@@ -1,2 +1,0 @@
-//blablablaaaaa
-//chňaaaaaa
