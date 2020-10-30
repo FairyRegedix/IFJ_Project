@@ -1,3 +1,7 @@
+// IFJ2020
+
+
+
 #include <stdio.h>
 
 typedef enum error{
