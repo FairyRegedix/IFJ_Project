@@ -1,4 +1,4 @@
-
+#include "str.h"
 
 typedef enum{
     TOKEN_ERROR=-1,
@@ -6,7 +6,6 @@ typedef enum{
     TOKEN_BOOL,
     TOKEN_TRUE,
     TOKEN_FALSE,
-
     TOKEN_ELSE,
     TOKEN_FLOAT64,
     TOKEN_FOR,
@@ -16,9 +15,9 @@ typedef enum{
     TOKEN_PACKAGE,
     TOKEN_RETURN,
     TOKEN_STRING,
-    TOKEN_UNDERSCORE,
     //-----------
 
+    TOKEN_UNDERSCORE,
     TOKEN_ID,
     TOKEN_RBRACKET,
     TOKEN_LBRACKET,
@@ -47,4 +46,26 @@ typedef enum{
     TOKEN_GT,
     TOKEN_LTE,
     TOKEN_GTE
-} TOKEN_TYPE;
+} token_type;
+
+typedef struct{
+    token_type type;
+    string actual_value; //storing int,float,string value
+    int lineno; //line number
+    int pos; //position of the first char of the token
+}token;
+
+
+#define IS_KEYWORD(token)  ((token).type == TOKEN_BOOL || \
+                            (token).type == TOKEN_TRUE || \
+                            (token).type == TOKEN_FALSE || \
+                            (token).type == TOKEN_ELSE || \
+                            (token).type == TOKEN_FLOAT64 || \
+                            (token).type == TOKEN_FOR || \
+                            (token).type == TOKEN_FUNC || \
+                            (token).type == TOKEN_IF || \
+                            (token).type == TOKEN_INT || \
+                            (token).type == TOKEN_PACKAGE || \
+                            (token).type == TOKEN_RETURN || \
+                            (token).type == TOKEN_STRING  || )
+
