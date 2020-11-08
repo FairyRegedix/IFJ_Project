@@ -1,4 +1,6 @@
 //jednoducha knihovna pro praci s nekonecne dlouhymi retezci
+//kniznica je prevzata zo vzoroveho projektu "Zjednodusenej implementacie interpretu jednoducheho jazyka"
+
 #include <string.h>
 #include <malloc.h>
 #include "str.h"
