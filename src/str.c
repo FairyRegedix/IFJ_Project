@@ -15,8 +15,11 @@ int str_init(string *s){
 }
 
 void str_free(string *s){
+    if(s->str == NULL) return;
     free(s->str);
-    s->str = NULL;
+    s->str = NULL; //not initialized state
+    s->len = -1; //not initialized state
+    s->size= 0; //not initialized state
 }
 
 void str_reinit(string *s){
@@ -42,12 +45,13 @@ string* c_str_to_str(const char* s){
 
     char c;
     int i = 0;
-    string* str;
+    string* str = NULL;
     str_init(str);
     while((c = s[i++]) != '\0'){
         if(str_add_char(str,c) != SUCCESS)
             return NULL;
     }
+    return str;
 }
 
 int str_copy(string *s1, const string *s2){
