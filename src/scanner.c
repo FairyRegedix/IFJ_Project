@@ -4,12 +4,43 @@
 #include "error.h"
 #include "libraries.h"
 
+// pomocna
+bool end = false;
 
+void getToken(FILE *f, int *type, string *actual_value){
+  int token;
+}
 
+void getNextToken(){
+  
+}
+
+case STATE_START:
+if (c = EOL){
+  *type = TOKEN_EOL;
+}
+if (c = '+'){
+  *type = TOKEN_ADD;
+}
+if (c = '-'){
+  *type = TOKEN_SUB;
+}
+if (c = '*'){
+  *type = TOKEN_MUL;
+}
+if (c = '/'){
+  *type = TOKEN_DIV;
+}
+if (c = '='){
+  *type = TOKEN_EQL;
+}
+if (c = '!''='){
+  *type = TOKEN_NEQ;
+}
 
 
 switch(c){
-  //Komentare
+  //komentare
   case '/':
   c = fgetc(f);
   //riadkovy Komentar
@@ -17,5 +48,11 @@ switch(c){
     while(c != EOL){
       c = fgetc(f);
     }
+    return token;
+  }
+  //blokovy komentar
+  else if (c == '*'){
+    c = fgetc(f);
+
   }
 }
