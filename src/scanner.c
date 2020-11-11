@@ -73,7 +73,7 @@ while(true){
     *type = TOKEN_SEMICOLON;
     break;
 
-    //komentare
+
     case '/':
     c = fgetc(f);
     //riadkovy Komentar
@@ -94,6 +94,12 @@ while(true){
           }
         }
       }
+    }
+    // /
+    else{
+      ungetc(c,f);
+      *type = TOKEN_DIV;
+      break;
     }
 
     case '>' :
@@ -139,5 +145,8 @@ while(true){
       break;
 
     }
+
+
+
 
 }
