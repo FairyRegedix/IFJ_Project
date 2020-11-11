@@ -43,19 +43,20 @@ typedef enum{
     TOKEN_MUL = 33, // *
     TOKEN_DIV = 34, // /
     TOKEN_EQL = 35, // ==
-    TOKEN_NEQ = 36, // =!
+    TOKEN_NEQ = 36, // !=
     TOKEN_LT = 37, // <
     TOKEN_GT = 38, // >
     TOKEN_LTE = 39, // <=
     TOKEN_GTE = 40, // >=
     TOKEN_DOT = 41, // .
+    TOKEN_LOG = 42, // <>
+    TOKEN_LOGE = 43, // <>=
 
 } token_type;
 
 
 
-void getToken(FILE *f, int *type, string *actual_value);
-void getNextToken();
+token getToken(FILE *f, int *type, string *actual_value);
 
 
 
