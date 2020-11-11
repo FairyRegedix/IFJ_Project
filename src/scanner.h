@@ -1,5 +1,7 @@
 #include "str.h"
 
+
+//types of token
 typedef enum{
     TOKEN_ERROR = -1,
     //Keywords
@@ -23,12 +25,12 @@ typedef enum{
     TOKEN_LBRACKET = 16, // )
     TOKEN_RCURLY = 17, // }
     TOKEN_LCURLY = 18, // {
-    TOKEN_COMMA = 19,
-    TOKEN_SEMICOLON = 20,
+    TOKEN_COMMA = 19, // ,
+    TOKEN_SEMICOLON = 20, // ;
     TOKEN_EOL = 21, // eol
     TOKEN_EOF = 22, // eof
     TOKEN_DEFINITION = 23,
-    TOKEN_ASSIGN = 24,
+    TOKEN_ASSIGN = 24, // =
     TOKEN_INTEGER = 25, // int
     TOKEN_FLOAT = 26, // float
     TOKEN_STR = 27, // str
@@ -40,17 +42,24 @@ typedef enum{
     TOKEN_SUB = 32, // -
     TOKEN_MUL = 33, // *
     TOKEN_DIV = 34, // /
-    TOKEN_EQL = 35, // =
-    TOKEN_NEQ = 36, // !=
+    TOKEN_EQL = 35, // ==
+    TOKEN_NEQ = 36, // =!
     TOKEN_LT = 37, // <
     TOKEN_GT = 38, // >
     TOKEN_LTE = 39, // <=
     TOKEN_GTE = 40, // >=
+    TOKEN_DOT = 41, // .
+
 } token_type;
+
+
 
 void getToken(FILE *f, int *type, string *actual_value);
 void getNextToken();
 
+
+
+//token
 typedef struct{
     token_type type;
     string actual_value; //storing int,float,string value
@@ -59,6 +68,8 @@ typedef struct{
 }token;
 
 
+
+//check the keyword
 #define IS_KEYWORD(token)  ((token).type == TOKEN_BOOL || \
                             (token).type == TOKEN_TRUE || \
                             (token).type == TOKEN_FALSE || \
