@@ -25,32 +25,51 @@ if (symbol != 0){
   }
 }
 
-
-case STATE_START:
-if (c = EOL){
-  *type = TOKEN_EOL;
-}
-if (c = '+'){
-  *type = TOKEN_ADD;
-}
-if (c = '-'){
-  *type = TOKEN_SUB;
-}
-if (c = '*'){
-  *type = TOKEN_MUL;
-}
-if (c = '/'){
-  *type = TOKEN_DIV;
-}
-if (c = '='){
-  *type = TOKEN_EQL;
-}
-if (c = '!''='){
-  *type = TOKEN_NEQ;
-}
-
-
 switch(c){
+  case EOF:
+  *type = TOKEN_EOL;
+  return;
+
+  case '+' :
+  *type = TOKEN_ADD;
+  return;
+
+  case '-' :
+  *type = TOKEN_SUB;
+  return;
+
+  case '*' :
+  *type = TOKEN_MUL;
+  return;
+
+  case '(' :
+  *type = TOKEN_LBRACKET;
+  return;
+
+  case ')' :
+  *type = TOKEN_RBRACKET;
+  return;
+
+  case '{' :
+  *type = TOKEN_LCURLY;
+  return;
+
+  case '}' :
+  *type = TOKEN_RCURLY;
+  return;
+
+  case ',' :
+  *type = TOKEN_COMMA;
+  return;
+
+  case '.' :
+  *type = TOKEN_DOT;
+  return;
+
+ case ';' :
+  *type = TOKEN_SEMICOLON;
+  return;
+
   //komentare
   case '/':
   c = fgetc(f);
