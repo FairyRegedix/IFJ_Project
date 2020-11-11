@@ -8,7 +8,7 @@
 bool end = false;
 int symbol;
 
-void getToken(FILE *f, int *type, string *actual_value){
+void getToken(int *type, string *actual_value){
   int token;
 }
 
@@ -16,16 +16,17 @@ void getNextToken(){
 
 }
 
-//vynecha biele znaky
-symbol = isspace(c);
-if (symbol != 0){
-  if(c == EOF){
-    *type = TOKEN_EOF;
-    return;
-  }
-}
 while(true){
-  c = fgetc(f);
+  c = fgetc(stdin);
+
+  //vynecha biele znaky
+  symbol = isspace(c);
+  if (symbol != 0){
+    if(c == EOF){
+      *type = TOKEN_EOF;
+      return;
+    }
+  }
 
   switch(c){
     // EOF
@@ -75,20 +76,20 @@ while(true){
 
 
     case '/':
-    c = fgetc(f);
+    c = fgetc(stdin);
     //riadkovy Komentar
     if(c == '/'){
       while(c != EOL || c != EOF){
-        c = fgetc(f);
+        c = fgetc(stdin);
       }
       break;
     }
     //blokovy komentar
     else if (c == '*'){
       while(c != EOF){
-        c = fgetc(f);
+        c = fgetc(stdin);
         if (c == '*'){
-          c = fgetc(f);
+          c = fgetc(stdin);
           if (c == '/'){
             break;
           }
@@ -97,13 +98,13 @@ while(true){
     }
     // /
     else{
-      ungetc(c,f);
+      ungetc(c,stdin);
       *type = TOKEN_DIV;
       break;
     }
 
     case '>' :
-    c = fgetc(f);
+    c = fgetc(stdin);
     // >=
     if (c == '='){
       *type = TOKEN_GTE;
@@ -111,13 +112,13 @@ while(true){
     }
     // >
     else{
-      ungetc(c,f);
+      ungetc(c,stdin);
       *type = TOKEN_GT;
       break;
     }
 
     case '<' :
-    c = fgetc(f);
+    c = fgetc(stdin);
     // <=
     if (c == '='){
       *type = TOKEN_LTE;
@@ -125,14 +126,14 @@ while(true){
     }
     // <
     else{
-      ungetc(c,f);
+      ungetc(c,stdin);
       *type = TOKEN_LT;
       break;
     }
 
 
     case '=' :
-    c = fgetc(f);
+    c = fgetc(stdin);
     // ==
     if (c == '='){
       *type = TOKEN_EQL;
@@ -140,7 +141,7 @@ while(true){
     }
     // =
     else {
-      ungetc(c,f);
+      ungetc(c,stdin);
       *type = TOKEN_ASSIGN;
       break;
 
@@ -148,7 +149,7 @@ while(true){
 
 
     case '!' :
-    c = fgetc(f);
+    c = fgetc(stdin);
     // !=
     if (c == '='){
       *type = TOKEN_NEQ;
@@ -162,13 +163,97 @@ while(true){
     case '"' :
     //string
     while(c != EOF || c != EOL || c != '"'){
-          c = fgetc(f);
+          c = fgetc(stdin);
           if (c == '"'){
             *type = TOKEN_STRING;
             break;
           }
+    }
+    //miesto na dokoncenie stringu
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //miesto na dalsie case
+
+
+    int isKeyword(char *tmp){
+      if (strcmp(tmp, "if") == 0){
+        *type = TOKEN_IF;
+        break;
+      }
+      else if (strcmp(tmp, "else") == 0){
+        *type = TOKEN_ELSE;
+        break;
+      }
+      else if (strcmp(tmp, "package") == 0){
+        *type = TOKEN_PACKAGE;
+        break;
+      }
+      else if (strcmp(tmp, "return") == 0){
+        *type = TOKEN_RETURN;
+        break;
+      }
+      else if (strcmp(tmp, "for") == 0){
+        *type = TOKEN_FOR;
+        break;
+      }
+      else if (strcmp(tmp, "func") == 0){
+        *type = TOKEN_FUNC;
+        break;
+      }
+      else if (strcmp(tmp, "print") == 0){
+        *type = TOKEN_PRINT;
+        break;
+      }
+      else if (strcmp(tmp, "while") == 0){
+        *type = TOKEN_WHILE;
+        break;
+      }
+      else if (strcmp(tmp, "inputi") == 0){
+        *type = TOKEN_INPUTI;
+        break;
+      }
+      else if (strcmp(tmp, "inputs") == 0){
+        *type = TOKEN_INPUTS;
+        break;
+      }
+      else if (strcmp(tmp, "len") == 0){
+        *type = TOKEN_LEN;
+        break;
+      }
+      else if (strcmp(tmp, "substr") == 0){
+        *type = TOKEN_SUBSTR;
+        break;
+      }
+      else if (strcmp(tmp, "ord") == 0){
+        *type = TOKEN_ORD;
+        break;
+      }
+      else if (strcmp(tmp, "chr") == 0){
+        *type = TOKEN_CHR;
+        break;
+      }
+      else if (strcmp(tmp, "inputb") == 0){
+        *type = TOKEN_INPUTB;
+        break;
+      }
+      else if (strcmp(tmp, "inputf") == 0){
+        *type = TOKEN_INPUTF;
+        break;
+      }
+      //miesto na dalsie keywordy
     }
 
 }
