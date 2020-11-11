@@ -147,6 +147,28 @@ while(true){
     }
 
 
+    case '!' :
+    c = fgetc(f);
+    // !=
+    if (c == '='){
+      *type = TOKEN_NEQ;
+      break;
+    }
+    else{
+      *type = ERROR_LEX;
+      break;
+    }
 
+    case '"' :
+    //string
+    while(c != EOF || c != EOL || c != '"'){
+          c = fgetc(f);
+          if (c == '"'){
+            *type = TOKEN_STRING;
+            break;
+          }
+
+
+    }
 
 }
