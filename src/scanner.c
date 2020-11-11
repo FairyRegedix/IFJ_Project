@@ -94,8 +94,50 @@ while(true){
           }
         }
       }
+    }
 
+    case '>' :
+    c = fgetc(f);
+    // >=
+    if (c == '='){
+      *type = TOKEN_GTE;
+      break;
+    }
+    // >
+    else{
+      ungetc(c,f);
+      *type = TOKEN_GT;
+      break;
+    }
+
+    case '<' :
+    c = fgetc(f);
+    // <=
+    if (c == '='){
+      *type = TOKEN_LTE;
+      break;
+    }
+    // <
+    else{
+      ungetc(c,f);
+      *type = TOKEN_LT;
+      break;
+    }
+
+
+    case '=' :
+    c = fgetc(f);
+    // ==
+    if (c == '='){
+      *type = TOKEN_EQL;
+      break;
+    }
+    // =
+    else {
+      ungetc(c,f);
+      *type = TOKEN_ASSIGN;
+      break;
 
     }
-  }
+
 }
