@@ -17,6 +17,16 @@ typedef enum{
     TOKEN_PACKAGE = 10,
     TOKEN_RETURN = 11,
     TOKEN_STRING = 12,
+    TOKEN_PRINT = 44,
+    TOKEN_WHILE = 45,
+    TOKEN_INPUTI = 46,
+    TOKEN_INPUTS = 47,
+    TOKEN_LEN = 48,
+    TOKEN_SUBSTR = 49,
+    TOKEN_ORD = 50,
+    TOKEN_CHR = 51,
+    TOKEN_INPUTB = 52,
+    TOKEN_INPUTF = 53,
     //-----------
 
     TOKEN_UNDERSCORE = 13,
@@ -56,7 +66,8 @@ typedef enum{
 
 
 
-token getToken(FILE *f, int *type, string *actual_value);
+token getToken(int *type, string *actual_value);
+int isKeyword(char *tmp);
 
 
 
