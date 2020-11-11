@@ -24,65 +24,78 @@ if (symbol != 0){
     return;
   }
 }
-
-switch(c){
-  case EOF:
-  *type = TOKEN_EOL;
-  return;
-
-  case '+' :
-  *type = TOKEN_ADD;
-  return;
-
-  case '-' :
-  *type = TOKEN_SUB;
-  return;
-
-  case '*' :
-  *type = TOKEN_MUL;
-  return;
-
-  case '(' :
-  *type = TOKEN_LBRACKET;
-  return;
-
-  case ')' :
-  *type = TOKEN_RBRACKET;
-  return;
-
-  case '{' :
-  *type = TOKEN_LCURLY;
-  return;
-
-  case '}' :
-  *type = TOKEN_RCURLY;
-  return;
-
-  case ',' :
-  *type = TOKEN_COMMA;
-  return;
-
-  case '.' :
-  *type = TOKEN_DOT;
-  return;
-
- case ';' :
-  *type = TOKEN_SEMICOLON;
-  return;
-
-  //komentare
-  case '/':
+while(true){
   c = fgetc(f);
-  //riadkovy Komentar
-  if(c == '/'){
-    while(c != EOL){
-      c = fgetc(f);
-    }
-    return token;
-  }
-  //blokovy komentar
-  else if (c == '*'){
-    c = fgetc(f);
 
+  switch(c){
+    // EOF
+    case EOF:
+    *type = TOKEN_EOL;
+    break;
+    // +
+    case '+' :
+    *type = TOKEN_ADD;
+    break;
+    // -
+    case '-' :
+    *type = TOKEN_SUB;
+    break;
+    // *
+    case '*' :
+    *type = TOKEN_MUL;
+    break;
+    // (
+    case '(' :
+    *type = TOKEN_LBRACKET;
+    break;
+    // )
+    case ')' :
+    *type = TOKEN_RBRACKET;
+    break;
+    // {
+    case '{' :
+    *type = TOKEN_LCURLY;
+    break;
+    // }
+    case '}' :
+    *type = TOKEN_RCURLY;
+    break;
+    // ,
+    case ',' :
+    *type = TOKEN_COMMA;
+    break;
+    // .
+    case '.' :
+    *type = TOKEN_DOT;
+    break;
+    // ;
+   case ';' :
+    *type = TOKEN_SEMICOLON;
+    break;
+
+    //komentare
+    case '/':
+    c = fgetc(f);
+    //riadkovy Komentar
+    if(c == '/'){
+      while(c != EOL || c != EOF){
+        c = fgetc(f);
+      }
+      break;
+    }
+    //blokovy komentar
+    else if (c == '*'){
+      while(c != EOF){
+        c = fgetc(f);
+        if (c == '*'){
+          c = fgetc(f);
+          if (c == '/'){
+            break;
+          }
+        }
+      }
+
+
+    }
   }
 }
