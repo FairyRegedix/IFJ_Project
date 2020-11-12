@@ -66,7 +66,7 @@ typedef enum{
 
 
 
-token getToken(int *type, string *actual_value);
+void getToken(int *type, string *actual_value);
 int isKeyword(char *tmp);
 
 
@@ -80,7 +80,7 @@ typedef struct{
 }token;
 
 
-
+// ignore this func
 //check the keyword
 #define IS_KEYWORD(token)  ((token).type == TOKEN_BOOL || \
                             (token).type == TOKEN_TRUE || \
