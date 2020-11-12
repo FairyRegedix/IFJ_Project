@@ -40,13 +40,14 @@ st_item* st_item_alloc(int* error_code,const string* key, const item_type type){
     }
     else{
         if((*error_code = st_item_init(item,key,type)) != SUCCESS){
-            free(item)
+            free(item);
             return NULL;
         }
         else
             return item;
     }
 }
+
 int st_item_init(st_item* item, const string* key, const item_type type){
     int error_code;
 
