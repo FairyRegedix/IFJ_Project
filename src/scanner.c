@@ -217,7 +217,7 @@ void getToken(int *type, string *actual_value){
 
 
 //check the keywords
-int isKeyword(int *type, char *tmp){
+void isKeyword(int *type, char *tmp){
   if (strcmp(tmp, "if") == 0){
     *type = TOKEN_IF;   
   }
