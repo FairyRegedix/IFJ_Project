@@ -1,6 +1,7 @@
 #include "str.h"
 #include "libraries.h"
 
+#define EOL '\n'
 
 //types of token
 typedef enum{
@@ -69,7 +70,7 @@ typedef enum{
 
 void getToken(int *type, string *actual_value);
 int getNextToken(token_t *token);
-int isKeyword(char *tmp);
+int isKeyword(int *type, char *tmp);
 
 
 

@@ -16,7 +16,7 @@ int getNextToken(token_t *token){
 
 void getToken(int *type, string *actual_value){
   while(true){
-    c = fgetc(stdin);
+    char c = fgetc(stdin);
 
     //vynecha biele znaky
     symbol = isspace(c);
@@ -217,99 +217,76 @@ void getToken(int *type, string *actual_value){
 
 
 //check the keywords
-int isKeyword(char *tmp){
+int isKeyword(int *type, char *tmp){
   if (strcmp(tmp, "if") == 0){
-    *type = TOKEN_IF;
-    break;
+    *type = TOKEN_IF;   
   }
   else if (strcmp(tmp, "else") == 0){
     *type = TOKEN_ELSE;
-    break;
   }
   else if (strcmp(tmp, "package") == 0){
     *type = TOKEN_PACKAGE;
     printf("[package]");
-    break;
   }
   else if (strcmp(tmp, "return") == 0){
     *type = TOKEN_RETURN;
-    break;
   }
   else if (strcmp(tmp, "for") == 0){
     *type = TOKEN_FOR;
-    break;
   }
   else if (strcmp(tmp, "func") == 0){
     *type = TOKEN_FUNC;
-    break;
   }
   else if (strcmp(tmp, "print") == 0){
     *type = TOKEN_PRINT;
-    break;
   }
   else if (strcmp(tmp, "while") == 0){
     *type = TOKEN_WHILE;
-    break;
   }
   else if (strcmp(tmp, "inputi") == 0){
     *type = TOKEN_INPUTI;
-    break;
   }
   else if (strcmp(tmp, "inputs") == 0){
     *type = TOKEN_INPUTS;
-    break;
   }
   else if (strcmp(tmp, "len") == 0){
     *type = TOKEN_LEN;
-    break;
   }
   else if (strcmp(tmp, "substr") == 0){
     *type = TOKEN_SUBSTR;
-    break;
   }
   else if (strcmp(tmp, "ord") == 0){
     *type = TOKEN_ORD;
-    break;
   }
   else if (strcmp(tmp, "chr") == 0){
     *type = TOKEN_CHR;
-    break;
   }
   else if (strcmp(tmp, "inputb") == 0){
     *type = TOKEN_INPUTB;
-    break;
   }
   else if (strcmp(tmp, "inputf") == 0){
     *type = TOKEN_INPUTF;
-    break;
   }
   else if (strcmp(tmp, "bool") == 0){
     *type = TOKEN_BOOL;
-    break;
   }
   else if (strcmp(tmp, "true") == 0){
     *type = TOKEN_TRUE;
-    break;
   }
   else if (strcmp(tmp, "false") == 0){
     *type = TOKEN_FALSE;
-    break;
   }
   else if (strcmp(tmp, "int") == 0){
     *type = TOKEN_INT;
-    break;
   }
   else if (strcmp(tmp, "float64") == 0){
     *type = TOKEN_FLOAT64;
-    break;
   }
   else if (strcmp(tmp, "string") == 0){
     *type = TOKEN_STRING;
-    break;
   }
   else if (strcmp(tmp, "_") == 0){
     *type = TOKEN_UNDERSCORE;
-    break;
   }
   //miesto na dalsie mozne keywordy
 
