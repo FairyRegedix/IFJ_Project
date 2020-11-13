@@ -163,28 +163,15 @@ void getToken(int *type, string *actual_value){
 
       case '"' :
       //string
-      while(c != EOF || c != EOL || c != '"'){
+      while(c != EOF || c != EOL){
             c = fgetc(stdin);
             if (c == '"'){
               *type = TOKEN_STRING;
               break;
             }
+            return ERROR_LEX;
       }
-      //miesto na dokoncenie stringu
 
-
-
-
-
-
-
-
-
-
-
-
-
-      //miesto na dalsie case
       case ':' :
       while (c != EOF || c != EOL || c != '='){
         c = fgetc(stdin);
@@ -200,7 +187,7 @@ void getToken(int *type, string *actual_value){
 
 
 
-
+      //check the keywords
       int isKeyword(char *tmp){
         if (strcmp(tmp, "if") == 0){
           *type = TOKEN_IF;
@@ -266,12 +253,43 @@ void getToken(int *type, string *actual_value){
           *type = TOKEN_INPUTF;
           break;
         }
-        //miesto na dalsie keywordy
-      }
+        else if (strcmp(tmp, "bool") == 0){
+          *type = TOKEN_BOOL;
+          break;
+        }
+        else if (strcmp(tmp, "true") == 0){
+          *type = TOKEN_TRUE;
+          break;
+        }
+        else if (strcmp(tmp, "false") == 0){
+          *type = TOKEN_FALSE;
+          break;
+        }
+        else if (strcmp(tmp, "int") == 0){
+          *type = TOKEN_INT;
+          break;
+        }
+        else if (strcmp(tmp, "float64") == 0){
+          *type = TOKEN_FLOAT64;
+          break;
+        }
+        else if (strcmp(tmp, "string") == 0){
+          *type = TOKEN_STRING;
+          break;
+        }
+        else if (strcmp(tmp, "_") == 0){
+          *type = TOKEN_UNDERSCORE;
+          break;
+        }
+        //miesto na dalsie mozne keywordy
 
-  }
+      }// end of isKeyword
 
-}
+    }// end of switch
+
+  }// end of while
+
+}// end of getToken
 
 
 
