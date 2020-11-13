@@ -1,4 +1,5 @@
 #include "str.h"
+#include "libraries.h"
 
 
 //types of token
@@ -17,6 +18,7 @@ typedef enum{
     TOKEN_PACKAGE = 10,
     TOKEN_RETURN = 11,
     TOKEN_STRING = 12,
+    TOKEN_UNDERSCORE = 13,
     TOKEN_PRINT = 44,
     TOKEN_WHILE = 45,
     TOKEN_INPUTI = 46,
@@ -29,8 +31,7 @@ typedef enum{
     TOKEN_INPUTF = 53,
     //-----------
 
-    TOKEN_UNDERSCORE = 13,
-    TOKEN_ID = 14,
+    TOKEN_ID = 14, // main
     TOKEN_RBRACKET = 15, // (
     TOKEN_LBRACKET = 16, // )
     TOKEN_RCURLY = 17, // }
@@ -39,7 +40,7 @@ typedef enum{
     TOKEN_SEMICOLON = 20, // ;
     TOKEN_EOL = 21, // eol
     TOKEN_EOF = 22, // eof
-    TOKEN_DEFINITION = 23,
+    TOKEN_DEFINITION = 23, // :=
     TOKEN_ASSIGN = 24, // =
     TOKEN_INTEGER = 25, // int
     TOKEN_FLOAT = 26, // float
@@ -67,6 +68,7 @@ typedef enum{
 
 
 void getToken(int *type, string *actual_value);
+int getNextToken(token_t *token);
 int isKeyword(char *tmp);
 
 
@@ -77,20 +79,4 @@ typedef struct{
     string actual_value; //storing int,float,string value
     int lineno; //line number
     int pos; //position of the first char of the token
-}token;
-
-
-// ignore this func
-//check the keyword
-#define IS_KEYWORD(token)  ((token).type == TOKEN_BOOL || \
-                            (token).type == TOKEN_TRUE || \
-                            (token).type == TOKEN_FALSE || \
-                            (token).type == TOKEN_ELSE || \
-                            (token).type == TOKEN_FLOAT64 || \
-                            (token).type == TOKEN_FOR || \
-                            (token).type == TOKEN_FUNC || \
-                            (token).type == TOKEN_IF || \
-                            (token).type == TOKEN_INT || \
-                            (token).type == TOKEN_PACKAGE || \
-                            (token).type == TOKEN_RETURN || \
-                            (token).type == TOKEN_STRING  || )
+}token_t;
