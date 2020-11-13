@@ -9,7 +9,7 @@
 bool end = false;
 int symbol;
 
-int getNextToken(){
+int getNextToken(token_t *token){
 
 }
 
@@ -158,8 +158,7 @@ void getToken(int *type, string *actual_value){
         break;
       }
       else{
-        *type = ERROR_LEX;
-        break;
+        return ERROR_LEX;
       }
 
       case '"' :
@@ -185,12 +184,18 @@ void getToken(int *type, string *actual_value){
 
 
 
-
-
       //miesto na dalsie case
       case ':' :
-      while (){
-
+      while (c != EOF || c != EOL || c != '='){
+        c = fgetc(stdin);
+        // :=
+        if (c == '='){
+          *type = TOKEN_DEFINITION;
+          break;
+        }
+        else{
+          return ERROR_LEX;
+        }
       }
 
 
