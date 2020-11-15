@@ -232,17 +232,27 @@ void getToken(int *type, string *actual_value){
         default :
         // ID
         if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
-          fgetc(stdin);
-          while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' && c >= '0' && c <= '9'){
-            fgetc(stdin);
-            if (c == EOF || c == EOL){
-              *type = ERROR_LEX;
+          c = fgetc(stdin);
+          if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' && c >= '0' && c <= '9'){
+            while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' && c >= '0' && c <= '9'){
+              fgetc(stdin);
+              if (c == EOF || c == EOL){
+                *type = ERROR_LEX;
+              }
+              else{
+                  //printf("[ID]");
+                  break;
+              }
             }
-            else{
-              printf("[ID]");
-              break;
-            }
+            
           }
+          else
+          {      
+            printf("[ID]");
+            ungetc(c, stdin);
+            break;
+          }
+
         }
 
     }// end of switch
@@ -327,3 +337,10 @@ void isKeyword(int *type, char *tmp){
   //miesto na dalsie mozne keywordy
 
 }// end of isKeyword
+
+void main(){
+  int *type;
+  string *yeet;
+  getToken(type, yeet);
+  return;
+}
