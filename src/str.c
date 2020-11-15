@@ -15,7 +15,6 @@ int str_init(string *s){
 }
 
 void str_free(string *s){
-    if(s->str == NULL) return;
     free(s->str);
     s->str = NULL; //not initialized state
     s->len = -1; //not initialized state
@@ -29,7 +28,7 @@ void str_reinit(string *s){
 
 int str_add_char(string *s1, char c){
     if (s1->len + 1 >= s1->size){
-        if ((s1->str = (char*) realloc(s1->str, (s1->len + BLOCK_SIZE)*sizeof(char)) == NULL))
+        if ((s1->str = (char*) realloc(s1->str, (s1->len + BLOCK_SIZE)*sizeof(char))) == NULL)
             return ERROR_STR;
         s1->size = s1->len + BLOCK_SIZE;
     }
@@ -39,17 +38,20 @@ int str_add_char(string *s1, char c){
     return SUCCESS;
 }
 
-string* c_str_to_str(const char* s){
-    if(s == NULL)
-        return NULL;
-
+string c_str_to_str(const char* s){
     char c;
     int i = 0;
-    string* str = NULL;
-    str_init(str);
+    string str;
+    str_init(&str);
+
+    if(s == NULL)
+        return str;
+
     while((c = s[i++]) != '\0'){
-        if(str_add_char(str,c) != SUCCESS)
-            return NULL;
+        if(str_add_char(&str,c) != SUCCESS){
+            str_free(&str);
+            return str;
+        }
     }
     return str;
 }
