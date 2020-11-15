@@ -16,7 +16,7 @@ int getNextToken(token_t *token){
 
 void getToken(int *type, string *actual_value){
   while(true){
-    char c = fgetc(stdin);
+    int c = fgetc(stdin);
 
     //vynecha biele znaky
     symbol = isspace(c);
