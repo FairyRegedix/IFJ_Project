@@ -1,7 +1,6 @@
 //Scanner
 
 
-
 #include "error.h"
 #include "libraries.h"
 #include "scanner.h"
@@ -10,9 +9,9 @@
 bool end = false;
 int symbol;
 
-int getNextToken(token_t *token){
+/*int getNextToken(token_t *token){
 
-}
+}*/
 
 void getToken(int *type, string *actual_value){
   while(true){
@@ -180,7 +179,7 @@ void getToken(int *type, string *actual_value){
         break;
       }
       else{
-        return ERROR_LEX;
+        *type = ERROR_LEX;
       }
 
       case '"' :
@@ -192,7 +191,7 @@ void getToken(int *type, string *actual_value){
               printf("[STRING]");
               break;
             }
-            return ERROR_LEX;
+            *type = ERROR_LEX;
       }
 
       case '0'...'9' :
@@ -200,7 +199,7 @@ void getToken(int *type, string *actual_value){
         fgetc(stdin);
       }
       if (c == EOF || c == EOL){
-        return ERROR_LEX;
+        *type = ERROR_LEX;
       }
       //float
       else if (c == '.' || c == ',' || c == 'e' || c == 'E'){
@@ -215,20 +214,6 @@ void getToken(int *type, string *actual_value){
         break;
       }
 
-
-      case 'a'...'z' || 'A' ... 'Z' || '_':
-      // ID
-      while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
-        if (c == EOF || c == EOL){
-          return ERROR_LEX;
-        }
-        else{
-          fgetc(stdin);
-          printf("[ID]");
-          break;
-        }
-      }
-
       case ':' :
       while (c != EOF || c != EOL || c != '='){
         c = fgetc(stdin);
@@ -239,9 +224,25 @@ void getToken(int *type, string *actual_value){
           break;
         }
         else{
-          return ERROR_LEX;
+          *type = ERROR_LEX;
         }
       }
+
+        default :
+        // ID
+        if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
+          fgetc(stdin);
+          while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' && c >= '0' && c <= '9'){
+            fgetc(stdin);
+            if (c == EOF || c == EOL){
+              *type = ERROR_LEX;
+            }
+            else{
+              printf("[ID]");
+              break;
+            }
+          }
+        }
 
     }// end of switch
 
@@ -325,10 +326,3 @@ void isKeyword(int *type, char *tmp){
   //miesto na dalsie mozne keywordy
 
 }// end of isKeyword
-
-
-
-main(){
-  void getToken(int *type, string *actual_value);
-  return;
-}
