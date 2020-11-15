@@ -195,6 +195,40 @@ void getToken(int *type, string *actual_value){
             return ERROR_LEX;
       }
 
+      case '0'...'9' :
+      while (c >= '0' && c <= '9'){
+        fgetc(stdin);
+      }
+      if (c == EOF || c == EOL){
+        return ERROR_LEX;
+      }
+      //float
+      else if (c == '.' || c == ',' || c == 'e' || c == 'E'){
+        *type = TOKEN_FLOAT;
+        printf("[FLOAT]");
+        break;
+      }
+      //integer
+      else{
+        *type = TOKEN_INTEGER;
+        printf("[INTEGER]");
+        break;
+      }
+
+
+      case 'a'...'z' || 'A' ... 'Z' || '_':
+      // ID
+      while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
+        if (c == EOF || c == EOL){
+          return ERROR_LEX;
+        }
+        else{
+          fgetc(stdin);
+          printf("[ID]");
+          break;
+        }
+      }
+
       case ':' :
       while (c != EOF || c != EOL || c != '='){
         c = fgetc(stdin);
@@ -219,7 +253,7 @@ void getToken(int *type, string *actual_value){
 //check the keywords
 void isKeyword(int *type, char *tmp){
   if (strcmp(tmp, "if") == 0){
-    *type = TOKEN_IF;   
+    *type = TOKEN_IF;
   }
   else if (strcmp(tmp, "else") == 0){
     *type = TOKEN_ELSE;
