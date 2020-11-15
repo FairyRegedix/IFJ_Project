@@ -69,7 +69,7 @@ typedef enum{
 
 
 void getToken(int *type, string *actual_value);
-int getNextToken(token_t *token);
+/*int getNextToken(token_t *token);*/
 void isKeyword(int *type, char *tmp);
 
 
