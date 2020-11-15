@@ -200,6 +200,7 @@ void getToken(int *type, string *actual_value){
       }
       if (c == EOF || c == EOL){
         *type = ERROR_LEX;
+        break;
       }
       //float
       else if (c == '.' || c == ',' || c == 'e' || c == 'E'){
