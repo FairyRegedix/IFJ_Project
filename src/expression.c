@@ -93,7 +93,7 @@ void pop_stack(e_stack *stack)
 {
     if(stack->top != NULL)
     {
-        e_stack_item tmp = stack->top;
+        e_stack_item *tmp = stack->top;
         stack->top = stack->top->next;
         free(tmp);
         StackItems = StackItems - 1;
