@@ -1,7 +1,8 @@
 #include "expression.h"
 #include "scanner.h"
 
-
+unsigned int StackItems = 0;
+unsigned int DisposedItems = 0;
 
 eTypeTerm GetTerm(token_type Ttype)
 {
@@ -80,7 +81,51 @@ eTypeRel Relation(eTypeTerm current, eTypeTerm new)
 }
 
 
+//                        STACK FUNCTIONS 
 
+void init_e_stack(e_stack *stack)
+{
+    stack->top = NULL;
+}
+
+
+void pop_stack(e_stack *stack)
+{
+    if(stack->top != NULL)
+    {
+        e_stack_item tmp = stack->top;
+        stack->top = stack->top->next;
+        free(tmp);
+        StackItems = StackItems - 1;
+    }
+}
+
+void push_stack(e_stack *stack, int tokenPushed)
+{
+    e_stack_item *Pushed = malloc(sizeof(e_stack_item));
+    if(Pushed != NULL)
+    {
+        Pushed->next = stack->top;
+        Pushed->token_stack = tokenPushed;
+        stack->top = Pushed;
+        StackItems = StackItems + 1 ;
+    }
+}
+
+bool e_stack_dispose(e_stack *stack)
+{
+    while(stack->top != NULL)
+    {
+        pop_stack(stack);
+        DisposedItems = DisposedItems + 1 ;
+    }
+    return true;
+}
+
+
+
+
+//                        END OF STACK FUNCTIONS
 
 
 
