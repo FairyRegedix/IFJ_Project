@@ -8,6 +8,7 @@
 // pomocna
 bool end = false;
 int symbol;
+char znak;
 
 /*int getNextToken(token_t *token){
 
@@ -309,16 +310,14 @@ void getToken(int *type, string *actual_value){
       default :
       // ID
       if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
-        printf("[ID_1 %d]",c);
         c = fgetc(stdin);
         if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c >= '0' && c <= '9'){
-          printf("[ID_2 %d]",c);
           c = fgetc(stdin);
           while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c >= '0' && c <= '9'){
-            printf("[ID_3 %d]",c);
             c = fgetc(stdin);
             continue;
           }
+          printf("[ID]");
           if (c == EOF){
             ungetc(c,stdin);
             *type = ERROR_LEX;
@@ -334,10 +333,14 @@ void getToken(int *type, string *actual_value){
         // jeden symbol
         else
         {
+          printf("[ID]");
           ungetc(c, stdin);
           break;
         }
+        //miesto pre string na isKeywords
       }
+
+
 
       else if(c >= '0' && c <= '9'){
 
