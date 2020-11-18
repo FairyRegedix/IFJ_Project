@@ -22,6 +22,7 @@ void getToken(int *type, string *actual_value){
     if (symbol != 0){
       if(c == EOF){
         *type = TOKEN_EOF;
+        printf("[EOF]");
         return;
       }
     }
@@ -37,6 +38,7 @@ void getToken(int *type, string *actual_value){
       *type = TOKEN_EOL;
       printf("[EOL]");
       break;
+
       // +
       case '+' :
       *type = TOKEN_ADD;
@@ -118,6 +120,7 @@ void getToken(int *type, string *actual_value){
         printf("[/]");
         break;
       }
+      break;
 
       case '>' :
       c = fgetc(stdin);
@@ -134,6 +137,7 @@ void getToken(int *type, string *actual_value){
         printf("[>]");
         break;
       }
+      break;
 
       case '<' :
       c = fgetc(stdin);
@@ -150,6 +154,7 @@ void getToken(int *type, string *actual_value){
         printf("[<]");
         break;
       }
+      break;
 
 
       case '=' :
@@ -166,8 +171,8 @@ void getToken(int *type, string *actual_value){
         *type = TOKEN_ASSIGN;
         printf("[=]");
         break;
-
       }
+      break;
 
 
       case '!' :
@@ -178,82 +183,172 @@ void getToken(int *type, string *actual_value){
         printf("[!=]");
         break;
       }
-      else{
+      else if (c == EOF){
         *type = ERROR_LEX;
+        printf("ERROR");
+        break;
       }
+      else if (c == EOL){
+        *type = ERROR_LEX;
+        printf("ERROR");
+        break;
+      }
+      else{
+        ungetc(c,stdin);
+        *type = ERROR_LEX;
+        printf("ERROR");
+        break;
+      }
+      break;
 
       case '"' :
       //string
-      while(c != EOF || c != EOL){
+      while(true){
+        c = fgetc(stdin);
+        if (c == EOF){
+          *type = ERROR_LEX;
+          printf("ERROR");
+          break;
+        }
+        else if (c == EOL){
+          *type = ERROR_LEX;
+          printf("ERROR");
+          break;
+        }
+        else if (c == '"'){
+          *type = TOKEN_STRING;
+          printf("[STRING]");
+          break;
+        }
+      }
+      break;
+
+
+      /*while(c != EOF || c != EOL || c != '"'){
             c = fgetc(stdin);
             if (c == '"'){
               *type = TOKEN_STRING;
               printf("[STRING]");
               break;
             }
-            *type = ERROR_LEX;
-      }
+            else{
+              *type == ERROR_LEX;
+            }
+      }*/
 
-      case '0'...'9' :
-      while (c >= '0' && c <= '9'){
-        fgetc(stdin);
-      }
-      if (c == EOF || c == EOL){
-        *type = ERROR_LEX;
-        break;
-      }
-      //float
-      else if (c == '.' || c == ',' || c == 'e' || c == 'E'){
-        *type = TOKEN_FLOAT;
-        printf("[FLOAT]");
-        break;
-      }
-      //integer
-      else{
-        *type = TOKEN_INTEGER;
-        printf("[INTEGER]");
-        break;
-      }
-
-      case ':' :
-      while (c != EOF || c != EOL || c != '='){
-        c = fgetc(stdin);
-        // :=
-        if (c == '='){
-          *type = TOKEN_DEFINITION;
-          printf("[:=]");
+    /*  case '0' ... '9' :
+      c = fgetc(stdin);
+      while (c != EOF ||c != EOL){
+        if (c == '.' || c == ',' || c == 'e' || c == 'E'){
+          c = fgetc(stdin);
+          while (c >= '0' && c <= '9'){
+            *type = TOKEN_FLOAT;
+            printf("[FLOAT]");
+            break;
+          }
           break;
         }
         else{
+          *type = TOKEN_INTEGER;
+          printf("[INTEGER]");
+          break;
+        }
+      }
+      break;*/
+
+
+      /*while (c >= '0' && c <= '9'){
+        c = fgetc(stdin);
+        if (c == EOF || c == EOL){
           *type = ERROR_LEX;
+          break;
+        }
+        //float
+        else if (c == '.' || c == ',' || c == 'e' || c == 'E'){
+          *type = TOKEN_FLOAT;
+          printf("[FLOAT]");
+          break;
+        }
+        //integer
+        else{
+          *type = TOKEN_INTEGER;
+          printf("[INTEGER]");
+          break;
+        }
+      }*/
+
+      case ':' :
+      c = fgetc(stdin);
+      // :=
+      if (c == '='){
+        *type = TOKEN_DEFINITION;
+        printf("[:=]");
+        break;
+      }
+      else if (c == EOF){
+        *type = ERROR_LEX;
+        printf("ERROR_LEX");
+        break;
+      }
+      else if (c == EOL){
+        *type = ERROR_LEX;
+        printf("ERROR_LEX");
+        break;
+      }
+      else{
+        ungetc(c,stdin);
+        *type = ERROR_LEX;
+        printf("ERROR");
+        break;
+        }
+      break;
+
+
+
+
+      default :
+      // ID
+      if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
+        printf("[ID_1 %d]",c);
+        c = fgetc(stdin);
+        if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c >= '0' && c <= '9'){
+          printf("[ID_2 %d]",c);
+          c = fgetc(stdin);
+          while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c >= '0' && c <= '9'){
+            printf("[ID_3 %d]",c);
+            c = fgetc(stdin);
+            continue;
+          }
+          if (c == EOF){
+            ungetc(c,stdin);
+            *type = ERROR_LEX;
+            break;
+          }
+          else if (c == EOL){
+            ungetc(c,stdin);
+            *type = ERROR_LEX;
+            break;
+          }
+          break;
+        }
+        // jeden symbol
+        else
+        {
+          ungetc(c, stdin);
+          break;
         }
       }
 
-        default :
-        // ID
-        if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
-          c = fgetc(stdin);
-          if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' && c >= '0' && c <= '9'){
-            while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' && c >= '0' && c <= '9'){
-              fgetc(stdin);
-              if (c == EOF || c == EOL){
-                *type = ERROR_LEX;
-              }
-              else{
-                  //printf("[ID]");
-                  break;
-              }
-            }
-            
-          }
-          else
-          {      
-            printf("[ID]");
-            ungetc(c, stdin);
-            break;
-          }
+      else if(c >= '0' && c <= '9'){
 
-        }
+
+
+      }
+      break;
+
+
+
+
 
     }// end of switch
 
