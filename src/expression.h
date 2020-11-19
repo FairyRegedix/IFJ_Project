@@ -1,4 +1,5 @@
 #include "error.h"
+#include "scanner.h"
 //#include "libraries.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,7 +35,7 @@ eTypeRel Relation(eTypeTerm current, eTypeTerm new);
 
 // struktura tokenu na zasobniku
 typedef struct expr_stack {
-    int token_stack;
+    token_type token_stack;
     struct expr_stack *next;
 } e_stack_item;
 
