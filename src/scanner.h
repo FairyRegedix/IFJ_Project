@@ -1,4 +1,4 @@
-#include "str.h"
+//#include "str.h"
 
 typedef enum{
     TOKEN_ERROR = -1,
@@ -48,12 +48,12 @@ typedef enum{
     TOKEN_GTE = 40, // >=
 } token_type;
 
-void getToken(FILE *f, int *type, string *actual_value);
+//void getToken(FILE *f, int *type, string *actual_value);
 void getNextToken();
 
 typedef struct{
     token_type type;
-    string actual_value; //storing int,float,string value
+    //string actual_value; //storing int,float,string value
     int lineno; //line number
     int pos; //position of the first char of the token
 }token;
