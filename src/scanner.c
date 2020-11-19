@@ -225,58 +225,6 @@ void getToken(int *type, string *actual_value){
       break;
 
 
-      /*while(c != EOF || c != EOL || c != '"'){
-            c = fgetc(stdin);
-            if (c == '"'){
-              *type = TOKEN_STRING;
-              printf("[STRING]");
-              break;
-            }
-            else{
-              *type == ERROR_LEX;
-            }
-      }*/
-
-    /*  case '0' ... '9' :
-      c = fgetc(stdin);
-      while (c != EOF ||c != EOL){
-        if (c == '.' || c == ',' || c == 'e' || c == 'E'){
-          c = fgetc(stdin);
-          while (c >= '0' && c <= '9'){
-            *type = TOKEN_FLOAT;
-            printf("[FLOAT]");
-            break;
-          }
-          break;
-        }
-        else{
-          *type = TOKEN_INTEGER;
-          printf("[INTEGER]");
-          break;
-        }
-      }
-      break;*/
-
-
-      /*while (c >= '0' && c <= '9'){
-        c = fgetc(stdin);
-        if (c == EOF || c == EOL){
-          *type = ERROR_LEX;
-          break;
-        }
-        //float
-        else if (c == '.' || c == ',' || c == 'e' || c == 'E'){
-          *type = TOKEN_FLOAT;
-          printf("[FLOAT]");
-          break;
-        }
-        //integer
-        else{
-          *type = TOKEN_INTEGER;
-          printf("[INTEGER]");
-          break;
-        }
-      }*/
 
       case ':' :
       c = fgetc(stdin);
@@ -317,17 +265,8 @@ void getToken(int *type, string *actual_value){
             c = fgetc(stdin);
             continue;
           }
+          ungetc(c,stdin);
           printf("[ID]");
-          if (c == EOF){
-            ungetc(c,stdin);
-            *type = ERROR_LEX;
-            break;
-          }
-          else if (c == EOL){
-            ungetc(c,stdin);
-            *type = ERROR_LEX;
-            break;
-          }
           break;
         }
         // jeden symbol
@@ -341,17 +280,24 @@ void getToken(int *type, string *actual_value){
       }
 
 
-
+      //cisla
       else if(c >= '0' && c <= '9'){
-
-
-
+        c = fgetc(stdin);
+        if (c >= '0' && c <= '9'){
+          while (c >= '0' && c <= '9'){
+            c = fgetc(stdin);
+            continue;
+          }
+          ungetc(c,stdin);
+          printf("[NUM]");
+          break;
+        }
+        else{
+          printf("[NUM]");
+          ungetc(c, stdin);
+          break;
+        }
       }
-      break;
-
-
-
-
 
     }// end of switch
 
