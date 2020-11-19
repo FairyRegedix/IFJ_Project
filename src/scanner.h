@@ -53,7 +53,7 @@ void getNextToken();
 
 typedef struct{
     token_type type;
-    //string actual_value; //storing int,float,string value
+    string actual_value; //storing int,float,string value
     int lineno; //line number
     int pos; //position of the first char of the token
 }token;

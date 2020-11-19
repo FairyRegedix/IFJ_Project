@@ -100,7 +100,7 @@ void pop_stack(e_stack *stack)
     }
 }
 
-void push_stack(e_stack *stack, int tokenPushed)
+void push_stack(e_stack *stack, token_type tokenPushed)
 {
     e_stack_item *Pushed = malloc(sizeof(e_stack_item));
     if(Pushed != NULL)
@@ -133,8 +133,41 @@ bool e_stack_dispose(e_stack *stack)
 
 
 
-int expression()
-{
+int expression(token *token)
+{   
+    e_stack stack;
+    init_e_stack(&stack);
+    int loop = 0;
 
+    while(loop < 1)
+    {
+        eTypeTerm current , new ;
+        if(stack->top == NULL)
+        {
+            current = T_DOLLAR;
+        }
+        else
+        {
+            current = GetTerm(stack.top->token_stack);
+        }
+        new = GetTerm((*token)->type);
+        e_stack_item item; 
+
+        switch(Relation(current,new))
+        {
+            case T_open : 
+                push_stack(stack,new)
+
+            case T_closed :
+
+
+            case T_nothing :
+        }
+
+    }
 }
 
+int main()
+{
+    return 0;
+}
