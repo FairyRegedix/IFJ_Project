@@ -29,7 +29,7 @@ int expression(token *token_);
 eTypeTerm GetTerm(token_type Ttype);
 eTypeRel Relation(eTypeTerm current, eTypeTerm new);
 
-int expressionParse(token *token_);
+int expressionParse(e_stack *stack);
 
 typedef enum {
     T_INT,

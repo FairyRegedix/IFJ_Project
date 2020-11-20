@@ -141,8 +141,8 @@ bool e_stack_dispose(e_stack *stack)
 //                        END OF STACK FUNCTIONS
 
 
-int expressionParse(token *token){
-
+int expressionParse(e_stack *stack){
+    
 }
 
 
@@ -180,15 +180,35 @@ int expression(token *token_)
                 break;
             case T_closed :
                 {
-                    int result = expressionParse(token_);
+                    int result = expressionParse(&stack);
+                    if(result > 0)
+                    {
+                        //chyba vo vyraze
+                    }
                 }
                 break;
 
 
             case T_equal:
+                push_stack(&stack,item, token_);
+                //volanie dalsieho tokenu
                 break;
 
             case T_nothing :
+                if(current == T_DOLLAR && new == T_DOLLAR)
+                {
+                    if(stack.top == NULL)
+                    {
+                        //error vyraz nemoze byt prazdny
+                        loop = 2;
+                    }
+                }
+                else
+                {
+                    // SYNTAX error
+                    loop = 2;
+                }
+                
                 break;
         }
 

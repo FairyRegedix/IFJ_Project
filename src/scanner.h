@@ -36,9 +36,9 @@ typedef enum{
     TOKEN_NOT = 28, // !
     TOKEN_AND = 29, // &
     TOKEN_OR = 30, // ||
+    TOKEN_MUL = 33, // *
     TOKEN_ADD = 31, // +
     TOKEN_SUB = 32, // -
-    TOKEN_MUL = 33, // *
     TOKEN_DIV = 34, // /
     TOKEN_EQL = 35, // =
     TOKEN_NEQ = 36, // !=
