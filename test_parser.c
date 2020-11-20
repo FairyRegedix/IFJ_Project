@@ -50,4 +50,5 @@ int main(){
         printf("Parsing error_code = %i\n", ret);
     else
         printf("Parsing Successful!!");
+    return 0;
 }
