@@ -1,9 +1,8 @@
 // IFJ2020
 
-#include <stdio.h>
 
-#ifndef ERROR_H
-#define ERROR_H
+
+#include <stdio.h>
 
 typedef enum error{
   SUCCESS = 0,  //Success
@@ -18,5 +17,3 @@ typedef enum error{
   ERROR_STR  = 10, //chyba pri praci s retazcami
   ERROR_TRANS = 99,  //interná chyba prekladača (napr chyba alokácie, pamäti ...)
 } ERROR;
-
-#endif
