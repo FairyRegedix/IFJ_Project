@@ -157,18 +157,15 @@ int exp_n(parser_info* p){
 int end_assign(parser_info* p){
     int error_code;
     st_item* item;
-    switch(p->token.type){
-        case TOKEN_ID:
-            item = st_get_item(&p->st, &p->token.attribute);
-
-            if(item != NULL){
-                CHECK(get_next_token(&p->token),SUCCESS);
-                return func_call(p);
-            }
-        default:
-            CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
-            return exp_n(p);
+    if(p->token.type == TOKEN_ID){
+        item = st_get_item(&p->st, &p->token.attribute);
+        if(item != NULL){
+            CHECK(get_next_token(&p->token),SUCCESS);
+            return func_call(p);
+        }
     }
+    CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
+    return exp_n(p);
 }
 
 int assign(parser_info* p){
@@ -284,7 +281,7 @@ int statement(parser_info* p){
         CHECK(get_next_token(&p->token),SUCCESS);
         return return_exp(p);
     }
-    else;
+    else{;}
 
     return SUCCESS;
 
