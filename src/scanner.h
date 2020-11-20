@@ -1,6 +1,11 @@
+#ifndef IFJ_SCANNER_H
+#define IFJ_SCANNER_H
+
+#include <stdlib.h>
+#include <stdbool.h>
 #include "str.h"
 
-typedef enum{
+typedef enum {
     TOKEN_ERROR=-1,
     //Keywords
     TOKEN_BOOL,
@@ -32,6 +37,7 @@ typedef enum{
     TOKEN_INTEGER,
     TOKEN_FLOAT,
     TOKEN_STR,
+    TOKEN_BOOLEAN,
 
     TOKEN_NOT,
     TOKEN_AND,
@@ -50,22 +56,11 @@ typedef enum{
 
 typedef struct{
     token_type type;
-    string actual_value; //storing int,float,string value
+    string attribute; //storing int,float,string value
     int lineno; //line number
     int pos; //position of the first char of the token
-}token;
+}token_t;
 
+int get_next_token(token_t* token);
 
-#define IS_KEYWORD(token)  ((token).type == TOKEN_BOOL || \
-                            (token).type == TOKEN_TRUE || \
-                            (token).type == TOKEN_FALSE || \
-                            (token).type == TOKEN_ELSE || \
-                            (token).type == TOKEN_FLOAT64 || \
-                            (token).type == TOKEN_FOR || \
-                            (token).type == TOKEN_FUNC || \
-                            (token).type == TOKEN_IF || \
-                            (token).type == TOKEN_INT || \
-                            (token).type == TOKEN_PACKAGE || \
-                            (token).type == TOKEN_RETURN || \
-                            (token).type == TOKEN_STRING  || )
-
+#endif //IFJ_SCANNER_H

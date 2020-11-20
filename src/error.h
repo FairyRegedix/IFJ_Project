@@ -8,7 +8,7 @@ typedef enum error{
   SUCCESS = 0,  //Success
   ERROR_LEX = 1,  //chyba v rámci lexikálnej analýzy
   ERROR_SYN = 2,  //chyba v rámci syntaktickej analýzy
-  ERROR_SEM_DEF = 3,  //sémantická chyba v programe - nedefinovaná funkcia/premenná
+  ERROR_SEM_DEF = 3,  //sémantická chyba v programe - nedefinovaná funkcia/premenná, pokus o redefiniciu funkcie/premennej
   ERROR_SEM_DAT = 4,  //sémantická chyba pri odvodzovaní dátového typu novej definovanej premennej
   ERROR_SEM_COMP = 5,  //sémantická chyba typovej kompatibility v aritmetických reťazových a relačných výrazoch
   ERROR_SEM_PAR = 6,  //sémantická chyba v programe - zlý počet/typ parametrov či návratových hodnôť u volania/návratu funkcie
