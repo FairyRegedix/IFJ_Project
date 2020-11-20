@@ -1,3 +1,5 @@
+#include "libraries.h"
+
 #ifndef IFJ_PROJECT_STR_H
 #define IFJ_PROJECT_STR_H
 
