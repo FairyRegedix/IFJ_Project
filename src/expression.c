@@ -1,5 +1,5 @@
 #include "expression.h"
-#include "scanner.h"
+
 
 unsigned int StackItems = 0;
 unsigned int DisposedItems = 0;
@@ -100,15 +100,28 @@ void pop_stack(e_stack *stack)
     }
 }
 
-void push_stack(e_stack *stack, token_type tokenPushed)
+void push_stack(e_stack *stack, e_stack_item *tokenPushed, token *token_)
 {
-    e_stack_item *Pushed = malloc(sizeof(e_stack_item));
-    if(Pushed != NULL)
+    tokenPushed = malloc(sizeof(e_stack_item));
+    if(tokenPushed != NULL)
     {
-        Pushed->next = stack->top;
-        Pushed->token_stack = tokenPushed;
-        stack->top = Pushed;
+        tokenPushed->next = stack->top;
+        tokenPushed->token_stack = (*token_).type;
+        tokenPushed->type = type_term;
+        stack->top = tokenPushed;
         StackItems = StackItems + 1 ;
+    }
+}
+
+void push_openb(e_stack *stack)
+{
+    e_stack_item *openb = malloc(sizeof(e_stack_item));
+    if(openb != NULL)
+    {
+        openb->next = stack->top;
+        openb->type = type_OPEN;
+        stack->top = openb;
+        StackItems = StackItems + 1;
     }
 }
 
@@ -128,12 +141,14 @@ bool e_stack_dispose(e_stack *stack)
 //                        END OF STACK FUNCTIONS
 
 
+int expressionParse(token *token){
+
+}
 
 
 
 
-
-int expression(token *token)
+int expression(token *token_)
 {   
     e_stack stack;
     init_e_stack(&stack);
@@ -142,27 +157,42 @@ int expression(token *token)
     while(loop < 1)
     {
         eTypeTerm current , new ;
-        if(stack->top == NULL)
+        if(stack.top == NULL)
         {
             current = T_DOLLAR;
         }
         else
         {
-            current = GetTerm(stack.top->token_stack);
+            current = GetTerm((token_type) stack.top->token_stack);
         }
-        new = GetTerm((*token)->type);
-        e_stack_item item; 
+        new = GetTerm((*token_).type);
+        e_stack_item *item; 
 
         switch(Relation(current,new))
         {
-            case T_open : 
-                push_stack(stack,new)
+            case T_open :
+                push_openb(&stack);
 
+                push_stack(&stack,item, token_);
+
+                //volanie dalsieho tokenu , opytat sa fera ktora funkcia na to sluzi
+
+                break;
             case T_closed :
+                {
+                    int result = expressionParse(token_);
+                }
+                break;
 
+
+            case T_equal:
+                break;
 
             case T_nothing :
+                break;
         }
+
+        loop=2;
 
     }
 }
