@@ -29,7 +29,7 @@ int expression(token *token_);
 eTypeTerm GetTerm(token_type Ttype);
 eTypeRel Relation(eTypeTerm current, eTypeTerm new);
 
-int expressionParse(e_stack *stack);
+
 
 typedef enum {
     T_INT,
@@ -51,27 +51,34 @@ typedef enum {
 
 // struktura tokenu na zasobniku
 typedef struct expr_stack {
-    token_type token_stack;
+    token_type token_stack;                     //typ tokenu
     tType type;                                 //typ / otvorena zatvorka (<) /  terminal    / neterminal
     TermDataType dtype;                             
-    struct expr_stack *next;
-} e_stack_item;
+    //struct  expr_stack *next;
+} *e_stack_item;
 
 
 //struktura zasobniku
-typedef struct {
-    e_stack_item *top;
-} e_stack;
+typedef struct eStack{
+    int top;
+    e_stack_item *p;
+} *e_stack;
 
 void init_e_stack(e_stack *stack);                               // inicializacia stacku
 
-void pop_stack(e_stack *stack);                                  // pop token z vrchu zasobniku
+e_stack_item pop_stack(e_stack stack);                                  // pop token z vrchu zasobniku
 
-void push_stack(e_stack *stack, e_stack_item *tokenPushed, token *token);                // pushne token na zasobnik
+void push_stack(e_stack stack, e_stack_item tokenPushed, token *token);                // pushne token na zasobnik
 
 bool e_stack_dispose(e_stack *stack);                            // uvolni cely zasobnik
 
-void push_openb(e_stack *stack);
+void push_openb(e_stack stack);
+
+int FindFirstTerminal(e_stack stack);
+
+int FindFirstOpenB(e_stack stack);
+
+int expressionParse(e_stack stack);
 
 // e_stack_item Top_stack_item(e_stack *stack);                  // zistenie tokenu na vrcholu zasobniku
 
