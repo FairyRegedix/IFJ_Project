@@ -436,8 +436,9 @@ void isKeyword(int *type, char *tmp){
 }// end of isKeyword
 
 void main(){
-  int *type;
-  string *yeet;
-  getToken(type, yeet);
+  int type;
+  string yeet;
+  str_init (&yeet);
+  getToken(&type, &yeet);
   return;
 }
