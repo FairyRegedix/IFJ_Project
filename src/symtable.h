@@ -27,6 +27,7 @@ typedef struct function_t{
 
 typedef struct variable_t{
     data_type value_type; //data type of the variable
+
     union{
         int int_value; //also for bool value
         double float_value;
@@ -36,6 +37,7 @@ typedef struct variable_t{
 
 typedef struct item_data{
     item_type type; // function | var ?
+    int scope;
     bool defined;
     bool built_in;
     union{
