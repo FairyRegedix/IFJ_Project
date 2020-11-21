@@ -4,6 +4,8 @@
 #include "error.h"
 #include "libraries.h"
 #include "scanner.h"
+#include "str.c"
+#include "str.h"
 
 // pomocna
 bool end = false;
@@ -79,11 +81,6 @@ void getToken(int *type, string *actual_value){
       case ',' :
       *type = TOKEN_COMMA;
       printf("[,]");
-      break;
-      // .
-      case '.' :
-      *type = TOKEN_DOT;
-      printf("[.]");
       break;
       // ;
      case ';' :
@@ -258,20 +255,36 @@ void getToken(int *type, string *actual_value){
       default :
       // ID
       if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
+        str_add_char(actual_value,c);
         c = fgetc(stdin);
         if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c >= '0' && c <= '9'){
+        //  str_add_char(actual_value,c);
           c = fgetc(stdin);
           while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c >= '0' && c <= '9'){
+          //  str_add_char(actual_value,c);
             c = fgetc(stdin);
             continue;
           }
+          /*isKeyword(type,string *actual_value);
+
+          if (isKeyword == -2){
+            *type = TOKEN_ID;
+          }
+          else{
+            return *type;
+          }
+*/
+
+          *type = TOKEN_ID;
           ungetc(c,stdin);
           printf("[ID]");
+
           break;
         }
         // jeden symbol
         else
         {
+          *type = TOKEN_ID;
           printf("[ID]");
           ungetc(c, stdin);
           break;
@@ -281,19 +294,57 @@ void getToken(int *type, string *actual_value){
 
 
       //cisla
-      else if(c >= '0' && c <= '9'){
+      int x = 1;
+      if(c >= '0' && c <= '9'){
         c = fgetc(stdin);
-        if (c >= '0' && c <= '9'){
+        if (c >= '1' && c <= '9'){
           while (c >= '0' && c <= '9'){
             c = fgetc(stdin);
+            //desatinná časť
+            if (c == '.'){
+              c = fgetc(stdin);
+              if (c >= '1' && c <= '9'){
+                  while (c >= '0' && c <= '9'){
+                    c = fgetc(stdin);
+                    continue;
+                  }
+                  *type = TOKEN_FLOAT;
+                  ungetc(c,stdin);
+                  printf("[FLOAT]");
+                  x = 0;
+                  break;
+              }
+            }
+
             continue;
           }
-          ungetc(c,stdin);
-          printf("[NUM]");
-          break;
+          if(x==1){
+            *type = TOKEN_INTEGER;
+            ungetc(c,stdin);
+            printf("[INT]");
+            break;
+          }
+        }
+        else if(c == '.'){
+          c = fgetc(stdin);
+          if (c >= '1' && c <= '9'){
+              while (c >= '0' && c <= '9'){
+                c = fgetc(stdin);
+                if (c == '.'){
+                  *type = ERROR_LEX;
+                  break;
+                }
+                continue;
+              }
+              *type = TOKEN_FLOAT;
+              ungetc(c,stdin);
+              printf("[FLOAT]");
+              break;
+          }
         }
         else{
-          printf("[NUM]");
+          *type = TOKEN_INTEGER;
+          printf("[INT]");
           ungetc(c, stdin);
           break;
         }
@@ -316,7 +367,6 @@ void isKeyword(int *type, char *tmp){
   }
   else if (strcmp(tmp, "package") == 0){
     *type = TOKEN_PACKAGE;
-    printf("[package]");
   }
   else if (strcmp(tmp, "return") == 0){
     *type = TOKEN_RETURN;
@@ -379,6 +429,9 @@ void isKeyword(int *type, char *tmp){
     *type = TOKEN_UNDERSCORE;
   }
   //miesto na dalsie mozne keywordy
+/*  else{
+    return -2;
+  }*/
 
 }// end of isKeyword
 
