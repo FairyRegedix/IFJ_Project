@@ -1,7 +1,6 @@
 //Scanner
 
 
-
 #include "error.h"
 #include "libraries.h"
 #include "scanner.h"
@@ -9,20 +8,22 @@
 // pomocna
 bool end = false;
 int symbol;
+char znak;
 
-int getNextToken(token_t *token){
+/*int getNextToken(token_t *token){
 
-}
+}*/
 
 void getToken(int *type, string *actual_value){
   while(true){
-    char c = fgetc(stdin);
+    int c = fgetc(stdin);
 
     //vynecha biele znaky
     symbol = isspace(c);
     if (symbol != 0){
       if(c == EOF){
         *type = TOKEN_EOF;
+        printf("[EOF]");
         return;
       }
     }
@@ -38,6 +39,7 @@ void getToken(int *type, string *actual_value){
       *type = TOKEN_EOL;
       printf("[EOL]");
       break;
+
       // +
       case '+' :
       *type = TOKEN_ADD;
@@ -119,6 +121,7 @@ void getToken(int *type, string *actual_value){
         printf("[/]");
         break;
       }
+      break;
 
       case '>' :
       c = fgetc(stdin);
@@ -135,6 +138,7 @@ void getToken(int *type, string *actual_value){
         printf("[>]");
         break;
       }
+      break;
 
       case '<' :
       c = fgetc(stdin);
@@ -151,6 +155,7 @@ void getToken(int *type, string *actual_value){
         printf("[<]");
         break;
       }
+      break;
 
 
       case '=' :
@@ -167,8 +172,8 @@ void getToken(int *type, string *actual_value){
         *type = TOKEN_ASSIGN;
         printf("[=]");
         break;
-
       }
+      break;
 
 
       case '!' :
@@ -179,33 +184,118 @@ void getToken(int *type, string *actual_value){
         printf("[!=]");
         break;
       }
-      else{
-        return ERROR_LEX;
+      else if (c == EOF){
+        *type = ERROR_LEX;
+        printf("ERROR");
+        break;
       }
+      else if (c == EOL){
+        *type = ERROR_LEX;
+        printf("ERROR");
+        break;
+      }
+      else{
+        ungetc(c,stdin);
+        *type = ERROR_LEX;
+        printf("ERROR");
+        break;
+      }
+      break;
 
       case '"' :
       //string
-      while(c != EOF || c != EOL){
-            c = fgetc(stdin);
-            if (c == '"'){
-              *type = TOKEN_STRING;
-              printf("[STRING]");
-              break;
-            }
-            return ERROR_LEX;
+      while(true){
+        c = fgetc(stdin);
+        if (c == EOF){
+          *type = ERROR_LEX;
+          printf("ERROR");
+          break;
+        }
+        else if (c == EOL){
+          *type = ERROR_LEX;
+          printf("ERROR");
+          break;
+        }
+        else if (c == '"'){
+          *type = TOKEN_STRING;
+          printf("[STRING]");
+          break;
+        }
       }
+      break;
+
+
 
       case ':' :
-      while (c != EOF || c != EOL || c != '='){
+      c = fgetc(stdin);
+      // :=
+      if (c == '='){
+        *type = TOKEN_DEFINITION;
+        printf("[:=]");
+        break;
+      }
+      else if (c == EOF){
+        *type = ERROR_LEX;
+        printf("ERROR_LEX");
+        break;
+      }
+      else if (c == EOL){
+        *type = ERROR_LEX;
+        printf("ERROR_LEX");
+        break;
+      }
+      else{
+        ungetc(c,stdin);
+        *type = ERROR_LEX;
+        printf("ERROR");
+        break;
+        }
+      break;
+
+
+
+
+      default :
+      // ID
+      if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'){
         c = fgetc(stdin);
-        // :=
-        if (c == '='){
-          *type = TOKEN_DEFINITION;
-          printf("[:=]");
+        if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c >= '0' && c <= '9'){
+          c = fgetc(stdin);
+          while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c >= '0' && c <= '9'){
+            c = fgetc(stdin);
+            continue;
+          }
+          ungetc(c,stdin);
+          printf("[ID]");
+          break;
+        }
+        // jeden symbol
+        else
+        {
+          printf("[ID]");
+          ungetc(c, stdin);
+          break;
+        }
+        //miesto pre string na isKeywords
+      }
+
+
+      //cisla
+      else if(c >= '0' && c <= '9'){
+        c = fgetc(stdin);
+        if (c >= '0' && c <= '9'){
+          while (c >= '0' && c <= '9'){
+            c = fgetc(stdin);
+            continue;
+          }
+          ungetc(c,stdin);
+          printf("[NUM]");
           break;
         }
         else{
-          return ERROR_LEX;
+          printf("[NUM]");
+          ungetc(c, stdin);
+          break;
         }
       }
 
@@ -219,7 +309,7 @@ void getToken(int *type, string *actual_value){
 //check the keywords
 void isKeyword(int *type, char *tmp){
   if (strcmp(tmp, "if") == 0){
-    *type = TOKEN_IF;   
+    *type = TOKEN_IF;
   }
   else if (strcmp(tmp, "else") == 0){
     *type = TOKEN_ELSE;
@@ -292,9 +382,9 @@ void isKeyword(int *type, char *tmp){
 
 }// end of isKeyword
 
-
-
-main(){
-  void getToken(int *type, string *actual_value);
+void main(){
+  int *type;
+  string *yeet;
+  getToken(type, yeet);
   return;
 }

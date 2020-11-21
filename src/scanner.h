@@ -1,5 +1,9 @@
+#ifndef IFJ_SCANNER_H
+#define IFJ_SCANNER_H
+
+#include <stdlib.h>
+#include <stdbool.h>
 #include "str.h"
-#include "libraries.h"
 
 #define EOL '\n'
 
@@ -69,7 +73,6 @@ typedef enum{
 
 
 void getToken(int *type, string *actual_value);
-int getNextToken(token_t *token);
 void isKeyword(int *type, char *tmp);
 
 
@@ -81,3 +84,7 @@ typedef struct{
     int lineno; //line number
     int pos; //position of the first char of the token
 }token_t;
+
+int get_next_token(token_t* token);
+
+#endif //IFJ_SCANNER_H
