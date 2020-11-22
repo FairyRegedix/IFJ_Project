@@ -56,7 +56,7 @@ typedef struct{
     string actual_value; //storing int,float,string value
     int lineno; //line number
     int pos; //position of the first char of the token
-}token;
+}token_t;
 
 
 #define IS_KEYWORD(token)  ((token).type == TOKEN_BOOL || \
