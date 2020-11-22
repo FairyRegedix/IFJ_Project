@@ -168,10 +168,10 @@ int print_token(token_t *token) {
             printf("[=]\n");
             break;
         case TOKEN_INTEGER:
-            printf("[integer]\n");
+            printf("[%s]\n",token->actual_value.str);
             break;
         case TOKEN_FLOAT:
-            printf("[float]\n");
+            printf("[%s]\n",token->actual_value.str);
             break;
         case TOKEN_STR:
             printf("[\"%s\"]\n", token->actual_value.str);
@@ -443,6 +443,7 @@ int get_next_token(token_t *token){
             }
             else if(isdigit(c)){
                 bool state_float = false;
+                bool state_exponent = false;
                 if(c == '0')
                     return ERROR_LEX;
 
@@ -450,8 +451,8 @@ int get_next_token(token_t *token){
 
                 while(true){
                     c = (char)getc(f);
-                    if(c == '.'){
-                        if(state_float)
+                    if(c == '.'){//state_float
+                        if(state_float || state_exponent)
                             break;
                         state_float = true;
                         CHECK(str_add_char(&token->actual_value, c), SUCCESS);
@@ -462,10 +463,10 @@ int get_next_token(token_t *token){
                         else
                             return ERROR_LEX;
                     }
-                    else if(tolower(c) == 'e'){
-                        if(state_float)
+                    else if(tolower(c) == 'e'){//state_exponent
+                        if(state_exponent)
                             return ERROR_LEX;
-                        state_float = true;
+                        state_exponent = true;
                         CHECK(str_add_char(&token->actual_value, c), SUCCESS);
                         c = (char)getc(f);
                         if(c == '+' || c == '-'){
@@ -485,7 +486,7 @@ int get_next_token(token_t *token){
                     else
                         break;
                 }
-                if(state_float)
+                if(state_float || state_exponent)
                     token->type = TOKEN_FLOAT;
                 else
                     token->type = TOKEN_INTEGER;
