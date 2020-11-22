@@ -86,12 +86,12 @@ eTypeRel Relation(eTypeTerm current, eTypeTerm new)
 void init_e_stack(e_stack *stack)
 {
     
-    (*stack)->p = malloc(sizeof(struct eStack));
-    (*stack)->top = 0;
+    //stack->p = malloc(sizeof(e_stack));
+    stack->top = 0;
 }
 
 
-e_stack_item pop_stack(e_stack stack)
+e_stack_item pop_stack(e_stack* stack)
 {
     int i = stack->top;
     if(stack->top > 0)
@@ -104,7 +104,7 @@ e_stack_item pop_stack(e_stack stack)
     return stack->p[i];
 }
 
-void push_stack(e_stack stack, e_stack_item tokenPushed, token *token_)
+void push_stack(e_stack* stack, e_stack_item* tokenPushed, token *token_)
 {
     tokenPushed = malloc(sizeof(e_stack_item));
     if(tokenPushed != NULL)
@@ -117,9 +117,9 @@ void push_stack(e_stack stack, e_stack_item tokenPushed, token *token_)
     }
 }
 
-void push_openb(e_stack stack)
+void push_openb(e_stack* stack)
 {
-    e_stack_item openb = malloc(sizeof(e_stack_item));
+    e_stack_item* openb = malloc(sizeof(e_stack_item));
     if(openb != NULL)
     {
         //openb->next = stack->top;
@@ -129,7 +129,7 @@ void push_openb(e_stack stack)
     }
 }
 
-int FindFirstTerminal(e_stack stack)
+int FindFirstTerminal(e_stack* stack)
 {
     int point = stack->top;
     while(point >= 0)
@@ -142,7 +142,7 @@ int FindFirstTerminal(e_stack stack)
 
 }
 
-int FindFirstOpenB(e_stack stack)
+int FindFirstOpenB(e_stack* stack)
 {
     int point = stack->top;
     int ruleSize = 0;
@@ -160,7 +160,7 @@ int FindFirstOpenB(e_stack stack)
 
 bool e_stack_dispose(e_stack *stack)
 {
-    while((*stack)->top > 0)
+    while(stack->top > 0)
     {
         free((*stack)->p[(*stack)->top]);
         (*stack)->top--;
@@ -175,7 +175,7 @@ bool e_stack_dispose(e_stack *stack)
 //                        END OF STACK FUNCTIONS
 
 
-int expressionParse(e_stack stack){
+int expressionParse(e_stack* stack){
     /*e_stack_item itemP;
     itemP = pop_stack(stack); */
     int ruleSize = FindFirstOpenB(stack);
@@ -216,7 +216,7 @@ int expression(token *token_)
     while(loop < 1)
     {
         eTypeTerm current , new ;
-        int check = FindFirstTerminal(stack);
+        int check = FindFirstTerminal(&stack);
         if(check < 1)
         {
             current = T_DOLLAR;
@@ -231,16 +231,16 @@ int expression(token *token_)
         switch(Relation(current,new))
         {
             case T_open :
-                push_openb(stack);
+                push_openb(&stack);
 
-                push_stack(stack,item, token_);
+                push_stack(&stack,&item, token_);
 
                 //volanie dalsieho tokenu , opytat sa fera ktora funkcia na to sluzi
 
                 break;
             case T_closed :
                 {
-                    int result = expressionParse(stack);
+                    int result = expressionParse(&stack);
                     if(result > 0)
                     {
                         //chyba vo vyraze
@@ -251,14 +251,14 @@ int expression(token *token_)
 
 
             case T_equal:
-                push_stack(stack,item, token_);
+                push_stack(&stack,&item, token_);
                 //volanie dalsieho tokenu
                 break;
 
             case T_nothing :
                 if(current == T_DOLLAR && new == T_DOLLAR)
                 {
-                    if(stack->top <= 0)
+                    if(stack.top <= 0)
                     {
                         //error vyraz nemoze byt prazdny
                         loop = 2;
