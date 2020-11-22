@@ -1,6 +1,7 @@
 
 #include "error.h"
 #include "parser.h"
+#include "scanner.h"
 
 #define consume_token 1 //helper variable for MATCH macro
 #define keep_token 0    //helper variable for MATCH macro
@@ -8,21 +9,13 @@
 
 int token_pos = 0; //just for testing
 
-#define CHECK(x, y) do{\
-  error_code = (x);     \
-  if (error_code != (y)) \
-    return error_code;    \
-}while (0)
-
-#define MATCH(x, y) do{                   \
-  if (p->token.type != (x)){              \
+#define MATCH(x, y) do{                      \
+  if (p->token.type != (x)){                  \
     p->syntax_error_token_position = token_pos;\
-    return ERROR_SYN;}                       \
-  if((y))                                    \
-    CHECK(get_next_token(&p->token), SUCCESS);\
+    return ERROR_SYN;}                          \
+  if((y))                                        \
+    CHECK(get_next_token(&p->token), SUCCESS);    \
 }while(0)
-
-
 
 
 int expression(parser_info* p){
@@ -98,8 +91,8 @@ int term_n(parser_info* p){
                 break;
             case TOKEN_STR:
                 break;
-            case TOKEN_BOOLEAN:
-                break;
+//            case TOKEN_BOOLEAN:
+//                break;
             default:
                 return ERROR_SYN;
         }
@@ -121,9 +114,8 @@ int call_params(parser_info* p){
             break;
         case TOKEN_STR:
             break;
-        case TOKEN_BOOLEAN:
-            break;
-
+//        case TOKEN_BOOLEAN:
+//            break;
         default:
             return SUCCESS;
     }
@@ -158,7 +150,7 @@ int end_assign(parser_info* p){
     int error_code;
     st_item* item;
     if(p->token.type == TOKEN_ID){
-        item = st_get_item(&p->st, &p->token.attribute);
+        item = st_get_item(&p->st, &p->token.actual_value);
         if(item != NULL){
             CHECK(get_next_token(&p->token),SUCCESS);
             return func_call(p);
@@ -396,7 +388,7 @@ int params_n(parser_info* p){
         // next token set
         if(p->token.type == TOKEN_ID){// ->id<- Type Params_n
 
-            st_item* item = st_insert(&p->local_st,&p->token.attribute,type_variable, &p->internal_error);
+            st_item* item = st_insert(&p->local_st,&p->token.actual_value,type_variable, &p->internal_error);
             if(item == NULL)
                 return ERROR_TRANS;
             if(item->data.defined) //redefinition of local variables
@@ -439,7 +431,7 @@ int params(parser_info* p){
     // next token set
     if(p->token.type == TOKEN_ID){// ->id<- Type Params_n | else eps
 
-        st_item* item = st_insert(&p->local_st,&p->token.attribute,type_variable, &p->internal_error);
+        st_item* item = st_insert(&p->local_st,&p->token.actual_value,type_variable, &p->internal_error);
         if(item == NULL)
             return ERROR_TRANS;
         if(item->data.defined) //redefinition of local variables
@@ -477,7 +469,7 @@ int params(parser_info* p){
 int func(parser_info* p){
     int error_code;
     MATCH(TOKEN_ID, keep_token);
-    st_item* item = st_insert(&p->st,&p->token.attribute,type_function, &p->internal_error);
+    st_item* item = st_insert(&p->st,&p->token.actual_value,type_function, &p->internal_error);
     if(item == NULL)
         return ERROR_TRANS;
     if(item->data.defined) //redefinition of function/variable
@@ -534,7 +526,7 @@ int prolog(parser_info* p){
     int error_code;
     MATCH(TOKEN_PACKAGE , consume_token);
     MATCH(TOKEN_ID, keep_token);
-    if(str_cmp_c_str(&p->token.attribute,"main"))//package identifier does not match "main"
+    if(str_cmp_c_str(&p->token.actual_value,"main"))//package identifier does not match "main"
         return ERROR_SEM_OTHER;
     //token not consumed , get next
     CHECK(get_next_token(&p->token), SUCCESS);
@@ -542,17 +534,6 @@ int prolog(parser_info* p){
     CHECK(EOL_opt(p),SUCCESS);
 
     return prog(p);
-}
-
-int token_init(token_t* token){
-    int ret;
-    token->type = TOKEN_ERROR;
-    token->lineno = -1;
-    token->pos = -1;
-    if((ret = str_init(&token->attribute)) == SUCCESS)
-        return SUCCESS;
-    else
-        return ret;
 }
 
 int EOL_opt(parser_info* p){
@@ -574,7 +555,7 @@ int parser(){
     st_init(&p.local_st);
 
     if ((error_code = get_next_token(&p.token)) != SUCCESS){
-            str_free(&p.token.attribute);
+            str_free(&p.token.actual_value);
             st_dispose(&p.st);
             st_dispose(&p.local_st);
             return error_code;
@@ -583,9 +564,8 @@ int parser(){
         error_code = prolog(&p);
         if(error_code == ERROR_SYN){
             printf("Syntax error at token [%i]\n", p.syntax_error_token_position);
-
         }
-        str_free(&p.token.attribute);
+        str_free(&p.token.actual_value);
         st_dispose(&p.st);
         st_dispose(&p.local_st);
         return error_code;

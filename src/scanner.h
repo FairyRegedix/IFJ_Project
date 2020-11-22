@@ -5,6 +5,13 @@
 #include <stdbool.h>
 #include "str.h"
 
+
+#define CHECK(x, y) do{\
+  error_code = (x);     \
+  if (error_code != (y)) \
+    return error_code;    \
+}while (0)
+
 #define EOL '\n'
 
 //types of token
@@ -25,7 +32,6 @@ typedef enum{
     TOKEN_STRING = 12,
     TOKEN_UNDERSCORE = 13,
     TOKEN_PRINT = 44,
-    TOKEN_WHILE = 45,
     TOKEN_INPUTI = 46,
     TOKEN_INPUTS = 47,
     TOKEN_LEN = 48,
@@ -64,17 +70,8 @@ typedef enum{
     TOKEN_GT = 38, // >
     TOKEN_LTE = 39, // <=
     TOKEN_GTE = 40, // >=
-    TOKEN_DOT = 41, // .
-    TOKEN_LOG = 42, // <>
-    TOKEN_LOGE = 43, // <>=
 
 } token_type;
-
-
-
-void getToken(int *type, string *actual_value);
-void isKeyword(int *type, char *tmp);
-
 
 
 //token
@@ -85,6 +82,9 @@ typedef struct{
     int pos; //position of the first char of the token
 }token_t;
 
+int copy_token(token_t *t1, token_t *t2);
+int token_init(token_t *token);
 int get_next_token(token_t* token);
+void isKeyword(int *type, char *tmp);
 
 #endif //IFJ_SCANNER_H

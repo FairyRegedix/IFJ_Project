@@ -35,14 +35,16 @@ token_type array[100] = {TOKEN_PACKAGE, TOKEN_ID, TOKEN_EOL,
 int get_next_token(token_t* token){
 
     token->type = array[token_pos++];
-    if(array[token_pos-2] == TOKEN_PACKAGE)
-        strcpy(token->attribute.str,"main");
-    else
-        rand_str(token->attribute.str,5);
     
+    if(array[token_pos-2] == TOKEN_PACKAGE)
+        strcpy(token->actual_value.str,"main");
+    else
+        rand_str(token->actual_value.str,5);
+
     return SUCCESS;
 
 }
+
 int main(){
     printf("Done\n");
     int ret = parser();
