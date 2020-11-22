@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define MAX_STACK 100
+
 typedef enum {
     T_DIVMUL,            //spolocne ozancenie scitania a odcitania
     T_SUBADD,            //spolocne oznacenie nasobenia a delenia
@@ -61,7 +63,7 @@ typedef struct expr_stack {
 //struktura zasobniku
 typedef struct e_stack{
     int top;
-    e_stack_item p;
+    e_stack_item p[MAX_STACK];
 } e_stack;
 
 void init_e_stack(e_stack *stack);                               // inicializacia stacku

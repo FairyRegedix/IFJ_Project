@@ -59,15 +59,3 @@ typedef struct{
 }token_t;
 
 
-#define IS_KEYWORD(token)  ((token).type == TOKEN_BOOL || \
-                            (token).type == TOKEN_TRUE || \
-                            (token).type == TOKEN_FALSE || \
-                            (token).type == TOKEN_ELSE || \
-                            (token).type == TOKEN_FLOAT64 || \
-                            (token).type == TOKEN_FOR || \
-                            (token).type == TOKEN_FUNC || \
-                            (token).type == TOKEN_IF || \
-                            (token).type == TOKEN_INT || \
-                            (token).type == TOKEN_PACKAGE || \
-                            (token).type == TOKEN_RETURN || \
-                            (token).type == TOKEN_STRING  || )

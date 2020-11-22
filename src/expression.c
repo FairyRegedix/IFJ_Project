@@ -30,10 +30,10 @@ eTypeTerm GetTerm(token_type Ttype)
         case TOKEN_RBRACKET:
             return T_RB;
         
-        case TOKEN_FLOAT64:
+        case TOKEN_FLOAT:
         case TOKEN_ID:
         case TOKEN_INT:
-        case TOKEN_STRING:
+        case TOKEN_STR:
             return T_VAL;
         
         default:
@@ -112,7 +112,7 @@ void push_stack(e_stack* stack, e_stack_item tokenPushed, token_t *token_)
         //tokenPushed->next = stack->top;
         tokenPushed->token_stack.type = token_->type;
         tokenPushed->type = type_term;
-        stack->p[stack->top] = (*tokenPushed);
+        stack->p[stack->top] = tokenPushed;
         StackItems = StackItems + 1 ;
     }
 }
@@ -124,7 +124,7 @@ void push_openb(e_stack* stack)
     {
         //openb->next = stack->top;
         openb->type = type_OPEN;
-        stack->p[stack->top] = (*openb);
+        stack->p[stack->top] = openb;
         StackItems = StackItems + 1;
     }
 }
@@ -134,7 +134,7 @@ int FindFirstTerminal(e_stack* stack)
     int point = stack->top;
     while(point >= 0)
     {
-        if((*stack)->p[point]->type == type_term)
+        if(stack->p[point]->type == type_term)
             break;
         point = point - 1;
     }
@@ -162,7 +162,8 @@ bool e_stack_dispose(e_stack *stack)
 {
     while(stack->top > 0)
     {
-        free stack->p[stack->top];
+        // str free
+        free (stack->p[stack->top]);
         stack->top--;
         DisposedItems = DisposedItems + 1 ;
     }
@@ -207,11 +208,14 @@ int expressionParse(e_stack* stack){
 
 
 
-int expression(token_t *token_)
+int expression(token_t *token)
 {   
     e_stack stack;
     init_e_stack(&stack);
     int loop = 0;
+
+    token_t token_;
+    token_ = *token;
 
     while(loop < 1)
     {
@@ -223,9 +227,9 @@ int expression(token_t *token_)
         }
         else
         {
-            current = GetTerm(stack->p[check]->token_stack.type);
+            current = GetTerm((&stack)->p[check]->token_stack.type);
         }
-        new = GetTerm((*token_).type);
+        new = GetTerm(token_.type);
         e_stack_item item; 
 
         switch(Relation(current,new))
@@ -233,7 +237,7 @@ int expression(token_t *token_)
             case T_open :
                 push_openb(&stack);
 
-                push_stack(&stack,&item, token_);
+                push_stack(&stack,item, &token_);
 
                 //volanie dalsieho tokenu , opytat sa fera ktora funkcia na to sluzi
 
@@ -251,7 +255,7 @@ int expression(token_t *token_)
 
 
             case T_equal:
-                push_stack(&stack,&item, token_);
+                push_stack(&stack,item, &token_);
                 //volanie dalsieho tokenu
                 break;
 
