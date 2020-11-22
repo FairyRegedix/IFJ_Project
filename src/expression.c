@@ -91,7 +91,7 @@ void init_e_stack(e_stack *stack)
 }
 
 
-e_stack_item pop_stack(e_stack* stack)
+e_stack_item pop_stack(e_stack *stack)
 {
     int i = stack->top;
     if(stack->top > 0)
@@ -101,30 +101,30 @@ e_stack_item pop_stack(e_stack* stack)
         //free(tmp);
         StackItems = StackItems - 1;
     }
-    return stack->p[i];
+    return stack->p[stack->top];
 }
 
-void push_stack(e_stack* stack, e_stack_item* tokenPushed, token *token_)
+void push_stack(e_stack* stack, e_stack_item tokenPushed, token_t *token_)
 {
     tokenPushed = malloc(sizeof(e_stack_item));
     if(tokenPushed != NULL)
     {
         //tokenPushed->next = stack->top;
-        tokenPushed->token_stack = (*token_).type;
+        tokenPushed->token_stack.type = token_->type;
         tokenPushed->type = type_term;
-        stack->p[stack->top] = tokenPushed;
+        stack->p[stack->top] = (*tokenPushed);
         StackItems = StackItems + 1 ;
     }
 }
 
 void push_openb(e_stack* stack)
 {
-    e_stack_item* openb = malloc(sizeof(e_stack_item));
+    e_stack_item openb = malloc(sizeof(e_stack_item));
     if(openb != NULL)
     {
         //openb->next = stack->top;
         openb->type = type_OPEN;
-        stack->p[stack->top] = openb;
+        stack->p[stack->top] = (*openb);
         StackItems = StackItems + 1;
     }
 }
@@ -134,7 +134,7 @@ int FindFirstTerminal(e_stack* stack)
     int point = stack->top;
     while(point >= 0)
     {
-        if(stack->p[point]->type == type_term)
+        if((*stack)->p[point]->type == type_term)
             break;
         point = point - 1;
     }
@@ -162,8 +162,8 @@ bool e_stack_dispose(e_stack *stack)
 {
     while(stack->top > 0)
     {
-        free((*stack)->p[(*stack)->top]);
-        (*stack)->top--;
+        free stack->p[stack->top];
+        stack->top--;
         DisposedItems = DisposedItems + 1 ;
     }
     return true;
@@ -207,7 +207,7 @@ int expressionParse(e_stack* stack){
 
 
 
-int expression(token *token_)
+int expression(token_t *token_)
 {   
     e_stack stack;
     init_e_stack(&stack);
@@ -223,7 +223,7 @@ int expression(token *token_)
         }
         else
         {
-            current = GetTerm(stack->p[check]->token_stack);
+            current = GetTerm(stack->p[check]->token_stack.type);
         }
         new = GetTerm((*token_).type);
         e_stack_item item; 

@@ -24,7 +24,7 @@ typedef enum{
     T_nothing,           // neexistuje
 } eTypeRel;
 
-int expression(token *token_);
+int expression(token_t *token_);
 
 eTypeTerm GetTerm(token_type Ttype);
 eTypeRel Relation(eTypeTerm current, eTypeTerm new);
@@ -55,7 +55,7 @@ typedef struct expr_stack {
     tType type;                                 //typ / otvorena zatvorka (<) /  terminal    / neterminal
     TermDataType dtype;                             
     struct  expr_stack *next;
-} e_stack_item;
+} *e_stack_item;
 
 
 //struktura zasobniku
@@ -68,7 +68,7 @@ void init_e_stack(e_stack *stack);                               // inicializaci
 
 e_stack_item pop_stack(e_stack *stack);                                  // pop token z vrchu zasobniku
 
-void push_stack(e_stack *stack, e_stack_item* tokenPushed, token *token);                // pushne token na zasobnik
+void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token);                // pushne token na zasobnik
 
 bool e_stack_dispose(e_stack *stack);                            // uvolni cely zasobnik
 
