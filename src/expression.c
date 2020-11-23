@@ -101,7 +101,7 @@ e_stack_item pop_stack(e_stack *stack)
         //free(tmp);
         StackItems = StackItems - 1;
     }
-    return stack->p[stack->top];
+    return stack->p[i];
 }
 
 void push_stack(e_stack* stack, e_stack_item tokenPushed, token_t *token_)
@@ -196,7 +196,32 @@ int expressionParse(e_stack* stack){
         itemOP2 = pop_stack(stack);
         e_stack_item itemOP3;
         itemOP3 = pop_stack(stack);
-        break;
+        switch (itemOP2->token_stack.type)
+        {
+            case TOKEN_ADD:
+                break;
+            case TOKEN_SUB:
+                break;
+            case TOKEN_MUL:
+                break;
+            case TOKEN_DIV:
+                break;
+            case TOKEN_LT:
+                break;
+            case TOKEN_EQL:
+                break;
+            case TOKEN_NEQ:
+                break;
+            case TOKEN_GT:
+                break;
+            case TOKEN_GTE:
+                break;
+            case TOKEN_LTE:
+                break;
+            default:
+                break;
+        }   
+        
     }
     default:
         //error nie je mozne uplatnit pravidlo
