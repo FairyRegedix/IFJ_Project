@@ -32,7 +32,7 @@ void st_init(symbol_table* st_ptr){
         return;
 }
 
-st_item* st_item_alloc(int* error_code,const string* key, const item_type type){
+st_item* st_item_alloc(const string* key, const item_type type, int* error_code){
     st_item* item = malloc(sizeof(st_item));
     if(item == NULL){
         *error_code = ERROR_TRANS;
@@ -103,7 +103,7 @@ void st_item_free(st_item* item){
     free(item);
 }
 
-st_item* st_get_item(const symbol_table* st, const string* key){
+st_item* st_get_item(symbol_table *st, const string* key){
     unsigned long hash_code = hash(key->str) % ST_SIZE;
     st_item* item = (*st)[hash_code];
     while(item != NULL && str_cmp(&item->key,key)){
@@ -113,7 +113,7 @@ st_item* st_get_item(const symbol_table* st, const string* key){
 }
 
 
-bool st_search(const symbol_table *st, const string* key) {
+bool st_search(symbol_table *st, const string* key) {
     st_item* item = st_get_item(st,key);
     if(item != NULL)
         return true;
@@ -121,15 +121,36 @@ bool st_search(const symbol_table *st, const string* key) {
         return false;
 }
 
+st_item* st_insert(symbol_table* st, const string* key, const item_type type, int *error_code){
+    unsigned long hash_code = hash(key->str) % ST_SIZE;
+    st_item* replace_item = (*st)[hash_code];
+    st_item* prev_item = NULL;
+    while(replace_item != NULL && str_cmp(key,&replace_item->key)){
+        prev_item = replace_item;
+        replace_item = replace_item->next;
+    }
+    if(replace_item != NULL){//item found
+        return replace_item;
+    }
+    else{//item not found
+        st_item* new_item = NULL;
+        if((new_item = st_item_alloc(key, type, error_code)) == NULL){
+            return NULL;
+        }
+        else if(prev_item != NULL){
+            prev_item->next = new_item;
+        }
+        else
+            (*st)[hash_code] = new_item;
 
-bool st_insert(symbol_table* st, st_item* item){
-        unsigned long hash_code = hash(item->key.str) % ST_SIZE;
-        bool ret = st_del_item(st,&item->key); //delete item (doesn't matter if item exists or not)
-        st_item* old_item = (*st)[hash_code];
-        //insert to the front
-        item->next = old_item;
-        (*st)[hash_code] = item;
-        return ret;
+        return new_item;
+    }
+//        bool ret = st_del_item(st,&item->key); //delete item (doesn't matter if item exists or not)
+//        st_item* old_item = (*st)[hash_code];
+//        //insert to the front
+//        item->next = old_item;
+//        (*st)[hash_code] = item;
+//        return ret;
 }
 
 bool st_del_item(symbol_table* st, const string *key){
