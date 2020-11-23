@@ -1,7 +1,6 @@
 
 #include "error.h"
 #include "parser.h"
-#include "scanner.h"
 
 #define consume_token 1 //helper variable for MATCH macro
 #define keep_token 0    //helper variable for MATCH macro
@@ -570,9 +569,16 @@ int parser(){
         st_dispose(&p.local_st);
         return error_code;
     }
-
-
 }
 
+int main(){//testing
+    printf("Done\n");
+    int ret = parser();
+    if(ret)
+        printf("Parsing error_code = %i\n", ret);
+    else
+        printf("Parsing Successful!!");
+    return 0;
+}
 
 

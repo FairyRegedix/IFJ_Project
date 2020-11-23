@@ -85,6 +85,7 @@ typedef struct{
 int copy_token(token_t *t1, token_t *t2);
 int token_init(token_t *token);
 int get_next_token(token_t* token);
+void print_token(token_t* token);
 void isKeyword(int *type, char *tmp);
 
 #endif //IFJ_SCANNER_H

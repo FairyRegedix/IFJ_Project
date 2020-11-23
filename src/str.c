@@ -88,7 +88,7 @@ int str_concat(string* s1, const char* s2, size_t len){
     if (s1->len + len >= s1->size){
         if ((s1->str = (char*) realloc(s1->str, (s1->len + len + BLOCK_SIZE)*sizeof(char))) == NULL)
             return ERROR_TRANS;
-        s1->size = s1->len + len + 1 + BLOCK_SIZE;
+        s1->size = s1->len + len + BLOCK_SIZE;
     }
     for(int i = 0; i < (int)len; i++){
         s1->str[s1->len] = s2[i];
