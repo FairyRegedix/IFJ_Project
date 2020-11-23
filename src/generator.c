@@ -4,15 +4,17 @@
 
 #include "generator.h"
 
+//finished functions
 void generate_header(){
    
     printf(".IFJcode20\n");
 
     printf("JUMP $$main\n");
+}
 
+void generate_start_of_main(){
     printf("LABEL $$main # main body\n");
     printf("PUSHFRAME\n");
-
 }
 
 void generate_end_of_main(){
@@ -20,24 +22,14 @@ void generate_end_of_main(){
     printf("CLEARS\n");
 }
 
-void gen_move(char* s1, char* s2){
-    printf("MOVE LF@%s %s", s1, s2);
-}
-
-void gen_createframe(){
-    printf("CREATEFRAME");
-}
-
-void gen_pushframe(){
-    printf("PUSHFRAME");
-}
-
-void gen_popframe(){
-    printf("POPFRAME");
-}
-
 void gen_defvar(char* id_of_variable){
     printf("DEFVAR LF@%s\n", id_of_variable);
+}
+
+void gen_retval(data_type type){
+    char* value = gen_var_value(type);
+    printf("DEFVAR LF@%retval\n");
+    printf("MOVE LF@retval %s\n", value);
 }
 
 void gen_move_to_defvar(char* id_of_variable, data_type type){
@@ -76,6 +68,36 @@ void gen_return(){
     printf("RETURN");
 }
 
+void gen_WRITE(char* s1){
+    printf("WRITE LF%s", s1);
+}
+
+void gen_LABEL_start(char* label){
+    printf("LABEL $%s", label);
+    printf("PUSHFRAME");
+}
+
+void gen_LABEL_end(){
+    printf("POPFRAME");
+    printf("RETURN");
+}
+
+void gen_start_of_function(char* function){
+    printf("#Start of function\n");
+    gen_LABEL_start(function);
+}
+
+void gen_end_of_function(){
+    printf("#End of function\n");
+    printf("\n");
+    gen_LABEL_end();
+}
+
+
+
+//end of finished functions
+
+
 void gen_pushs(char* s1){
     printf("PUSHS %s", s1);
 }
@@ -88,24 +110,28 @@ void gen_clears(){
     printf("CLEARS");
 }
 
+void gen_is_constant(){
+    
+}
+
 void gen_add(char* s1, char* s2, char* s3){
-    printf("ADD %s %s %s", s1, s2, s3);
+    printf("ADD TF@%s LF@%s %s", s1, s2, s3);
 }
 
 void gen_sub(char* s1, char* s2, char* s3){
-    printf("SUB %s %s %s", s1, s2, s3);
+    printf("SUB TF@%s LF@%s %s", s1, s2, s3);
 }
 
 void gen_mul(char* s1, char* s2, char* s3){
-    printf("MUL %s %s %s", s1, s2, s3);
+    printf("MUL TF@%s LF@%s %s", s1, s2, s3);
 }
 
 void gen_div(char* s1, char* s2, char* s3){
-    printf("DIV %s %s %s", s1, s2, s3);
+    printf("DIV TF@%s LF@%s %s", s1, s2, s3);
 }
 
 void gen_idiv(char* s1, char* s2, char* s3){
-    printf("IDIV %s %s %s", s1, s2, s3);
+    printf("IDIV TF@%s LF@%s %s", s1, s2, s3);
 }
 
 // miesto pre zasobnikove verzie ADDS/SUBS/MULS/DIVS/IDIVS
@@ -158,9 +184,7 @@ void gen_READ(char* s1, char* s2){
     printf("READ %s %s", s1, s2);
 }
 
-void gen_WRITE(char* s1){
-    printf("WRITE %s", s1);
-}
+
 
 void gen_CONCAT(char* s1, char* s2, char* s3){
     printf("CONCAT %s %s %s", s1, s2, s3);
@@ -182,9 +206,7 @@ void gen_TYPE(char* s1, char* s2){
     printf("TYPE %s %s", s1, s2);
 }
 
-void gen_LABEL(char* s1){
-    printf("LABEL $%s", s1);
-}
+
 
 void gen_JUMP(char* s1){
     printf("JUMP %s", s1);
@@ -213,23 +235,11 @@ void gen_DPRINT(char* s1){
 }
 
 
-//pomocne funkcie
 void gen_EOL(){
     printf("\n");
 }
 
-void gen_start_of_function(char* function){
-    printf("#Start of function\n");
-    gen_LABEL(function);
-    printf("PUSHFRAME");
-}
 
-void gen_end_of_function(char *function){
-    printf("#End of function\n");
-    printf("\n");
-    printf("POPFRAME");
-    printf("RETURN");
-}
 
 
 

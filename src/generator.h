@@ -9,11 +9,12 @@
 #include "scanner.h"
 #include "str.h"
 
-void gen_move(char* s1, char* s2);
-void gen_createframe();
-void gen_pushframe();
-void gen_popframe();
-void gen_defvar(char* s1);
+void gen_defvar(char* id_of_variable);
+void gen_retval(data_type type);
+void gen_move_to_defvar(char* id_of_variable, data_type type);
+char* gen_var_value(data_type type);
+
+
 void gen_call(char* s1);
 void gen_return();
 void gen_pushs(char* s1);
@@ -41,7 +42,12 @@ void gen_STRLEN(char* s1, char* s2);
 void gen_GETCHAR(char* s1, char* s2, char* s3);
 void gen_SETCHAR(char* s1, char* s2, char* s3);
 void gen_TYPE(char* s1, char* s2);
-void gen_LABEL(char* s1);
+
+void gen_LABEL_start(char* s1);
+void gen_LABEL_end();
+
+
+
 void gen_JUMP(char* s1);
 void gen_JUMPIFEQ(char* s1, char* s2, char* s3);
 void gen_JUMPIFNEQ(char* s1, char* s2, char* s3);
@@ -49,14 +55,15 @@ void gen_EXIT(char* s1);
 void gen_BREAK();
 void gen_DPRINT(char* s1);
 
-char* gen_var_value(data_type type);
+
 void gen_start_of_function(char* function);
-void gen_end_of_function(char *function);
+void gen_end_of_function();
 
 void gen_EOL();
 
 void codeGenerator();
 void generate_header();
+void generate_start_of_main();
 void generate_end_of_main();
 
 #endif //GENERATOR_H
