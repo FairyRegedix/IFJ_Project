@@ -1,5 +1,7 @@
 #include "error.h"
 #include "scanner.h"
+#include "parser.h"
+#include "symtable.h"
 //#include "libraries.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,7 +28,7 @@ typedef enum{
     T_nothing,           // neexistuje
 } eTypeRel;
 
-int expression(token_t *token_);
+int expression(parser_info *p);
 
 eTypeTerm GetTerm(token_type Ttype);
 eTypeRel Relation(eTypeTerm current, eTypeTerm new);
@@ -40,7 +42,7 @@ typedef enum {
     T_NIL,
     T_BOOL,
     T_ELSE,
-}TermDataType;
+}NonTermDataType;
 
 typedef enum {
     type_OPEN,                                   //otvorena zatvorka (<)
@@ -55,7 +57,7 @@ typedef enum {
 typedef struct expr_stack {
     token_t token_stack;                     //typ tokenu
     tType type;                                 //typ / otvorena zatvorka (<) /  terminal    / neterminal
-    TermDataType dtype;                             
+    NonTermDataType dtype;                         // neterminalovy typ      
     struct  expr_stack *next;
 } *e_stack_item;
 
@@ -80,7 +82,7 @@ int FindFirstTerminal(e_stack *stack);
 
 int FindFirstOpenB(e_stack *stack);
 
-int expressionParse(e_stack *stack);
+int expressionParse(e_stack* stack,parser_info *p);
 
 // e_stack_item Top_stack_item(e_stack *stack);                  // zistenie tokenu na vrcholu zasobniku
 

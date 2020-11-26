@@ -113,6 +113,7 @@ void push_stack(e_stack* stack, e_stack_item tokenPushed, token_t *token_)
         tokenPushed->token_stack.type = token_->type;
         tokenPushed->type = type_term;
         stack->p[stack->top] = tokenPushed;
+        //tokenPushed->dtype = token_->actual_value;
         StackItems = StackItems + 1 ;
     }
 }
@@ -176,7 +177,7 @@ bool e_stack_dispose(e_stack *stack)
 //                        END OF STACK FUNCTIONS
 
 
-int expressionParse(e_stack* stack){
+int expressionParse(e_stack* stack,parser_info *p){
     /*e_stack_item itemP;
     itemP = pop_stack(stack); */
     int ruleSize = FindFirstOpenB(stack);
@@ -186,7 +187,35 @@ int expressionParse(e_stack* stack){
     {
         e_stack_item itemOP;
         itemOP = pop_stack(stack);
+        NonTermDataType dataType;
+        // pravidlo E -> <val>
+        switch (itemOP->type)
+        {
+        case TOKEN_INT:
+            dataType = T_INT;
+            break;
+        case TOKEN_FLOAT:
+            dataType = T_FLOAT;
+            break;
+        case TOKEN_STRING:
+            dataType = T_STRING;
+            break;
+        case TOKEN_TRUE:
+            dataType = T_BOOL;
+            break;
+        case TOKEN_FALSE:
+            dataType = T_BOOL;
+            break;
+        case TOKEN_ID:
+            dataType = T_ELSE;
+            break;
+        default:
+            //error
+            break;
+        }
         break;
+        itemOP->type = type_non_term;
+        itemOP->dtype = dataType;
     }
     case 3:
     {
@@ -220,7 +249,8 @@ int expressionParse(e_stack* stack){
                 break;
             default:
                 break;
-        }   
+        }
+        break;   
         
     }
     default:
@@ -233,14 +263,14 @@ int expressionParse(e_stack* stack){
 
 
 
-int expression(token_t *token)
+int expression(parser_info *p)
 {   
     e_stack stack;
     init_e_stack(&stack);
     int loop = 0;
 
     token_t token_;
-    token_ = *token;
+    token_ = *p->token;
 
     while(loop < 1)
     {
@@ -265,11 +295,12 @@ int expression(token_t *token)
                 push_stack(&stack,item, &token_);
 
                 //volanie dalsieho tokenu , opytat sa fera ktora funkcia na to sluzi
+                token_ = *p->token->next;
 
                 break;
             case T_closed :
                 {
-                    int result = expressionParse(&stack);
+                    int result = expressionParse(&stack,p);
                     if(result > 0)
                     {
                         //chyba vo vyraze
@@ -282,6 +313,7 @@ int expression(token_t *token)
             case T_equal:
                 push_stack(&stack,item, &token_);
                 //volanie dalsieho tokenu
+                token_ = *p->token->next;
                 break;
 
             case T_nothing :
