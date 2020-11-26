@@ -82,13 +82,14 @@ typedef struct token{
     token_type type;
     string actual_value; //storing int,float,string value
     int lineno; //line number
-    int pos; //position of the first char of the token
     struct token* next; //pointer to the next token in the list
+    struct token* prev; //pointer to the previous token in the list
 }token_t;
 
 typedef struct token_list{
     token_t* act;
-    token_t* head;
+    token_t* last;
+    token_t* first;
 }token_list_t;
 
 
@@ -102,7 +103,9 @@ void token_list_dispose(token_list_t* l);
 
 
 int getToken(token_t* token);
+int scanner_fill_token_list(token_list_t* l);
 void print_token(token_t* token);
+char* token_enum_to_str(token_type type);
 void isKeyword(int *type, char *tmp);
 
 #endif //IFJ_SCANNER_H

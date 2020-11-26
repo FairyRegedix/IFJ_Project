@@ -16,5 +16,5 @@ typedef enum error{
   ERROR_TRANS = 99,  //interná chyba prekladača (napr chyba alokácie, pamäti ...)
 } ERROR;
 
-int handle_error(ERROR error, char* msg);
+int handle_error(ERROR error, char* format, ...);
 

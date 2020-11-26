@@ -84,7 +84,7 @@ size_t str_len(const string *s){
     return s->len;
 }
 
-int str_concat(string* s1, const char* s2, size_t len){
+int str_concat(string* s1, const char* s2, int len){
     if (s1->len + len >= s1->size){
         if ((s1->str = (char*) realloc(s1->str, (s1->len + len + BLOCK_SIZE)*sizeof(char))) == NULL)
             return ERROR_TRANS;

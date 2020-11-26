@@ -7,7 +7,7 @@
 #include "parser.h"
 
 
-#define MATCH_BASE(expr) do{                                               \
+#define MATCH_BASE(expr) do{                                                \
     if ((expr)) {                                                           \
         CHECK(str_add_char(&token->actual_value, c), SUCCESS);              \
     } else if (c == '_') {                                                  \
@@ -37,30 +37,27 @@
 }while(0)
 
 
-
-
-
-
-
-
 int getToken(token_t *token) {
     int error_code;
     char c;
     static FILE *f;
+    static int lineno = 1;
     f = stdin; //set stream to stdin
-    str_reinit(&token->actual_value); //clear token string
+    //str_reinit(&token->actual_value); //clear token string
 
     state_start:
     c = (char) fgetc(f);
 
     if (c == EOF) {
         token->type = TOKEN_EOF;
+        token->lineno = lineno;
         return SUCCESS;
     }
 
     while (isspace(c)) {
         if (c == EOL) {
             token->type = TOKEN_EOL;
+            token->lineno = ++lineno;
             return SUCCESS;
         }
         c = (char) fgetc(f);
@@ -209,6 +206,7 @@ int getToken(token_t *token) {
                 }
                 if (eol_in_comment) {
                     token->type = TOKEN_EOL;
+                    token->lineno = ++lineno;
                     return SUCCESS;
                 }
             } else {
@@ -355,6 +353,7 @@ int getToken(token_t *token) {
             break;
     }
     isKeyword(&token->type, token->actual_value.str);
+    token->lineno = lineno;
     return SUCCESS;
 }
 
@@ -454,7 +453,7 @@ void print_token(token_t *token) {
             printf("[EOL]\n");
             break;
         case TOKEN_EOF:
-            printf("[EOF] ");
+            printf("[EOF]\n");
             break;
         case TOKEN_DEFINITION:
             printf("[:=] ");
@@ -515,13 +514,173 @@ void print_token(token_t *token) {
     }
 }
 
+char* token_enum_to_str(token_type type){
+    char* msg = "";
+    switch(type){
+        case TOKEN_ERROR:
+            msg = "TOKEN_ERROR";
+            break;
+        case TOKEN_BOOL:
+            msg = "TOKEN_BOOL";
+            break;
+        case TOKEN_TRUE:
+            msg = "TOKEN_TRUE";
+            break;
+        case TOKEN_FALSE:
+            msg = "TOKEN_FALSE";
+            break;
+        case TOKEN_ELSE:
+            msg = "TOKEN_ELSE";
+            break;
+        case TOKEN_FLOAT64:
+            msg = "TOKEN_FLOAT64";
+            break;
+        case TOKEN_FOR:
+            msg = "TOKEN_FOR";
+            break;
+        case TOKEN_FUNC:
+            msg = "TOKEN_FUNC";
+            break;
+        case TOKEN_IF:
+            msg = "TOKEN_IF";
+            break;
+        case TOKEN_INT:
+            msg = "TOKEN_INT";
+            break;
+        case TOKEN_PACKAGE:
+            msg = "TOKEN_PACKAGE";
+            break;
+        case TOKEN_RETURN:
+            msg = "TOKEN_RETURN";
+            break;
+        case TOKEN_STRING:
+            msg = "TOKEN_STRING";
+            break;
+        case TOKEN_UNDERSCORE:
+            msg = "TOKEN_UNDERSCORE";
+            break;
+        case TOKEN_PRINT:
+            msg = "TOKEN_PRINT";
+            break;
+        case TOKEN_INPUTI:
+            msg = "TOKEN_INPUTI";
+            break;
+        case TOKEN_INPUTS:
+            msg = "TOKEN_INPUTS";
+            break;
+        case TOKEN_LEN:
+            msg = "TOKEN_LEN";
+            break;
+        case TOKEN_SUBSTR:
+            msg = "TOKEN_SUBSTR";
+            break;
+        case TOKEN_ORD:
+            msg = "TOKEN_ORD";
+            break;
+        case TOKEN_CHR:
+            msg = "TOKEN_CHR";
+            break;
+        case TOKEN_INPUTB:
+            msg = "TOKEN_INPUTB";
+            break;
+        case TOKEN_INPUTF:
+            msg = "TOKEN_INPUTF";
+            break;
+        case TOKEN_ID:
+            msg = "TOKEN_ID";
+            break;
+        case TOKEN_RBRACKET:
+            msg = "TOKEN_RBRACKET";
+            break;
+        case TOKEN_LBRACKET:
+            msg = "TOKEN_LBRACKET";
+            break;
+        case TOKEN_RCURLY:
+            msg = "TOKEN_RCURLY";
+            break;
+        case TOKEN_LCURLY:
+            msg = "TOKEN_LCURLY";
+            break;
+        case TOKEN_COMMA:
+            msg = "TOKEN_COMMA";
+            break;
+        case TOKEN_SEMICOLON:
+            msg = "TOKEN_SEMICOLON";
+            break;
+        case TOKEN_EOL:
+            msg = "TOKEN_EOL";
+            break;
+        case TOKEN_EOF:
+            msg = "TOKEN_EOF";
+            break;
+        case TOKEN_DEFINITION:
+            msg = "TOKEN_DEFINITION";
+            break;
+        case TOKEN_ASSIGN:
+            msg = "TOKEN_ASSIGN";
+            break;
+        case TOKEN_INTEGER:
+            msg = "TOKEN_INTEGER";
+            break;
+        case TOKEN_FLOAT:
+            msg = "TOKEN_FLOAT";
+            break;
+        case TOKEN_STR:
+            msg = "TOKEN_STR";
+            break;
+        case TOKEN_BOOLEAN:
+            msg = "TOKEN_BOOLEAN";
+            break;
+        case TOKEN_NOT:
+            msg = "TOKEN_NOT";
+            break;
+        case TOKEN_AND:
+            msg = "TOKEN_AND";
+            break;
+        case TOKEN_OR:
+            msg = "TOKEN_OR";
+            break;
+        case TOKEN_ADD:
+            msg = "TOKEN_ADD";
+            break;
+        case TOKEN_SUB:
+            msg = "TOKEN_SUB";
+            break;
+        case TOKEN_MUL:
+            msg = "TOKEN_MUL";
+            break;
+        case TOKEN_DIV:
+            msg = "TOKEN_DIV";
+            break;
+        case TOKEN_EQL:
+            msg = "TOKEN_EQL";
+            break;
+        case TOKEN_NEQ:
+            msg = "TOKEN_NEQ";
+            break;
+        case TOKEN_LT:
+            msg = "TOKEN_LT";
+            break;
+        case TOKEN_GT:
+            msg = "TOKEN_GT";
+            break;
+        case TOKEN_LTE:
+            msg = "TOKEN_LTE";
+            break;
+        case TOKEN_GTE:
+            msg = "TOKEN_GTE";
+            break;
+    }
+    return msg;
+};
+
 
 int token_init(token_t *token) {
     int ret;
     token->type = TOKEN_ERROR;
     token->lineno = 0;
-    token->pos = 0;
     token->next = NULL;
+    token->prev = NULL;
     if ((ret = str_init(&token->actual_value)) == SUCCESS)
         return SUCCESS;
     else
@@ -532,41 +691,44 @@ int copy_token(token_t *t1, token_t *t2) {
     int error_code;
     t1->type = t2->type;
     t1->lineno = t2->lineno;
-    t1->pos = t2->pos;
+    t1->next = t2->next;
+    t1->prev = t2->prev;
     CHECK(str_copy(&t1->actual_value, &t2->actual_value), SUCCESS);
     return SUCCESS;
 }
 
 void token_list_init(token_list_t *l) {
     l->act = NULL;
-    l->head = NULL;
-}
-
-void token_list_first(token_list_t *l) {
-    l->act = l->head;
+    l->first = NULL;
+    l->last = NULL;
 }
 
 int token_list_insert(token_list_t *l, token_t *token) {
     token_t *next_token;
     if (l == NULL)
         return ERROR_TRANS;
-    else if (l->head == NULL)
-        l->head = token;
+    else if (l->first == NULL){
+        l->first = token;
+        l->last = token;
+    }
     else {
-        next_token = l->head;
+        next_token = l->first;
         while (next_token->next != NULL) {
             next_token = next_token->next;
         }
         next_token->next = token;
+        token->prev = next_token;
+        l->last = token;
     }
     return SUCCESS;
 }
 
 int token_list_next(token_list_t *l) {
-    if (l->head == NULL)
+    if (l->first == NULL)
         return ERROR_TRANS;
-    else if (l->act == NULL)
-        l->act = l->head;
+    else if (l->act == NULL)//list is always active
+        //TOKEN_EOF always at the end of the list as a guard
+        l->act = l->first;
     else
         l->act = l->act->next;
     return SUCCESS;
@@ -576,10 +738,10 @@ int token_list_next(token_list_t *l) {
 void token_list_dispose(token_list_t *l) {
     token_t *next_token;
     token_t *del_token;
-    if (l != NULL && l->head != NULL) {
-        next_token = l->head->next;
-        str_free(&l->head->actual_value);
-        free(l->head);
+    if (l != NULL && l->first != NULL) {
+        next_token = l->first->next;
+        str_free(&l->first->actual_value);
+        free(l->first);
         while (next_token != NULL) {
             del_token = next_token;
             next_token = del_token->next;
@@ -589,6 +751,25 @@ void token_list_dispose(token_list_t *l) {
     }
 }
 
+int scanner_fill_token_list(token_list_t* l){
+    token_t* token;
+    do{
+        if((token = malloc(sizeof(token_t))) == NULL)
+            return handle_error(ERROR_TRANS, "%s\n", "memory allocation failed");
+        token_init(token);
+        token_list_insert(l, token);
+        if(getToken(token) == ERROR_LEX)
+            return handle_error(ERROR_LEX,"at %s\n",token->actual_value.str);
+
+    }while(token->type != TOKEN_EOF);
+
+    token = l->first;
+    while(token != NULL){//testing
+        print_token(token);
+        token=token->next;
+    }
+    return SUCCESS;
+}
 //int main(){ // testing
 //    token_t token;
 //    token_init(&token);

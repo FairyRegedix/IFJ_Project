@@ -1,31 +1,42 @@
 /*
  * */
+#include <stdarg.h>
 #include "error.h"
 
-int handle_error(ERROR error, char* msg){
+int handle_error(ERROR error, char* format, ...){
+    va_list args;
+    char* msg;
+    va_start(args, format);
+
     switch(error){
         case ERROR_LEX:
-            fprintf(stderr,"Error: Lexical error: %s...\n", msg);
+            msg="Lexical error: ";
             break;
         case ERROR_SYN:
-            fprintf(stderr,"Error: Syntax error: %s...\n", msg);
+            msg="Syntax error: ";
             break;
         case ERROR_SEM_DEF:
         case ERROR_SEM_DAT:
         case ERROR_SEM_COMP:
         case ERROR_SEM_PAR:
         case ERROR_SEM_OTHER:
-            fprintf(stderr,"Error: Semantic error: %s...\n", msg);
+            msg="Semantic error: ";
             break;
         case ERROR_NULL:
-            fprintf(stderr,"Error: Zero division: %s...\n", msg);
+            msg="Zero division: ";
             break;
         case ERROR_TRANS:
-            fprintf(stderr,"Error: Internal error occurred: %s...\n", msg);
+            msg="Internal error occurred: ";
             break;
         default:
+            msg = "";
             break;
     }
+    fprintf(stderr,"Error[%i]: %s", error, msg);
+    vfprintf(stderr, format, args);
+
+    va_end(args);
+
     return error;
 }
 

@@ -2,17 +2,19 @@
 #ifndef IFJ_PROJECT_SYMTAB_H
 #define IFJ_PROJECT_SYMTAB_H
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include "str.h"
+//#include <stdlib.h>
+//#include <stdbool.h>
+//#include "str.h"
+#include "scanner.h"
+#define ST_SIZE 133
 
-#define ST_SIZE 877
+
 
 typedef enum data_type{
-    type_int,
-    type_float,
-    type_str,
-    type_bool,
+    type_int = TOKEN_INT,
+    type_float = TOKEN_FLOAT64,
+    type_str = TOKEN_STR,
+    type_bool = TOKEN_BOOL,
 } data_type;
 
 typedef enum item_type{
@@ -20,8 +22,11 @@ typedef enum item_type{
     type_variable,
 } item_type;
 
+struct item;
+
 typedef struct function_t{
     string params;
+    string param_types;
     string ret_types;
 } function_t; //function signature
 
@@ -53,8 +58,12 @@ typedef struct item{
     struct item* next;  //pointer to the next item in the list (chaining collisions)
 }st_item;
 
-
 typedef st_item* symbol_table[ST_SIZE];
+
+typedef struct stack{
+    symbol_table local_table;
+    struct stack* parent;
+}st_stack_t;
 
 
 /* djb2 hashing algorithm
@@ -79,7 +88,7 @@ void st_init(symbol_table* st);
  *                        if everything is okay error_code = SUCCESS,
  *                        else error_code = ERROR_TRANS (internal error)
  * @return  pointer to a st_item*/
-st_item* st_item_alloc(const string* key, const item_type type, int* error_code);
+st_item* st_item_alloc(const string* key, item_type type, int* error_code);
 
 /*
  * Initializes a new symbol table item.
@@ -90,7 +99,7 @@ st_item* st_item_alloc(const string* key, const item_type type, int* error_code)
  * @param   type :type_function or type_variable?
  * @return  SUCCESS or ERROR_TRANS(internal error)
  * */
-int st_item_init(st_item* item, const string* key, const item_type type);
+int st_item_init(st_item* item, const string* key, item_type type);
 
 /*
  *@param    st  : pointer to a symbol table
@@ -134,4 +143,7 @@ bool st_del_item(symbol_table* st, const string *key);
  * */
 void st_dispose(symbol_table* st);
 
+int enter_scope(st_stack_t** s, int *n);
+int leave_scope(st_stack_t** s, int *n);
+st_item* stack_lookup(st_stack_t* s, const string* key);
 #endif //IFJ_PROJECT_SYMTAB_H
