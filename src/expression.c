@@ -324,6 +324,12 @@ int expression(parser_info *p)
                         //error vyraz nemoze byt prazdny
                         loop = 2;
                     }
+                    else
+                    {
+                        loop = 1;
+                        //spravne ukoncenie analyzy vyrazu
+                    }
+                    
                 }
                 else
                 {
