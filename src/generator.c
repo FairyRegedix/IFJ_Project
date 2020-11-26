@@ -93,13 +93,36 @@ void gen_end_of_function(){
     gen_LABEL_end();
 }
 
+void gen_if_start(char* label, int id){
+    printf("JUMPIFNEQ $%s$if$%i$else\n", label, id);
+}
 
+void gen_if_else(char* label, int id){
+    printf("JUMP $%s$if$%i$end\n", label, id);
+    printf("LABEL $%s$if$%i$else\n", label, id);
+}
+
+void gen_if_end(char* label, int id){
+    printf("LABEL $%s$if$%i$end\n",label, id);
+}
+
+void gen_while_start(char* label, int id){
+    printf("LABEL $%s$while$%i$start\n", label, id);
+}
+
+void gen_while_end(char* label, int id){
+    printf("JUMP $%s$while$%i$start\n", label, id);
+    printf("LABEL $%s$while$%i$end\n", label, id);
+}
+
+void gen_JUMP(char* destination){
+    printf("JUMP $%s", destination);
+}
 
 //end of finished functions
 
-
 void gen_pushs(char* s1){
-    printf("PUSHS %s", s1);
+    printf("PUSHS %s\n", s1);
 }
 
 void gen_pops(char* s1){
@@ -110,31 +133,30 @@ void gen_clears(){
     printf("CLEARS");
 }
 
-void gen_is_constant(){
-    
+void_gen_adds(){
+
 }
 
 void gen_add(char* s1, char* s2, char* s3){
-    printf("ADD TF@%s LF@%s %s", s1, s2, s3);
+    printf("ADD TF@%s @%s %s", s1, s2, s3);
 }
 
 void gen_sub(char* s1, char* s2, char* s3){
-    printf("SUB TF@%s LF@%s %s", s1, s2, s3);
+    printf("SUB TF@%s @%s %s", s1, s2, s3);
 }
 
 void gen_mul(char* s1, char* s2, char* s3){
-    printf("MUL TF@%s LF@%s %s", s1, s2, s3);
+    printf("MUL TF@%s @%s %s", s1, s2, s3);
 }
 
 void gen_div(char* s1, char* s2, char* s3){
-    printf("DIV TF@%s LF@%s %s", s1, s2, s3);
+    printf("DIV TF@%s @%s %s", s1, s2, s3);
 }
 
 void gen_idiv(char* s1, char* s2, char* s3){
-    printf("IDIV TF@%s LF@%s %s", s1, s2, s3);
+    printf("IDIV TF@%s @%s %s", s1, s2, s3);
 }
 
-// miesto pre zasobnikove verzie ADDS/SUBS/MULS/DIVS/IDIVS
 
 void gen_LT(char* s1, char* s2, char* s3){
     printf("LT %s %s %s", s1, s2, s3);
@@ -208,19 +230,7 @@ void gen_TYPE(char* s1, char* s2){
 
 
 
-void gen_JUMP(char* s1){
-    printf("JUMP %s", s1);
-}
 
-void gen_JUMPIFEQ(char* s1, char* s2, char* s3){
-    printf("JUMPIFEQ %s %s %s", s1, s2, s3);
-}
-
-void gen_JUMPIFNEQ(char* s1, char* s2, char* s3){
-    printf("JUMPIFNEQ %s %s %s", s1, s2, s3);
-}
-
-//miesto pre zasobnikove verzie JUMPIFEQS/JUMPIFNEQS
 
 void gen_EXIT(char* s1){
     printf("EXIT %s", s1);
