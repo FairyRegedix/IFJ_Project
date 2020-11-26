@@ -5,6 +5,7 @@
 //#include <stdlib.h>
 //#include <stdbool.h>
 //#include "str.h"
+#include <stdint.h>
 #include "scanner.h"
 #define ST_SIZE 133
 
@@ -13,7 +14,7 @@
 typedef enum data_type{
     type_int = TOKEN_INT,
     type_float = TOKEN_FLOAT64,
-    type_str = TOKEN_STR,
+    type_str = TOKEN_STRING,
     type_bool = TOKEN_BOOL,
 } data_type;
 
@@ -32,12 +33,11 @@ typedef struct function_t{
 
 typedef struct variable_t{
     data_type value_type; //data type of the variable
-
-    union{
-        int int_value; //also for bool value
-        double float_value;
-        string string_value;
-    }value;
+//    union{
+//        int64_t int_value; //also for bool value
+//        double float_value;
+//        string string_value;
+//    }value;
 } variable_t; //variable signature
 
 typedef struct item_data{

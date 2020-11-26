@@ -84,7 +84,7 @@ int st_item_init(st_item* item, const string* key, item_type type){
     }
     else{//variable
         item->data.as.variable.value_type = -1;
-        item->data.as.variable.value.int_value = -1;
+//        item->data.as.variable.value.int_value = -1;
     }
     
     return error_code;
@@ -98,7 +98,7 @@ void st_item_free(st_item* item){
         str_free(&item->data.as.function.ret_types);
     }
     else if(item->data.type == type_variable && item->data.as.variable.value_type == type_str){
-        str_free(&item->data.as.variable.value.string_value);
+//        str_free(&item->data.as.variable.value.string_value);
     }
     else{
         ;

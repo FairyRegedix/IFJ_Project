@@ -19,10 +19,9 @@ typedef struct parser_info{
     st_item* in_function; //pointer to the function which definition we are currently parsing
     int scope; //current scope number
 
-    int left_side_vars_count; // v1,v2,v3 = exp1,exp2,exp3
-    int right_side_exp_count; // v1,v2,v3 = exp1,exp2,exp3
-    st_item* function_called; // v1,v2,v3 = f()
-    string called_params;
+    string left_side_vars_types; // v1,v2,...,v_n = ...
+    string right_side_exp_types; // ... = exp1,exp2,...,exp_n | call params types
+    st_item* function_called; // ... = f()
 
     //possibly more stuff coming
 

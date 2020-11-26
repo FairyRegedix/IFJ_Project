@@ -8,14 +8,7 @@
 
 
 #define MATCH_BASE(expr) do{                                                \
-    if ((expr)) {                                                           \
-        CHECK(str_add_char(&token->actual_value, c), SUCCESS);              \
-    } else if (c == '_') {                                                  \
-        ungetc(c, f);                                                       \
-    } else                                                                  \
-        return ERROR_LEX;                                                   \
     while (true) {                                                          \
-        c = (char) getc(f);                                                 \
         if ((expr)) {                                                       \
             CHECK(str_add_char(&token->actual_value, c), SUCCESS);          \
             state_underscore = false;                                       \
@@ -24,15 +17,21 @@
                  return ERROR_LEX;                                          \
             state_underscore = true;                                        \
             c = (char) getc(f);                                             \
-            if ((expr))                                                     \
-                CHECK(str_add_char(&token->actual_value, c), SUCCESS);      \
+            CHECK(str_add_char(&token->actual_value, c), SUCCESS); \
+            if ((expr))                                                    \
+                state_underscore = false;                                   \
             else                                                            \
                 return ERROR_LEX;                                           \
+                \
+        } else if(isalnum(c)) {                                             \
+            CHECK(str_add_char(&token->actual_value, c), SUCCESS);   \
+            return ERROR_LEX;\
         } else {                                                            \
             ungetc(c, f);                                                   \
             token->type = TOKEN_INTEGER;                                    \
             return SUCCESS;                                                 \
         }                                                                   \
+        c = (char) getc(f);\
     }                                                                       \
 }while(0)
 
@@ -46,6 +45,7 @@ int getToken(token_t *token) {
     //str_reinit(&token->actual_value); //clear token string
 
     state_start:
+    token->lineno = lineno;
     c = (char) fgetc(f);
 
     if (c == EOF) {
@@ -274,23 +274,30 @@ int getToken(token_t *token) {
             }
             break;
         default:
+            CHECK(str_add_char(&token->actual_value, c), SUCCESS);
 
             if (isalpha(c) || c == '_') {//state id
+                c = (char) getc(f);
+
                 while (isalnum(c) || c == '_') {
                     CHECK(str_add_char(&token->actual_value, c), SUCCESS);
                     c = (char) getc(f);
                 }
                 token->type = TOKEN_ID;
+                isKeyword(&token->type, token->actual_value.str);
                 ungetc(c, f);
+
             } else if (isdigit(c)) {//state number literal
                 bool state_underscore = false;
                 bool state_float = false;
                 bool state_exponent = false;
-                CHECK(str_add_char(&token->actual_value, c), SUCCESS);
+
                 if (c == '0') {
                     c = (char) getc(f);
-                    if (c == '0')
+                    if (isdigit(c)){
+                        CHECK(str_add_char(&token->actual_value, tolower(c)), SUCCESS);
                         return ERROR_LEX;
+                    }
                     else if (tolower(c) == 'b') {//binary state
                         CHECK(str_add_char(&token->actual_value, tolower(c)), SUCCESS);
                         c = (char) getc(f);
@@ -305,42 +312,64 @@ int getToken(token_t *token) {
                         CHECK(str_add_char(&token->actual_value, tolower(c)), SUCCESS);
                         c = (char) getc(f);
                         MATCH_BASE(isxdigit(c));
+                    } else if (c == '_'){
+                        CHECK(str_add_char(&token->actual_value, tolower(c)), SUCCESS);
+                        return ERROR_LEX;
                     } else
                         ungetc(c, f);
-                    //return SUCCESS;
                 }
 
                 while (true) {
                     c = (char) getc(f);
                     if (c == '.') {//state_float
-                        if (state_float || state_exponent)
-                            break;
-                        state_float = true;
                         CHECK(str_add_char(&token->actual_value, c), SUCCESS);
-                        c = (char) getc(f);
-                        if (isdigit(c)) {
-                            CHECK(str_add_char(&token->actual_value, c), SUCCESS);
-                        } else
+                        if (state_float || state_exponent)
                             return ERROR_LEX;
-                    } else if (tolower(c) == 'e') {//state_exponent
+                        state_float = true;
+                        c = (char) getc(f);
+                        CHECK(str_add_char(&token->actual_value, c), SUCCESS);
+                        if (!isdigit(c))
+                            return ERROR_LEX;
+                    }
+                    else if(c == '_') {
+                        if (state_underscore)
+                             return ERROR_LEX;
+                        state_underscore = true;
+                        c = (char) getc(f);
+                        if (isdigit(c)){
+                            CHECK(str_add_char(&token->actual_value, c), SUCCESS);
+                            state_underscore = false;
+                        }
+                        else{
+                            CHECK(str_add_char(&token->actual_value, '_'), SUCCESS);
+                            CHECK(str_add_char(&token->actual_value, c), SUCCESS);
+                            return ERROR_LEX;
+                        }
+                    }
+                    else if (tolower(c) == 'e') {//state_exponent
+                        CHECK(str_add_char(&token->actual_value, c), SUCCESS);
                         if (state_exponent)
                             return ERROR_LEX;
                         state_exponent = true;
-                        CHECK(str_add_char(&token->actual_value, c), SUCCESS);
                         c = (char) getc(f);
                         if (c == '+' || c == '-') {
                             CHECK(str_add_char(&token->actual_value, c), SUCCESS);
                             c = (char) getc(f);
                         }
-                        if (!isdigit(c))
+                        if (!isdigit(c)){
+                            CHECK(str_add_char(&token->actual_value, c), SUCCESS);
                             return ERROR_LEX;
+                        }
                         while (c == '0') {
                             c = (char) getc(f);
                         }
                         ungetc(c, f);
-                    } else if (isdigit(c)) {
+                    }
+                    else if (isdigit(c)) {
+                        state_underscore = false;
                         CHECK(str_add_char(&token->actual_value, c), SUCCESS);
-                    } else
+                    }
+                    else
                         break;
                 }
                 if (state_float || state_exponent)
@@ -348,12 +377,11 @@ int getToken(token_t *token) {
                 else
                     token->type = TOKEN_INTEGER;
                 ungetc(c, f);
-            } else
+            } else{
                 return ERROR_LEX;
+            }
             break;
     }
-    isKeyword(&token->type, token->actual_value.str);
-    token->lineno = lineno;
     return SUCCESS;
 }
 
@@ -687,15 +715,6 @@ int token_init(token_t *token) {
         return ret;
 }
 
-int copy_token(token_t *t1, token_t *t2) {
-    int error_code;
-    t1->type = t2->type;
-    t1->lineno = t2->lineno;
-    t1->next = t2->next;
-    t1->prev = t2->prev;
-    CHECK(str_copy(&t1->actual_value, &t2->actual_value), SUCCESS);
-    return SUCCESS;
-}
 
 void token_list_init(token_list_t *l) {
     l->act = NULL;
@@ -752,14 +771,21 @@ void token_list_dispose(token_list_t *l) {
 }
 
 int scanner_fill_token_list(token_list_t* l){
+    int error_code;
     token_t* token;
     do{
         if((token = malloc(sizeof(token_t))) == NULL)
             return handle_error(ERROR_TRANS, "%s\n", "memory allocation failed");
         token_init(token);
         token_list_insert(l, token);
-        if(getToken(token) == ERROR_LEX)
-            return handle_error(ERROR_LEX,"at %s\n",token->actual_value.str);
+        error_code = getToken(token);
+        if(error_code == ERROR_LEX)
+            return handle_error(error_code, "at line %i: incorrect lexeme \"%s\"\n",
+                                token->lineno, token->actual_value.str);
+        else if(error_code == SUCCESS)
+            continue;
+        else
+            return handle_error(error_code, "error encountered in scanner\n");
 
     }while(token->type != TOKEN_EOF);
 
@@ -770,15 +796,3 @@ int scanner_fill_token_list(token_list_t* l){
     }
     return SUCCESS;
 }
-//int main(){ // testing
-//    token_t token;
-//    token_init(&token);
-//    while(token.type != TOKEN_EOF){
-//        if(get_next_token(&token) == ERROR_LEX)
-//            printf("Lex error.\n");
-//        else
-//            print_token(&token);
-//    }
-//    str_free(&token.actual_value);
-//    return 0;
-//}
