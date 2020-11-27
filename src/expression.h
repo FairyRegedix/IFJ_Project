@@ -51,7 +51,7 @@ typedef enum {
 
 // struktura tokenu na zasobniku
 typedef struct expr_stack {
-    token_t token_stack;                     //typ tokenu
+    token_t* token_stack;                     //typ tokenu
     tType type;                                 //typ / otvorena zatvorka (<) /  terminal    / neterminal
     token_type dtype;                         // neterminalovy typ
     struct  expr_stack *next;

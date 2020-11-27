@@ -85,16 +85,18 @@ void init_e_stack(e_stack *stack) {
     for (int i = 0; i < MAX_STACK; i++) {
         stack->p[i] = NULL;
     }
-    stack->top = 0;
+    stack->top = -1;
 }
 
 
 e_stack_item pop_stack(e_stack *stack) {
-    if (stack->top > 0) {
-        stack->top--;
-        StackItems = StackItems - 1;
-    }
-    return stack->p[stack->top];
+    e_stack_item ret;
+    ret = stack->p[stack->top];
+    stack->p[stack->top] = NULL;
+    stack->top--;
+    StackItems = StackItems - 1;
+
+    return ret;
 }
 
 void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token_) {
@@ -105,7 +107,7 @@ void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token_) {
         tokenPushed = malloc(sizeof(struct expr_stack));
         if (tokenPushed != NULL) {
             //tokenPushed->next = stack->top;
-            tokenPushed->token_stack.type = token_->type;
+            tokenPushed->token_stack = token_;
             tokenPushed->type = type_term;
             stack->p[stack->top] = tokenPushed;
             tokenPushed->dtype = token_->type;
@@ -117,7 +119,6 @@ void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token_) {
 
 void push_nonterm(e_stack *stack, e_stack_item pushedNonterm) {
     stack->top++;
-    pushedNonterm = malloc(sizeof(struct expr_stack));
     StackItems = StackItems + 1;
     stack->p[stack->top] = pushedNonterm;
 
@@ -141,12 +142,13 @@ void push_openb(e_stack *stack, int position) {
     }
 }
 
-e_stack_item FindTerminal(e_stack *stack) {
+e_stack_item FindNonTerminal(e_stack *stack) {
     e_stack_item item = NULL;
 
     for(int pos = 0; pos<MAX_STACK; pos++){
         item = stack->p[pos];
-        if(item->type == type_term){
+        if(item != NULL &&
+        (item->type == type_non_term || item->type == type_non_term0)){
             break;
         }
     }
@@ -166,7 +168,7 @@ int FindFirstTerminal(e_stack *stack) {
 }
 
 int FindFirstOpenB(e_stack *stack) {
-    int point = stack->top-1;
+    int point = stack->top;
     int ruleSize = 0;
     while (point >= 0) {
         if (stack->p[point] != NULL && stack->p[point]->type == type_OPEN)
@@ -195,66 +197,73 @@ bool e_stack_dispose(e_stack *stack) {
 int expressionParse(e_stack *stack, parser_info *p) {
     /*e_stack_item itemP;
     itemP = pop_stack(stack); */
+    e_stack_item itemOP;
+    token_type dataType;
     int ruleSize = FindFirstOpenB(stack);
     st_item *itemCheck;
     switch (ruleSize) {
-        case 1: {
-            e_stack_item itemOP;
+        case 1:{
+
+            //token_type dataType;
             itemOP = pop_stack(stack);
-            token_type dataType;
             // pravidlo E -> <val>
             switch (itemOP->dtype) {
                 case TOKEN_INT:
                 case TOKEN_INTEGER:
-                    printf("PUSHS int@%s\n", itemOP->token_stack.actual_value.str);
+                    dataType = TOKEN_INT;
+                    printf("PUSHS int@%s\n", itemOP->token_stack->actual_value.str);
                     break;
 
                 case TOKEN_FLOAT:
                 case TOKEN_FLOAT64:
-                    printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack.actual_value));
+                    dataType = TOKEN_FLOAT64;
+                    printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
                     break;
 
                 case TOKEN_STR:
                 case TOKEN_STRING:
-                    printf("PUSHS string@%s\n", itemOP->token_stack.actual_value.str);
+                    dataType = TOKEN_STRING;
+                    printf("PUSHS string@%s\n", itemOP->token_stack->actual_value.str);
                     break;
                 case TOKEN_TRUE:
+                    dataType = TOKEN_TRUE;
                     printf("PUSHS bool@true\n");
                     break;
                 case TOKEN_FALSE:
+                    dataType = TOKEN_FALSE;
                     printf("PUSHS bool@false\n");
                     break;
                 case TOKEN_ID:
-                    itemCheck = stack_lookup(p->local_st, &itemOP->token_stack.actual_value);
+                    itemCheck = stack_lookup(p->local_st, &itemOP->token_stack->actual_value);
                     if (itemCheck == NULL) {
                         return 2;
                     }
                     dataType = itemCheck->data.as.variable.value_type;
                     if (dataType == TOKEN_STRING) {
-                        printf("PUSHS LF@%s\n", itemOP->token_stack.actual_value.str);
+                        printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
                     } else if (dataType == TOKEN_INT) {
-                        printf("PUSHS LF@%s\n", itemOP->token_stack.actual_value.str);
+                        printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
                     } else {
-                        printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack.actual_value));
+                        printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
                     }
-
                     break;
+
                 default:
                     //error
                     free(itemOP);
                     return 2;
             }
-            dataType = itemOP->dtype;
+            itemOP->dtype = dataType;
 
             if (dataType == TOKEN_INT) {
-                if (Str_to_INT(&itemOP->token_stack.actual_value) == 0) {
+                if (Str_to_INT(&itemOP->token_stack->actual_value) == 0) {
                     itemOP->type = type_non_term0;
                 } else {
                     itemOP->type = type_non_term;
                 }
 
             } else {
-                if (Str_to_Float(&itemOP->token_stack.actual_value) == 0.0) {
+                if (Str_to_Float(&itemOP->token_stack->actual_value) == 0.0) {
                     itemOP->type = type_non_term0;
                 } else {
                     itemOP->type = type_non_term;
@@ -270,28 +279,31 @@ int expressionParse(e_stack *stack, parser_info *p) {
             itemOP1 = pop_stack(stack);
 
             // VAL -> (VAL)
-            if (itemOP1->token_stack.type == TOKEN_RBRACKET) {
+            if (itemOP1->token_stack->type == TOKEN_RBRACKET) {
                 free(itemOP1);
                 e_stack_item itemVAL = pop_stack(stack);
                 e_stack_item itemBracket = pop_stack(stack);
                 free(itemBracket);
                 free(pop_stack(stack));
-                push_stack(stack, itemVAL, &itemVAL->token_stack);
+                push_stack(stack, itemVAL, itemVAL->token_stack);
                 return 0;
 
             }
 
             e_stack_item itemOP2;
             itemOP2 = pop_stack(stack);
+
             e_stack_item itemOP3;
             itemOP3 = pop_stack(stack);
+
+
             //int checking = str_cmp(&itemOP1->token_stack.actual_value,&itemOP3->token_stack.actual_value);
 
             if (itemOP1->dtype != itemOP3->dtype) {
                 //error
                 return 5;
             }
-            switch (itemOP2->token_stack.type) {
+            switch (itemOP2->token_stack->type) {
                 case TOKEN_ADD:
                     // E -> E + E
                     if (itemOP1->dtype == TOKEN_STRING) {
@@ -356,14 +368,23 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 default:
 
                     return 2;
+
             }
+
+            free(itemOP1);
+            free(itemOP2);
+            free(pop_stack(stack));
+            push_nonterm(stack,itemOP3);
             break;
 
         }
         default:
             //error nie je mozne uplatnit pravidlo
             break;
+
     }
+
+
     return 0;
 
 }
@@ -382,7 +403,7 @@ int expression(parser_info *p) {
         if (check < 1) {
             current = T_DOLLAR;
         } else {
-            current = GetTerm((&stack)->p[check]->token_stack.type);
+            current = GetTerm((&stack)->p[check]->token_stack->type);
         }
         new = GetTerm(p->token->type);
         e_stack_item item = NULL;
@@ -403,7 +424,7 @@ int expression(parser_info *p) {
                     //chyba vo vyraze
                     loop = result;
                 }
-                push_stack(&stack, item, p->token);
+               // push_stack(&stack, item, p->token);
             }
                 break;
 
@@ -417,7 +438,7 @@ int expression(parser_info *p) {
 
             case T_nothing :
                 if (current == T_DOLLAR && new == T_DOLLAR) {
-                    if (stack.top <= 0) {
+                    if (stack.top < 0) {
                         //error vyraz nemoze byt prazdny
                         loop = 2;
                     } else {
@@ -436,18 +457,12 @@ int expression(parser_info *p) {
 
 
     }
-    e_stack_item tmp = FindTerminal(&stack);
+    e_stack_item tmp = FindNonTerminal(&stack);
     if(tmp == NULL)
         return ERROR_TRANS;
 
-    if (tmp->dtype == TOKEN_INTEGER)
-        str_add_char(&p->right_side_exp_types, type_int);
-    else if (tmp->dtype == TOKEN_FLOAT)
-        str_add_char(&p->right_side_exp_types, type_float);
-    else if (tmp->dtype == TOKEN_STR)
-        str_add_char(&p->right_side_exp_types, type_str);
-    else {
-    }
+    str_add_char(&p->right_side_exp_types, tmp->dtype);
+
 
     e_stack_dispose(&stack);
 
@@ -460,8 +475,7 @@ int expression(parser_info *p) {
     } else if (loop == 3)                          //sémantická chyba v programe - nedefinovaná funkcia/premenná
     {
         return ERROR_SEM_DEF;
-    } else if (loop ==
-               5)                          //sémantická chyba typovej kompatibility v aritmetických reťazových a relačných výrazoch
+    } else if (loop == 5)                          //sémantická chyba typovej kompatibility v aritmetických reťazových a relačných výrazoch
     {
         return ERROR_SEM_COMP;
     } else if (loop == 9)                          //semanticka chyba delenia nulov
