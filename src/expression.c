@@ -535,8 +535,9 @@ double Str_to_Float(string* value)
 
 
 
-
+/*
 int main()
 {
     return 0;
 }
+*/
