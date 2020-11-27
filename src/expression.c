@@ -96,9 +96,7 @@ e_stack_item pop_stack(e_stack *stack)
     int i = stack->top;
     if(stack->top > 0)
     {
-        //int i = stack->top;
         stack->top--;
-        //free(tmp);
         StackItems = StackItems - 1;
     }
     return stack->p[i];
@@ -106,26 +104,48 @@ e_stack_item pop_stack(e_stack *stack)
 
 void push_stack(e_stack* stack, e_stack_item tokenPushed, token_t *token_)
 {
-    tokenPushed = malloc(sizeof(e_stack_item));
-    if(tokenPushed != NULL)
+    stack->top++;
+    if (tokenPushed == NULL && token_ == NULL)
     {
-        //tokenPushed->next = stack->top;
-        tokenPushed->token_stack.type = token_->type;
-        tokenPushed->type = type_term;
         stack->p[stack->top] = tokenPushed;
-        //tokenPushed->dtype = token_->actual_value;
-        StackItems = StackItems + 1 ;
+    }
+    else{
+        tokenPushed = malloc(sizeof(struct expr_stack));
+        if(tokenPushed != NULL)
+        {
+            //tokenPushed->next = stack->top;
+            tokenPushed->token_stack.type = token_->type;
+            tokenPushed->type = type_term;
+            stack->p[stack->top] = tokenPushed;
+            //tokenPushed->dtype = token_->actual_value;
+            StackItems = StackItems + 1 ;
+        }
     }
 }
 
-void push_openb(e_stack* stack)
+void push_nonterm(e_stack* stack, e_stack_item pushedNonterm)
 {
-    e_stack_item openb = malloc(sizeof(e_stack_item));
+    stack->top++;
+    pushedNonterm = malloc(sizeof(struct expr_stack));
+    StackItems = StackItems + 1;
+}
+
+
+void push_openb(e_stack* stack,int position)
+{
+    push_stack(stack,NULL,NULL);
+    for(int i =stack->top; i >=position;position--)
+    {
+        stack->p[i+1] = stack->p[i];
+    }
+
+
+    e_stack_item openb = malloc(sizeof(struct expr_stack));
     if(openb != NULL)
     {
         //openb->next = stack->top;
         openb->type = type_OPEN;
-        stack->p[stack->top] = openb;
+        stack->p[position] = openb;
         StackItems = StackItems + 1;
     }
 }
@@ -193,61 +213,109 @@ int expressionParse(e_stack* stack,parser_info *p){
         {
         case TOKEN_INT:
             dataType = T_INT;
+            printf("PUSHS int@%a\n",itemOP->token_stack.actual_value);
             break;
         case TOKEN_FLOAT:
             dataType = T_FLOAT;
+            printf("PUSHS float@%a\n",itemOP->token_stack.actual_value);
             break;
         case TOKEN_STRING:
             dataType = T_STRING;
+            printf("PUSHS string@%a\n",itemOP->token_stack.actual_value);
             break;
         case TOKEN_TRUE:
             dataType = T_BOOL;
+            printf("PUSHS bool@true\n");
             break;
         case TOKEN_FALSE:
             dataType = T_BOOL;
+            printf("PUSHS bool@false\n");
             break;
         case TOKEN_ID:
             dataType = T_ELSE;
+            printf("PUSHS LF@%a\n",itemOP->token_stack.actual_value);
             break;
         default:
             //error
+            free(itemOP);
+            return 2;
             break;
         }
         break;
         itemOP->type = type_non_term;
         itemOP->dtype = dataType;
+        free(pop_stack(stack));
+        push_nonterm(stack,itemOP);
     }
     case 3:
     {
         e_stack_item itemOP1;
         itemOP1 = pop_stack(stack);
+        
+        // VAL -> (VAL)
+        if(itemOP1->token_stack.type == TOKEN_RBRACKET)
+        {
+            free(itemOP1);
+            e_stack_item itemVAL = pop_stack(stack);
+            e_stack_item itemBracket = pop_stack(stack);
+            free(itemBracket);
+            free(pop_stack(stack));
+            push_stack(stack,itemVAL,&itemVAL->token_stack);
+
+        }
+        
         e_stack_item itemOP2;
         itemOP2 = pop_stack(stack);
         e_stack_item itemOP3;
         itemOP3 = pop_stack(stack);
+        //int checking = str_cmp(&itemOP1->token_stack.actual_value,&itemOP3->token_stack.actual_value);
+        
+        
+
+        if(itemOP1->dtype != itemOP3->dtype)
+        {
+            //error
+            return 2;
+        }
         switch (itemOP2->token_stack.type)
         {
             case TOKEN_ADD:
+                // E -> E + E
+                printf("ADDS\n");
                 break;
             case TOKEN_SUB:
+                //E -> E - E
+                printf("SUBS\n");
                 break;
             case TOKEN_MUL:
+                //E -> E * E
+                printf("MULS\n");
                 break;
             case TOKEN_DIV:
+                //E -> E / E 
+                printf("DIVS\n");
                 break;
             case TOKEN_LT:
+                //E -> E < E
+                printf("LTS\n");
                 break;
             case TOKEN_EQL:
+                printf("EQS\n");
                 break;
             case TOKEN_NEQ:
+                printf("EQS\nNOTS\n");
                 break;
             case TOKEN_GT:
+                printf("GTS\n");
                 break;
             case TOKEN_GTE:
+                //volanie megovej funkcie
                 break;
             case TOKEN_LTE:
+                //volanie megovej funkcie
                 break;
             default:
+
                 break;
         }
         break;   
@@ -257,6 +325,7 @@ int expressionParse(e_stack* stack,parser_info *p){
         //error nie je mozne uplatnit pravidlo
         break;
     }
+    return 0;
 
 }
 
@@ -290,13 +359,13 @@ int expression(parser_info *p)
         switch(Relation(current,new))
         {
             case T_open :
-                push_openb(&stack);
+                push_openb(&stack,check+1);
 
                 push_stack(&stack,item, &token_);
 
                 //volanie dalsieho tokenu , opytat sa fera ktora funkcia na to sluzi
-                token_ = *p->token->next;
-
+                //token_ = *p->token->next;
+                get_next_token(p);
                 break;
             case T_closed :
                 {
@@ -313,7 +382,8 @@ int expression(parser_info *p)
             case T_equal:
                 push_stack(&stack,item, &token_);
                 //volanie dalsieho tokenu
-                token_ = *p->token->next;
+                //token_ = *p->token->next;
+                get_next_token(p);
                 break;
 
             case T_nothing :

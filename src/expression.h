@@ -1,7 +1,8 @@
 #include "error.h"
-#include "scanner.h"
+//#include "scanner.h"
 #include "parser.h"
-#include "symtable.h"
+//#include "symtable.h"
+#include "str.h"
 //#include "libraries.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,7 +10,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_STACK 100
+#define MAX_STACK 1000
 
 typedef enum {
     T_DIVMUL,            //spolocne ozancenie scitania a odcitania
@@ -27,11 +28,6 @@ typedef enum{
     T_equal,             // rovnost (=)
     T_nothing,           // neexistuje
 } eTypeRel;
-
-int expression(parser_info *p);
-
-eTypeTerm GetTerm(token_type Ttype);
-eTypeRel Relation(eTypeTerm current, eTypeTerm new);
 
 
 
@@ -68,24 +64,49 @@ typedef struct e_stack{
     e_stack_item p[MAX_STACK];
 } e_stack;
 
-void init_e_stack(e_stack *stack);                               // inicializacia stacku
 
-e_stack_item pop_stack(e_stack *stack);                                  // pop token z vrchu zasobniku
 
-void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token);                // pushne token na zasobnik
+// inicializacia stacku
+void init_e_stack(e_stack *stack);                               
 
-bool e_stack_dispose(e_stack *stack);                            // uvolni cely zasobnik
+// pop token z vrchu zasobniku
+e_stack_item pop_stack(e_stack *stack);                                  
 
-void push_openb(e_stack *stack);
+// pushne token na zasobnik
+void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token);                
 
+//uvolnenie celeho zasobniku po ukonceni precedencnej analyzy vyrazu
+bool e_stack_dispose(e_stack *stack);                            
+
+//vlozenie znaku (<) , pouzivaneho ako zarazka pri upravovani vyrazu na zaklade precedencnej analyzy
+void push_openb(e_stack *stack,int position);
+
+//najde prvy terminal na stacku z vrchu
 int FindFirstTerminal(e_stack *stack);
 
+//najdenie itemu na stacku obsahujuceho ((<),zarazka) , funkcia vyuzivana pri uplatnovani pravidiel na zjednodusenie
 int FindFirstOpenB(e_stack *stack);
 
-int expressionParse(e_stack* stack,parser_info *p);
+             
 
-// e_stack_item Top_stack_item(e_stack *stack);                  // zistenie tokenu na vrcholu zasobniku
+//pushne na zasobnik neterminal , nahradanie za terminal ktory uz bol vygenerovany
+void push_nonterm(e_stack* stack, e_stack_item pushedNonterm);    
 
+
+//               END OF STUCK FUNCTIONS AND STRUCTURES
+
+
+//hlavna funkcia expression.c , volana parserom , spusta precedencnu analyzu vyrazu
+int expression(parser_info *p);
+
+//funkcia zistujuca skupinu precedencnej tabulky do ktorej dany token patri
+eTypeTerm GetTerm(token_type Ttype);
+
+//ziska vztah medzi aktualnym tokenom , a terminalom najvyssie na stacku
+eTypeRel Relation(eTypeTerm current, eTypeTerm new);
+
+//funkcia na uplatnovanie pravidiel podla precedencnej tabulky na zjednodusovanie vyrazu a generovanie kodu
+int expressionParse(e_stack* stack,parser_info *p);  
 
 
 
