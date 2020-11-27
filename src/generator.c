@@ -156,6 +156,36 @@ void gen_JUMPIFNEQ(char* destination, char* s1, char *s2){
     printf("JUMPIFEQ $%s %s %s\n", destination, s1, s2);
 }
 
+void gen_stack_GTE(){
+    printf("DEFVAR LF@LTEGTEparam1\n");
+    printf("DEFVAR LF@LTEGTEparam2\n");
+    printf("POPS LF@LTEGTEparam1\n");
+    printf("POPS LF@LTEGTEparam2\n");
+    printf("JUMPIFNEQ $EQS LF@LTEGTEparam1 LF@LTEGTEparam1\n");
+    printf("PUSHS bool@true\n");
+    printf("JUMP $LTEGTEEND\n");
+    printf("LABEL $EQS\n");
+    printf("PUSHS LF@LTEGTEparam2\n");
+    printf("PUSHS LF@LTEGTEparam1\n");
+    printf("GTS\n");
+    printf("LABEL $LTEGTEEND\n");
+}
+
+void gen_stack_LTE(){
+    printf("DEFVAR LF@LTEGTEparam1\n");
+    printf("DEFVAR LF@LTEGTEparam2\n");
+    printf("POPS LF@LTEGTEparam1\n");
+    printf("POPS LF@LTEGTEparam2\n");
+    printf("JUMPIFNEQ $EQS LF@LTEGTEparam1 LF@LTEGTEparam1\n");
+    printf("PUSHS bool@true\n");
+    printf("JUMP $LTEGTEEND\n");
+    printf("LABEL $EQS\n");
+    printf("PUSHS LF@LTEGTEparam2\n");
+    printf("PUSHS LF@LTEGTEparam1\n");
+    printf("LTS\n");
+    printf("LABEL $LTEGTEEND\n");
+}
+
 void gen_stack_instructions(stack_instruction instruction){
     switch(instruction){
         case ADDS:
@@ -192,8 +222,47 @@ void gen_stack_instructions(stack_instruction instruction){
             printf("NOTS\n");
         default:
             break;
-        
     }
+}
+
+void gen_func_inputs(){
+
+}
+
+void gen_func_inputi(){
+
+}
+
+void gen_func_inputf(){
+
+}
+
+void gen_func_print(){
+
+}
+
+void gen_func_int2float(){
+
+}
+
+void gen_func_float2int(){
+
+}
+
+void gen_func_len(){
+
+}
+
+void gen_func_substr(){
+
+}
+
+void gen_func_ord(){
+
+}
+
+void gen_func_chr(){
+    
 }
 
 void gen_pushs(char* s1){

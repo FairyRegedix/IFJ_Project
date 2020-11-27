@@ -47,6 +47,8 @@ void gen_for_end(char* label, int id);
 void gen_JUMP(char* destination);
 void gen_JUMPIFEQ(char* destination, char* s1, char *s2);
 void gen_JUMPIFNEQ(char* destination, char* s1, char *s2);
+void gen_stack_GTE();
+void gen_stack_LTE();
 void gen_stack_instructions(stack_instruction instruction);
 void gen_pushs(char* s1);
 void gen_pops(char* s1);
