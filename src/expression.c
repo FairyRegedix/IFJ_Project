@@ -127,6 +127,7 @@ void push_nonterm(e_stack* stack, e_stack_item pushedNonterm)
 {
     stack->top++;
     pushedNonterm = malloc(sizeof(struct expr_stack));
+    stack->p[stack->top] = pushedNonterm;
     StackItems = StackItems + 1;
 }
 
