@@ -1,8 +1,10 @@
 #include "error.h"
 //#include "scanner.h"
 #include "parser.h"
-//#include "symtable.h"
+#include "symtable.h"
+#include "symtable.c"
 #include "str.h"
+#include "str.c"
 //#include "libraries.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,18 +34,19 @@ typedef enum{
 
 
 typedef enum {
-    T_INT,
-    T_FLOAT,
-    T_STRING,
-    T_NIL,
+    T_INT = type_int,
+    T_FLOAT = type_float,
+    T_STRING = type_str,
+    //T_NIL,
     T_BOOL,
-    T_ELSE,
+    T_ELSE ,
 }NonTermDataType;
 
 typedef enum {
     type_OPEN,                                   //otvorena zatvorka (<)
     type_term,                                   //terminal
     type_non_term,                               //neterminal
+    type_non_term0,                              //neterminal 0
 }tType;
 
 // STACK stuctures and functions
@@ -107,6 +110,10 @@ eTypeRel Relation(eTypeTerm current, eTypeTerm new);
 
 //funkcia na uplatnovanie pravidiel podla precedencnej tabulky na zjednodusovanie vyrazu a generovanie kodu
 int expressionParse(e_stack* stack,parser_info *p);  
+
+long int Str_to_INT(string* value);
+
+double Str_to_Float(string* value);
 
 
 

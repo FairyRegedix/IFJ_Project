@@ -201,6 +201,7 @@ int expressionParse(e_stack* stack,parser_info *p){
     /*e_stack_item itemP;
     itemP = pop_stack(stack); */
     int ruleSize = FindFirstOpenB(stack);
+    st_item* itemCheck;
     switch (ruleSize)
     {
     case 1:
@@ -213,15 +214,15 @@ int expressionParse(e_stack* stack,parser_info *p){
         {
         case TOKEN_INT:
             dataType = T_INT;
-            printf("PUSHS int@%a\n",itemOP->token_stack.actual_value);
+            printf("PUSHS int@%s\n",itemOP->token_stack.actual_value.str);
             break;
         case TOKEN_FLOAT:
             dataType = T_FLOAT;
-            printf("PUSHS float@%a\n",itemOP->token_stack.actual_value);
+            printf("PUSHS float@%a\n",Str_to_Float(&itemOP->token_stack.actual_value));
             break;
         case TOKEN_STRING:
             dataType = T_STRING;
-            printf("PUSHS string@%a\n",itemOP->token_stack.actual_value);
+            printf("PUSHS string@%s\n",itemOP->token_stack.actual_value.str);
             break;
         case TOKEN_TRUE:
             dataType = T_BOOL;
@@ -232,8 +233,26 @@ int expressionParse(e_stack* stack,parser_info *p){
             printf("PUSHS bool@false\n");
             break;
         case TOKEN_ID:
-            dataType = T_ELSE;
-            printf("PUSHS LF@%a\n",itemOP->token_stack.actual_value);
+            
+            itemCheck = stack_lookup(p->local_st,&itemOP->token_stack.actual_value);
+            if(itemCheck == NULL)
+            {
+                return 2;
+            }
+            dataType = itemCheck->data.as.variable.value_type;
+            if(dataType == T_STRING)
+            {
+                printf("PUSHS LF@%s\n",itemOP->token_stack.actual_value.str);
+            }
+            else if(dataType == T_INT)
+            {
+                printf("PUSHS LF@%s\n",itemOP->token_stack.actual_value.str);
+            }
+            else
+            {
+                printf("PUSHS float@%a\n",Str_to_Float(&itemOP->token_stack.actual_value));
+            }
+            
             break;
         default:
             //error
@@ -242,7 +261,29 @@ int expressionParse(e_stack* stack,parser_info *p){
             break;
         }
         break;
-        itemOP->type = type_non_term;
+        if(dataType == T_INT)
+        {
+           if(Str_to_INT(&itemOP->token_stack.actual_value) == 0)
+            {
+                itemOP->type = type_non_term0;
+            }
+            else
+            {
+               itemOP->type = type_non_term; 
+            }
+             
+        }
+        else
+        {
+            if(Str_to_Float(&itemOP->token_stack.actual_value) == 0.0)
+            {
+                itemOP->type = type_non_term0;
+            }
+            else
+            {
+               itemOP->type = type_non_term; 
+            }
+        }
         itemOP->dtype = dataType;
         free(pop_stack(stack));
         push_nonterm(stack,itemOP);
@@ -270,42 +311,73 @@ int expressionParse(e_stack* stack,parser_info *p){
         itemOP3 = pop_stack(stack);
         //int checking = str_cmp(&itemOP1->token_stack.actual_value,&itemOP3->token_stack.actual_value);
         
-        
-
         if(itemOP1->dtype != itemOP3->dtype)
         {
             //error
-            return 2;
+            return 5;
         }
         switch (itemOP2->token_stack.type)
         {
             case TOKEN_ADD:
                 // E -> E + E
+                if(itemOP1->dtype == T_STRING)
+                {
+                    printf("DEFVAR GF@exp$string1");
+                    printf("DEFVAS GF@exp$string2");
+                    printf("POPS GF@exp$string2");
+                    printf("POPS GF@exp$string1");
+                    printf("CONCAT GF@EXPRESULT GF@exp$string1 GF@exp$string2");
+                    printf("PUSH GF@EXPRESULT");
+                    
+                }
                 printf("ADDS\n");
                 break;
             case TOKEN_SUB:
                 //E -> E - E
-                printf("SUBS\n");
-                break;
+                if(itemOP1->dtype != T_STRING)
+                {
+                    printf("SUBS\n");
+                    break;
+                }
+                return 5;
             case TOKEN_MUL:
                 //E -> E * E
-                printf("MULS\n");
-                break;
+                if(itemOP1->dtype != T_STRING)
+                {
+                    printf("MULS\n");
+                    break;
+                }
+                return 5;
             case TOKEN_DIV:
                 //E -> E / E 
-                printf("DIVS\n");
-                break;
+                if(itemOP1->dtype != T_STRING)
+                {
+                    if(itemOP1->type == type_non_term0)
+                    {
+                        return 9;
+                    }
+                    else
+                    {
+                        printf("DIVS\n");
+                        break;
+                    }
+                    
+                }
+                return 5;
             case TOKEN_LT:
                 //E -> E < E
                 printf("LTS\n");
                 break;
             case TOKEN_EQL:
+                // E -> E == E
                 printf("EQS\n");
                 break;
             case TOKEN_NEQ:
+                // E -> E != E
                 printf("EQS\nNOTS\n");
                 break;
             case TOKEN_GT:
+                // E -> E < E
                 printf("GTS\n");
                 break;
             case TOKEN_GTE:
@@ -315,8 +387,8 @@ int expressionParse(e_stack* stack,parser_info *p){
                 //volanie megovej funkcie
                 break;
             default:
-
-                break;
+                
+                return 2;
         }
         break;   
         
@@ -397,6 +469,7 @@ int expression(parser_info *p)
                     else
                     {
                         loop = 1;
+                        printf("POPS GF@EXPRESULT\n");
                         //spravne ukoncenie analyzy vyrazu
                     }
                     
@@ -410,12 +483,58 @@ int expression(parser_info *p)
                 break;
         }
 
-        loop=2;
+        
 
     }
     e_stack_dispose(&stack);
-    return loop;
+    
+    if(loop == 1)                                //uspesne ukoncenie precedencnej analyzy vyrazu
+    {
+        return SUCCESS;
+    }
+    else if(loop == 2)                          //chyba v rámci syntaktickej analýzy
+    {
+        return ERROR_SYN;
+    }
+    
+    else if(loop == 3)                          //sémantická chyba v programe - nedefinovaná funkcia/premenná
+    {
+        return ERROR_SEM_DEF;
+    }
+    
+    else if(loop == 5)                          //sémantická chyba typovej kompatibility v aritmetických reťazových a relačných výrazoch
+    {
+        return ERROR_SEM_COMP;
+    }
+
+    else if(loop == 9)                          //semanticka chyba delenia nulov
+    {   
+        return ERROR_NULL;
+    }
+    
 }
+
+
+
+long int Str_to_INT(string* value)
+{
+    int converted;
+    converted = atol(value->str);
+    return converted;
+}
+
+double Str_to_Float(string* value)
+{
+    double converted;
+    converted = atof(value->str);
+    return converted;
+}
+
+
+
+
+
+
 
 int main()
 {
