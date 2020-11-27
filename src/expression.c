@@ -302,6 +302,7 @@ int expressionParse(e_stack* stack,parser_info *p){
             free(itemBracket);
             free(pop_stack(stack));
             push_stack(stack,itemVAL,&itemVAL->token_stack);
+            return 0;
 
         }
         
