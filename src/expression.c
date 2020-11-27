@@ -459,11 +459,11 @@ int expression(parser_info *p) {
     }
     e_stack_item tmp = FindNonTerminal(&stack);
     if(tmp == NULL)
-        return ERROR_TRANS;
+        goto after_add;
 
     str_add_char(&p->right_side_exp_types, tmp->dtype);
 
-
+    after_add:
     e_stack_dispose(&stack);
 
     if (loop == 1)                                //uspesne ukoncenie precedencnej analyzy vyrazu
