@@ -1,6 +1,5 @@
 
-#include "error.h"
-#include "parser.h"
+#include "expression.h"
 
 #define consume_token 1 //helper variable for MATCH macro
 #define keep_token 0    //helper variable for MATCH macro
@@ -24,68 +23,68 @@ int get_next_token(parser_info* p){
     return SUCCESS;
 }
 
-int expression(parser_info *p) {//just for testing till expression module is working
-    int error_code;
-    st_item* item;
-    bool derive_type = true;
-    while(true){
-        switch(p->token->type){
-            case TOKEN_INTEGER:
-                if(derive_type){
-                    CHECK(str_add_char(&p->right_side_exp_types, TOKEN_INT), SUCCESS);
-                    derive_type = false;
-                }
-                CHECK(get_next_token(p), SUCCESS);
-                break;
-            case TOKEN_STR:
-                if(derive_type){
-                    CHECK(str_add_char(&p->right_side_exp_types, TOKEN_STRING), SUCCESS);
-                    derive_type = false;
-                }
-                CHECK(get_next_token(p), SUCCESS);
-                break;
-            case TOKEN_STRING:
-            case TOKEN_FLOAT:
-                if(derive_type){
-                    CHECK(str_add_char(&p->right_side_exp_types, TOKEN_FLOAT64), SUCCESS);
-                    derive_type = false;
-                }
-                CHECK(get_next_token(p), SUCCESS);
-                break;
-            case TOKEN_ID:
-                item = stack_lookup(p->local_st,&p->token->actual_value);
-                if(item == NULL)
-                    return ERROR_SEM_DEF;
-                if(derive_type){
-                    CHECK(str_add_char(&p->right_side_exp_types, item->data.as.variable.value_type), SUCCESS);
-                    derive_type = false;
-                }
-                CHECK(get_next_token(p), SUCCESS);
-                break;
-            case TOKEN_TRUE:
-            case TOKEN_FALSE:
-            case TOKEN_NOT:
-            case TOKEN_AND:
-            case TOKEN_OR:
-            case TOKEN_ADD:
-            case TOKEN_SUB:
-            case TOKEN_MUL:
-            case TOKEN_DIV:
-            case TOKEN_EQL:
-            case TOKEN_NEQ:
-            case TOKEN_LT:
-            case TOKEN_GT:
-            case TOKEN_LTE:
-            case TOKEN_GTE:
-                CHECK(get_next_token(p), SUCCESS);
-                break;
-            default:
-                goto out_of_while;
-        }
-    }
-    out_of_while:
-    return SUCCESS;
-}
+//int expression(parser_info *p) {//just for testing till expression module is working
+//    int error_code;
+//    st_item* item;
+//    bool derive_type = true;
+//    while(true){
+//        switch(p->token->type){
+//            case TOKEN_INTEGER:
+//                if(derive_type){
+//                    CHECK(str_add_char(&p->right_side_exp_types, TOKEN_INT), SUCCESS);
+//                    derive_type = false;
+//                }
+//                CHECK(get_next_token(p), SUCCESS);
+//                break;
+//            case TOKEN_STR:
+//                if(derive_type){
+//                    CHECK(str_add_char(&p->right_side_exp_types, TOKEN_STRING), SUCCESS);
+//                    derive_type = false;
+//                }
+//                CHECK(get_next_token(p), SUCCESS);
+//                break;
+//            case TOKEN_STRING:
+//            case TOKEN_FLOAT:
+//                if(derive_type){
+//                    CHECK(str_add_char(&p->right_side_exp_types, TOKEN_FLOAT64), SUCCESS);
+//                    derive_type = false;
+//                }
+//                CHECK(get_next_token(p), SUCCESS);
+//                break;
+//            case TOKEN_ID:
+//                item = stack_lookup(p->local_st,&p->token->actual_value);
+//                if(item == NULL)
+//                    return ERROR_SEM_DEF;
+//                if(derive_type){
+//                    CHECK(str_add_char(&p->right_side_exp_types, item->data.as.variable.value_type), SUCCESS);
+//                    derive_type = false;
+//                }
+//                CHECK(get_next_token(p), SUCCESS);
+//                break;
+//            case TOKEN_TRUE:
+//            case TOKEN_FALSE:
+//            case TOKEN_NOT:
+//            case TOKEN_AND:
+//            case TOKEN_OR:
+//            case TOKEN_ADD:
+//            case TOKEN_SUB:
+//            case TOKEN_MUL:
+//            case TOKEN_DIV:
+//            case TOKEN_EQL:
+//            case TOKEN_NEQ:
+//            case TOKEN_LT:
+//            case TOKEN_GT:
+//            case TOKEN_LTE:
+//            case TOKEN_GTE:
+//                CHECK(get_next_token(p), SUCCESS);
+//                break;
+//            default:
+//                goto out_of_while;
+//        }
+//    }
+//    out_of_while:
+//    return SUCCESS;
+//}
 
 int prolog(parser_info *p);
 
@@ -719,6 +718,8 @@ int prog(parser_info *p) {
 //Prolog -> package id EOL EOL_opt Prog
 int prolog(parser_info *p) {
     int error_code;
+
+    CHECK(EOL_opt(p),SUCCESS);
     MATCH(TOKEN_PACKAGE, consume_token);
     MATCH(TOKEN_ID, keep_token);
     if (str_cmp_c_str(&p->token->actual_value, "main"))//package identifier not "main"
@@ -758,22 +759,26 @@ int parser() {
     if((error_code = scanner_fill_token_list(&p.token_list)) != SUCCESS){
         token_list_dispose(&p.token_list);
         str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
         return error_code;
     }
     else if((error_code = first_pass(&p)) != SUCCESS){
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
         token_list_dispose(&p.token_list);
         return error_code;
     }
     else if ((error_code = get_next_token(&p)) != SUCCESS) {
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
         token_list_dispose(&p.token_list);
         return error_code;
     } else {
         error_code = prolog(&p);
         str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
         st_dispose(&p.st);
         token_list_dispose(&p.token_list);
         while(p.local_st != NULL)
@@ -843,7 +848,7 @@ int first_pass(parser_info* p){
 }
 
 int main() {//testing
-    printf("Done\n");
+    //printf("Done\n");
 
     int ret = parser();
     if (ret)

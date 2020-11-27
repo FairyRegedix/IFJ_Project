@@ -1,18 +1,14 @@
 #include "error.h"
-//#include "scanner.h"
+#include "scanner.h"
 #include "parser.h"
-#include "symtable.h"
-#include "symtable.c"
-#include "str.h"
-#include "str.c"
-//#include "libraries.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_STACK 1000
+#define MAX_STACK 10
 
 typedef enum {
     T_DIVMUL,            //spolocne ozancenie scitania a odcitania
@@ -33,14 +29,15 @@ typedef enum{
 
 
 
-typedef enum {
-    T_INT = type_int,
-    T_FLOAT = type_float,
-    T_STRING = type_str,
-    //T_NIL,
-    T_BOOL,
-    T_ELSE ,
-}NonTermDataType;
+//typedef enum {
+//    T_INT = type_int,
+//    T_FLOAT = type_float,
+//    T_STRING = type_str,
+//    T_ID = TOKEN_ID,
+//    //T_NIL,
+//    T_BOOL,
+//    T_ELSE ,
+//}NonTermDataType;
 
 typedef enum {
     type_OPEN,                                   //otvorena zatvorka (<)
@@ -56,7 +53,7 @@ typedef enum {
 typedef struct expr_stack {
     token_t token_stack;                     //typ tokenu
     tType type;                                 //typ / otvorena zatvorka (<) /  terminal    / neterminal
-    NonTermDataType dtype;                         // neterminalovy typ      
+    token_type dtype;                         // neterminalovy typ
     struct  expr_stack *next;
 } *e_stack_item;
 
@@ -93,7 +90,7 @@ int FindFirstOpenB(e_stack *stack);
              
 
 //pushne na zasobnik neterminal , nahradanie za terminal ktory uz bol vygenerovany
-void push_nonterm(e_stack* stack, e_stack_item pushedNonterm);    
+void push_nonterm(e_stack* stack, e_stack_item pushedNonterm);
 
 
 //               END OF STUCK FUNCTIONS AND STRUCTURES
