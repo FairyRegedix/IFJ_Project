@@ -7,7 +7,7 @@
 void generate_header(){
    
     printf(".IFJcode20\n");
-
+    printf("DEFVAR GF@EXPRESULT");
     printf("JUMP $$main\n");
 }
 
@@ -91,9 +91,9 @@ void gen_end_of_function(){
     gen_LABEL_end();
 }
 
-void gen_if_start(char* label, int id){
+void gen_if_start(char* label, int id, char* truefalse){
     printf("#IF $%s$if$%i\n",label, id);
-    printf("JUMPIFNEQ $%s$if$%i$else\n", label, id);
+    printf("JUMPIFEQ $%s$if$%i$else bool@true %s\n", label, id, truefalse);
 }
 
 void gen_if_else(char* label, int id){
@@ -110,38 +110,10 @@ void gen_while_start(char* label, int id){
     printf("LABEL $%s$while$%i$start\n", label, id);
 }
 
-void gen_while_end(char* label, int id){
+void gen_while_end(char* label, int id, char* truefalse){
+    printf("JUMPIFEQ $%s$while$%i$end bool@true %s\n", label, id, truefalse);
     printf("JUMP $%s$while$%i$start\n", label, id);
     printf("LABEL $%s$while$%i$end\n", label, id);
-}
-
-void gen_for_start(char* label, int id, char* LTS_or_GTS, char* s1, char* s2, bool equals){
-    printf("#FOR $%s$for$%i\n",label, id);
-    if(equals){
-        if(str_cmp(LTS_or_GTS, "LTS")){
-        printf("SUB %s int@1\n", s1);
-    }
-    else{
-        printf("ADD %s int@1\n", s1);
-    }
-    }    
-    printf("LABEL $%s$for$%i$start\n", label, id);
-    printf("PUSHS %s\n", s2);
-    printf("PUSHS %s\n", s1);
-    printf("%s\n", LTS_or_GTS);
-    printf("PUSHS bool@true\n");
-    printf("JUMPIFNEQS $%s$for$%i$end\n");
-    if(str_cmp(LTS_or_GTS, "LTS")){
-        printf("ADD %s int@1\n", s1);
-    }
-    else{
-        printf("SUB %s int@1\n", s1);
-    }
-}
-
-void gen_for_end(char* label, int id){
-    printf("JUMP $%s$for$%i$start\n", label, id);
-    printf("LABEL $%s$for$%i$end\n", label, id);  
 }
 
 void gen_JUMP(char* destination){
@@ -157,33 +129,33 @@ void gen_JUMPIFNEQ(char* destination, char* s1, char *s2){
 }
 
 void gen_stack_GTE(){
-    printf("DEFVAR LF@LTEGTEparam1\n");
-    printf("DEFVAR LF@LTEGTEparam2\n");
-    printf("POPS LF@LTEGTEparam1\n");
-    printf("POPS LF@LTEGTEparam2\n");
-    printf("JUMPIFNEQ $EQS LF@LTEGTEparam1 LF@LTEGTEparam1\n");
+    printf("DEFVAR LF@$GTE$param1\n");
+    printf("DEFVAR LF@$GTE$param2\n");
+    printf("POPS LF@$GTE$param1\n");
+    printf("POPS LF@$GTE$param2\n");
+    printf("JUMPIFNEQ $EQS LF@$GTE$param1 LF@$GTE$param2\n");
     printf("PUSHS bool@true\n");
     printf("JUMP $LTEGTEEND\n");
     printf("LABEL $EQS\n");
-    printf("PUSHS LF@LTEGTEparam2\n");
-    printf("PUSHS LF@LTEGTEparam1\n");
+    printf("PUSHS LF@$GTE$param2\n");
+    printf("PUSHS LF@$GTE$param1\n");
     printf("GTS\n");
-    printf("LABEL $LTEGTEEND\n");
+    printf("LABEL $GTEEND\n");
 }
 
 void gen_stack_LTE(){
-    printf("DEFVAR LF@LTEGTEparam1\n");
-    printf("DEFVAR LF@LTEGTEparam2\n");
-    printf("POPS LF@LTEGTEparam1\n");
-    printf("POPS LF@LTEGTEparam2\n");
-    printf("JUMPIFNEQ $EQS LF@LTEGTEparam1 LF@LTEGTEparam1\n");
+    printf("DEFVAR LF@$LTE$param1\n");
+    printf("DEFVAR LF@$LTE$param2\n");
+    printf("POPS LF@$LTE$param1\n");
+    printf("POPS LF@$LTE$param2\n");
+    printf("JUMPIFNEQ $EQS LF@$LTE$param1 LF@$LTE$param2\n");
     printf("PUSHS bool@true\n");
     printf("JUMP $LTEGTEEND\n");
     printf("LABEL $EQS\n");
-    printf("PUSHS LF@LTEGTEparam2\n");
-    printf("PUSHS LF@LTEGTEparam1\n");
+    printf("PUSHS LF@$LTE$param2\n");
+    printf("PUSHS LF@$LTE$param1\n");
     printf("LTS\n");
-    printf("LABEL $LTEGTEEND\n");
+    printf("LABEL $LTEEND\n");
 }
 
 void gen_stack_instructions(stack_instruction instruction){
@@ -226,7 +198,28 @@ void gen_stack_instructions(stack_instruction instruction){
 }
 
 void gen_func_inputs(){
-
+    printf("LABEL $inputs\n");
+    printf("PUSHFRAME\n");
+    printf("DEFVAR LF@%retval\n");
+    printf("MOVE LF@%retval nil@nil\n");
+    printf("DEFVAR LF@param1\n");
+    printf("MOVE LF@param1 LF@%1\n");
+    printf("DEFVAR LF@errorCheck\n");
+    printf("TYPE LF@errorCheck LF@param1\n");
+    printf("JUMPIFNEQ $ERROR string@string LF@errorCheck\n");
+    printf("DEFVAR LF@strlen\n");
+    printf("STRLEN LF@strlen LF@param1\n");
+    printf("SUB LF@strlen LF@strlen int@1\n");
+    printf("DEFVAR LF@getchar\n");
+    printf("GETCHAR LF@getchar LF@param1 LF@strlen\n");
+    printf("JUMPIFNEQ $ENDOFINPUTS LF@getchar string@\\010\n");
+    printf("SETCHAR LF@param1 LF@strlen string@\\000\n");
+    printf("LABEL $ENDOFINPUTS\n");
+    printf("MOVE LF@%retval LF@param1\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+    printf("LABEL $ERROR\n");
+    printf("EXIT int@1\n");
 }
 
 void gen_func_inputi(){
