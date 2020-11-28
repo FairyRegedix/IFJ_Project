@@ -388,13 +388,21 @@ int var(parser_info *p) {
             break;
 
         case TOKEN_LBRACKET:
-            item = st_get_item(&p->st, &p->token->prev->actual_value);
-            if(item == NULL)
+
+            item = stack_lookup(p->local_st, &p->token->prev->actual_value);
+            if (item == NULL)
+                item = st_get_item(&p->st, &p->token->prev->actual_value);
+            if (item != NULL){
+                if( item->data.type == type_function){
+                    p->function_called = item;
+                    CHECK(get_next_token(p), SUCCESS);
+                    return func_call(p);
+                }else
+                    return ERROR_SEM_OTHER;
+            }
+            else//identifier not defined
                 return ERROR_SEM_DEF;
-            str_reinit(&p->left_side_vars_types);
-            p->function_called = item;
-            CHECK(func_call(p), SUCCESS);
-            break;
+
 
         case TOKEN_ASSIGN:
             str_reinit(&p->left_side_vars_types);
