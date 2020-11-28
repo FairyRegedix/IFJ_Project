@@ -27,7 +27,9 @@ typedef struct parser_info{
 
 }parser_info;
 
-
+int fill_with_builtin(symbol_table* st);
+int check_main(symbol_table* st);
+int check_types(string* s1, string* s2);
 int get_next_token(parser_info* p);
 int first_pass(parser_info* p);
 int parser();

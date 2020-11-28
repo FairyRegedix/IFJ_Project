@@ -399,25 +399,6 @@ void isKeyword(int *type, char *tmp) {
         *type = TOKEN_FOR;
     } else if (strcmp(tmp, "func") == 0) {
         *type = TOKEN_FUNC;
-
-    } else if (strcmp(tmp, "print") == 0) {
-        *type = TOKEN_PRINT;
-    } else if (strcmp(tmp, "inputi") == 0) {
-        *type = TOKEN_INPUTI;
-    } else if (strcmp(tmp, "inputs") == 0) {
-        *type = TOKEN_INPUTS;
-    } else if (strcmp(tmp, "len") == 0) {
-        *type = TOKEN_LEN;
-    } else if (strcmp(tmp, "substr") == 0) {
-        *type = TOKEN_SUBSTR;
-    } else if (strcmp(tmp, "ord") == 0) {
-        *type = TOKEN_ORD;
-    } else if (strcmp(tmp, "chr") == 0) {
-        *type = TOKEN_CHR;
-    } else if (strcmp(tmp, "inputb") == 0) {
-        *type = TOKEN_INPUTB;
-    } else if (strcmp(tmp, "inputf") == 0) {
-        *type = TOKEN_INPUTF;
     } else if (strcmp(tmp, "bool") == 0) {
         *type = TOKEN_BOOL;
     } else if (strcmp(tmp, "true") == 0) {
@@ -430,7 +411,7 @@ void isKeyword(int *type, char *tmp) {
         *type = TOKEN_FLOAT64;
     } else if (strcmp(tmp, "string") == 0) {
         *type = TOKEN_STRING;
-    } else if (strcmp(tmp, "_") == 0) {
+    } else if (strcmp(tmp, "%") == 0) {
         *type = TOKEN_UNDERSCORE;
     }
 }// end of isKeyword

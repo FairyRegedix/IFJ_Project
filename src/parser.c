@@ -271,11 +271,13 @@ int func_call(parser_info *p) {
     CHECK(EOL_opt(p), SUCCESS);
     CHECK(call_params(p), SUCCESS);
     MATCH(TOKEN_RBRACKET, consume_token);
+
+    CHECK(check_types(&p->left_side_vars_types,&p->function_called->data.as.function.ret_types), SUCCESS);
+    if(!strcmp(p->function_called->key.str,"print"))
+        goto end_func_call;
     if(str_cmp(&p->function_called->data.as.function.param_types, &p->right_side_exp_types)) //parameter types or number off parameter does not match
         return ERROR_SEM_PAR;
-    if(str_cmp(&p->function_called->data.as.function.ret_types, &p->left_side_vars_types)) //parameter types or number off parameter does not match
-        return ERROR_SEM_PAR;
-
+    end_func_call:
     return SUCCESS;
 }
 
@@ -315,6 +317,7 @@ int end_assign(parser_info *p) {
     CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
     CHECK(exp_n(p), SUCCESS);
 
+    CHECK(check_types(&p->left_side_vars_types,&p->right_side_exp_types), SUCCESS);
     if(str_cmp(&p->left_side_vars_types,&p->right_side_exp_types))
         return ERROR_SEM_PAR;
 
@@ -330,10 +333,18 @@ int assign(parser_info *p) {
         CHECK(EOL_opt(p), SUCCESS);
         //next token set
         MATCH(TOKEN_ID, keep_token);
+        if(!strcmp(p->token->actual_value.str,"_")){
+            CHECK(str_add_char(&p->left_side_vars_types,'_'),SUCCESS);
+            goto assign_underscore;
+        }
+
         item = stack_lookup(p->local_st, &p->token->actual_value);
         if(item == NULL)//not defined beforehand
             return ERROR_SEM_DEF;
+
         CHECK(str_add_char(&p->left_side_vars_types,item->data.as.variable.value_type),SUCCESS);
+        assign_underscore:
+
         CHECK(get_next_token(p),SUCCESS);
         return assign(p);
     } else // eps
@@ -348,6 +359,8 @@ int var(parser_info *p) {
 
     switch (p->token->type) {
         case TOKEN_DEFINITION:
+            if(!strcmp(p->token->prev->actual_value.str,"_"))
+                return ERROR_SEM_DEF;
             item = st_insert(&p->local_st->local_table, &p->token->prev->actual_value, type_variable,&error_code);
             if (item == NULL)
                 return ERROR_TRANS;
@@ -378,15 +391,24 @@ int var(parser_info *p) {
             item = st_get_item(&p->st, &p->token->prev->actual_value);
             if(item == NULL)
                 return ERROR_SEM_DEF;
+            str_reinit(&p->left_side_vars_types);
             p->function_called = item;
             CHECK(func_call(p), SUCCESS);
             break;
+
         case TOKEN_ASSIGN:
             str_reinit(&p->left_side_vars_types);
+
+            if(!strcmp(p->token->prev->actual_value.str,"_")) {
+                CHECK(str_add_char(&p->left_side_vars_types,'_'),SUCCESS);
+                goto after_item_search;
+            }
+
             item = stack_lookup(p->local_st, &p->token->prev->actual_value);
             if(item == NULL)//not defined beforehand
                 return ERROR_SEM_DEF;
             CHECK(str_add_char(&p->left_side_vars_types,item->data.as.variable.value_type),SUCCESS);
+        after_item_search:
             CHECK(get_next_token(p), SUCCESS);
             CHECK(EOL_opt(p), SUCCESS);
             //next token set
@@ -394,10 +416,15 @@ int var(parser_info *p) {
             break;
         case TOKEN_COMMA:
             str_reinit(&p->left_side_vars_types);
+            if(!strcmp(p->token->prev->actual_value.str,"_")) {
+                CHECK(str_add_char(&p->left_side_vars_types,'_'),SUCCESS);
+                goto after_item_search2;
+            }
             item = stack_lookup(p->local_st, &p->token->prev->actual_value);
             if(item == NULL)//not defined beforehand
                 return ERROR_SEM_DEF;
             CHECK(str_add_char(&p->left_side_vars_types,item->data.as.variable.value_type),SUCCESS);
+        after_item_search2:
             //CHECK(get_next_token(p), SUCCESS);
             CHECK(assign(p), SUCCESS);
             //next token set
@@ -762,6 +789,14 @@ int parser() {
         str_free(&p.left_side_vars_types);
         return error_code;
     }
+    else if((error_code = fill_with_builtin(&p.st)) != SUCCESS){
+        st_dispose(&p.st);
+        str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
+        token_list_dispose(&p.token_list);
+        return error_code;
+    }
+
     else if((error_code = first_pass(&p)) != SUCCESS){
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
@@ -777,6 +812,8 @@ int parser() {
         return error_code;
     } else {
         error_code = prolog(&p);
+        if(error_code == SUCCESS)
+            error_code = check_main(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
         st_dispose(&p.st);
@@ -859,3 +896,104 @@ int main() {//testing
 }
 
 
+//func inputs() (string, int)
+//func inputi() (int,int)
+//func inputf() (float64,int)
+//func int2float(i int) (float64)
+//func float2int(f float64) (int)
+//func len(string) (int)
+//func substr(s string, i int, n int) (string, int)
+//func ord(s string, i int) (int, int)
+//func chr(i int) (string, int)
+
+int fill_with_builtin(symbol_table* st){
+    int error_code;
+    char* func[10][4] = {{"inputs","","","\014\011"},
+                        {"inputi","","","\011\011"},
+                        {"inputf","","","\005\011"},
+                        {"int2float","i#","\011","\005"},
+                        {"float2int","f#","\005","\011"},
+                        {"len","s#","\014","\011"},
+                        {"substr","s#i#n#","\014\011\011","\014\011"},
+                        {"ord","s#i#","\014\011","\011\011"},
+                        {"chr","i#","\011","\014\011"},
+                        {"print","","",""}};
+
+    //float= \005,  int = \011,  string = \014,
+    string name;
+    str_init(&name);
+    for(int i = 0; i<9;i++){
+        str_reinit(&name);
+        str_concat(&name,func[i][0],strlen(func[i][0]));
+        st_item *item = st_insert(st,&name, type_function, &error_code);
+
+        if(item == NULL)
+            return ERROR_TRANS;
+
+        str_concat(&item->data.as.function.params,func[i][1],strlen(func[i][1]));
+        str_concat(&item->data.as.function.param_types,func[i][2],strlen(func[i][2]));
+        str_concat(&item->data.as.function.ret_types,func[i][3],strlen(func[i][3]));
+
+        item->data.defined = true;
+    }
+    str_free(&name);
+    return SUCCESS;
+}
+
+int check_main(symbol_table* st){
+    string name;
+    st_item* item;
+    str_init(&name);
+    str_concat(&name,"main",4);
+    item = st_get_item(st,&name);
+    if(item == NULL)
+        return ERROR_SEM_DEF;
+    if(strcmp(item->data.as.function.param_types.str,""))
+        return ERROR_SEM_PAR;
+    if(strcmp(item->data.as.function.ret_types.str,""))
+        return ERROR_SEM_PAR;
+    str_free(&name);
+    return SUCCESS;
+}
+
+int token_type_to_data_type(token_type type){
+    switch(type){
+        case TOKEN_INT:
+        case TOKEN_INTEGER:
+            return type_int;
+        case TOKEN_FLOAT:
+        case TOKEN_FLOAT64:
+            return type_float;
+        case TOKEN_STR:
+        case TOKEN_STRING:
+            return type_str;
+        default:
+            return -1;
+    }
+}
+
+int check_types(string* s1, string* s2){
+    int error_code = SUCCESS;
+    string tmp1;
+    string tmp2;
+    str_init(&tmp1);
+    str_init(&tmp2);
+    str_copy(&tmp1,s1);
+    str_copy(&tmp2,s2);
+
+    if(s1->len != s2->len ){
+        error_code = ERROR_SEM_PAR;
+        goto after_for99;
+    }
+
+    for(int i = 0; i<s1->len; i++){
+        if(tmp1.str[i] == '_')
+            tmp2.str[i] = '_';
+    }
+    if(str_cmp(&tmp1,&tmp2))
+        error_code = ERROR_SEM_PAR;
+    after_for99:
+    str_free(&tmp1);
+    str_free(&tmp2);
+    return error_code;
+}

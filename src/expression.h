@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_STACK 10
+#define MAX_STACK 1000
 
 typedef enum {
     T_DIVMUL,            //spolocne ozancenie scitania a odcitania
