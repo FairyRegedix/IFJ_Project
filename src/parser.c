@@ -922,7 +922,7 @@ int fill_with_builtin(symbol_table* st){
     //float= \005,  int = \011,  string = \014,
     string name;
     str_init(&name);
-    for(int i = 0; i<9;i++){
+    for(int i = 0; i<10;i++){
         str_reinit(&name);
         str_concat(&name,func[i][0],strlen(func[i][0]));
         st_item *item = st_insert(st,&name, type_function, &error_code);
