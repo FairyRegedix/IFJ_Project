@@ -185,6 +185,7 @@ int getToken(token_t *token) {
             c = (char) fgetc(f);
             if (c == '/') {
                 for (; (c != EOL && c != EOF); c = (char) fgetc(f)) { ; }
+                ungetc(c,f);
             } else if (c == '*') {
                 bool eol_in_comment = false;
                 while (true) {
@@ -197,7 +198,7 @@ int getToken(token_t *token) {
                             return ERROR_LEX;
                         else if (c == EOL)
                             eol_in_comment = true;
-                        else { ; }
+                        else { ungetc(c,f); }
                     } else if (c == EOL)
                         eol_in_comment = true;
                     else if (c == EOF)
@@ -770,10 +771,10 @@ int scanner_fill_token_list(token_list_t* l){
 
     }while(token->type != TOKEN_EOF);
 
-//    token = l->first;
-//    while(token != NULL){//testing
-//        print_token(token);
-//        token=token->next;
-//    }
+    token = l->first;
+    while(token != NULL){//testing
+        print_token(token);
+        token=token->next;
+    }
     return SUCCESS;
 }

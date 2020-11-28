@@ -255,19 +255,21 @@ int expressionParse(e_stack *stack, parser_info *p) {
             }
             itemOP->dtype = dataType;
 
-            if (dataType == TOKEN_INT) {
+            if (itemOP->token_stack->type == TOKEN_INTEGER) {
                 if (Str_to_INT(&itemOP->token_stack->actual_value) == 0) {
                     itemOP->type = type_non_term0;
                 } else {
                     itemOP->type = type_non_term;
                 }
 
-            } else {
+            } else if (itemOP->token_stack->type == TOKEN_FLOAT){
                 if (Str_to_Float(&itemOP->token_stack->actual_value) == 0.0) {
                     itemOP->type = type_non_term0;
                 } else {
                     itemOP->type = type_non_term;
                 }
+            } else{
+                itemOP->type = type_non_term;
             }
             itemOP->dtype = dataType;
             free(pop_stack(stack));
@@ -380,6 +382,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
         }
         default:
             //error nie je mozne uplatnit pravidlo
+            return 2;
             break;
 
     }

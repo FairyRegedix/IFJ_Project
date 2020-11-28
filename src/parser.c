@@ -482,19 +482,19 @@ int statement(parser_info *p) {
 
     } else if (p->token->type == TOKEN_FOR) {
         CHECK(get_next_token(p), SUCCESS);
-        CHECK(EOL_opt(p), SUCCESS);
+        //CHECK(EOL_opt(p), SUCCESS);
         //next token set
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
         CHECK(for_def(p), SUCCESS);
         //next token set
         MATCH(TOKEN_SEMICOLON, consume_token);
-        CHECK(EOL_opt(p), SUCCESS);
+        //CHECK(EOL_opt(p), SUCCESS);
         CHECK(expression(p), SUCCESS);
         //next token set
         //CHECK(get_next_token(p),SUCCESS);
 
         MATCH(TOKEN_SEMICOLON, consume_token);
-        CHECK(EOL_opt(p), SUCCESS);
+        //CHECK(EOL_opt(p), SUCCESS);
         //next token set
         CHECK(for_assign(p), SUCCESS);
         //next token set

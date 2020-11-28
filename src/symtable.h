@@ -33,6 +33,7 @@ typedef struct function_t{
 
 typedef struct variable_t{
     data_type value_type; //data type of the variable
+    string* value;
 //    union{
 //        int64_t int_value; //also for bool value
 //        double float_value;
