@@ -158,9 +158,13 @@ int for_def(parser_info *p) {
         MATCH(TOKEN_DEFINITION, consume_token);
 
         if(p->token->type == TOKEN_ID){
-            if((tmp = stack_lookup(p->local_st,&p->token->actual_value)) == NULL)
-                return handle_error(ERROR_SEM_DEF,"at line %i: variable \"%s\" is not defined.\n",
-                                    p->token->lineno, p->token->actual_value.str);
+            if((tmp = stack_lookup(p->local_st,&p->token->actual_value)) == NULL){
+                if(!strcmp(p->token->next->actual_value.str, "_"))
+                    return ERROR_SEM_OTHER;
+                else
+                    return handle_error(ERROR_SEM_DEF,"at line %i: variable \"%s\" is not defined.\n",
+                                        p->token->lineno, p->token->next->actual_value.str);
+            }
             item->data.as.variable.value_type = tmp->data.as.variable.value_type;
         }
         else if(p->token->type == TOKEN_STR)
@@ -272,7 +276,8 @@ int func_call(parser_info *p) {
     CHECK(call_params(p), SUCCESS);
     MATCH(TOKEN_RBRACKET, consume_token);
 
-    CHECK(check_types(&p->left_side_vars_types,&p->function_called->data.as.function.ret_types), SUCCESS);
+    if(check_types(&p->left_side_vars_types,&p->function_called->data.as.function.ret_types))
+        return ERROR_SEM_PAR;
     if(!strcmp(p->function_called->key.str,"print"))
         goto end_func_call;
     if(str_cmp(&p->function_called->data.as.function.param_types, &p->right_side_exp_types)) //parameter types or number off parameter does not match
@@ -317,9 +322,8 @@ int end_assign(parser_info *p) {
     CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
     CHECK(exp_n(p), SUCCESS);
 
-    CHECK(check_types(&p->left_side_vars_types,&p->right_side_exp_types), SUCCESS);
-    if(str_cmp(&p->left_side_vars_types,&p->right_side_exp_types))
-        return ERROR_SEM_PAR;
+    if(check_types(&p->left_side_vars_types,&p->right_side_exp_types))
+        return ERROR_SEM_OTHER;
 
     return SUCCESS;
 }
@@ -368,9 +372,13 @@ int var(parser_info *p) {
                 return ERROR_SEM_DEF;
             item->data.defined = true;
             if(p->token->next->type == TOKEN_ID){
-                if((tmp = stack_lookup(p->local_st,&p->token->next->actual_value)) == NULL)
-                    return handle_error(ERROR_SEM_DEF,"at line %i: variable \"%s\" is not defined.\n",
-                                        p->token->lineno, p->token->next->actual_value.str);
+                if((tmp = stack_lookup(p->local_st,&p->token->next->actual_value)) == NULL){
+                    if(!strcmp(p->token->next->actual_value.str, "_"))
+                        return ERROR_SEM_OTHER;
+                    else
+                        return handle_error(ERROR_SEM_DEF,"at line %i: variable \"%s\" is not defined.\n",
+                                            p->token->lineno, p->token->next->actual_value.str);
+                }
                 item->data.as.variable.value_type = tmp->data.as.variable.value_type;
             }
             else if(p->token->next->type == TOKEN_STR)
@@ -388,15 +396,15 @@ int var(parser_info *p) {
             break;
 
         case TOKEN_LBRACKET:
-
             item = stack_lookup(p->local_st, &p->token->prev->actual_value);
             if (item == NULL)
                 item = st_get_item(&p->st, &p->token->prev->actual_value);
             if (item != NULL){
                 if( item->data.type == type_function){
+                    str_reinit(&p->left_side_vars_types);
                     p->function_called = item;
-                    CHECK(get_next_token(p), SUCCESS);
-                    return func_call(p);
+                     return func_call(p);
+
                 }else
                     return ERROR_SEM_OTHER;
             }
@@ -990,7 +998,7 @@ int check_types(string* s1, string* s2){
     str_copy(&tmp2,s2);
 
     if(s1->len != s2->len ){
-        error_code = ERROR_SEM_PAR;
+        error_code = 1;
         goto after_for99;
     }
 
@@ -999,7 +1007,7 @@ int check_types(string* s1, string* s2){
             tmp2.str[i] = '_';
     }
     if(str_cmp(&tmp1,&tmp2))
-        error_code = ERROR_SEM_PAR;
+        error_code = 1;
     after_for99:
     str_free(&tmp1);
     str_free(&tmp2);
