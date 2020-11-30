@@ -12,7 +12,7 @@ typedef struct parser_info{
     int error_code;
     int internal_error;
 
-    symbol_table st; //global symbol table  - only functions
+    symbol_table_t st; //global symbol table  - only functions
     st_stack_t* local_st; //stack of symbol tables for currently proccessed function, current scope always first
     token_t* token; //active token
     token_list_t token_list; //list of tokens
@@ -26,9 +26,11 @@ typedef struct parser_info{
     //possibly more stuff coming
 
 }parser_info;
-
-int fill_with_builtin(symbol_table* st);
-int check_main(symbol_table* st);
+bool is_data_type(token_type type);
+int set_data_type(parser_info *p, token_t *token, data_type *type, bool throw_error_on_default);
+int add_symbol(symbol_table_t* table,token_t* token , item_type type);
+int fill_st_with_builtin(symbol_table_t* st);
+int check_main(symbol_table_t* st);
 int check_types(string* s1, string* s2);
 int get_next_token(parser_info* p);
 int first_pass(parser_info* p);

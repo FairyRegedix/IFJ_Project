@@ -45,8 +45,8 @@ typedef enum{
     //-----------
 
     TOKEN_ID = 14, // main
-    TOKEN_RBRACKET = 15, // (
-    TOKEN_LBRACKET = 16, // )
+    TOKEN_RBRACKET = 15, // )
+    TOKEN_LBRACKET = 16, // (
     TOKEN_RCURLY = 17, // }
     TOKEN_LCURLY = 18, // {
     TOKEN_COMMA = 19, // ,

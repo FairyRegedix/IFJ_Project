@@ -236,7 +236,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_ID:
                     itemCheck = stack_lookup(p->local_st, &itemOP->token_stack->actual_value);
                     if (itemCheck == NULL) {
-                        return 2;
+                        return 3;
                     }
                     dataType = itemCheck->data.as.variable.value_type;
                     if (dataType == TOKEN_STRING) {
@@ -271,7 +271,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
             } else{
                 itemOP->type = type_non_term;
             }
-            itemOP->dtype = dataType;
             free(pop_stack(stack));
             push_nonterm(stack, itemOP);
             break;
@@ -287,7 +286,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 e_stack_item itemBracket = pop_stack(stack);
                 free(itemBracket);
                 free(pop_stack(stack));
-                push_stack(stack, itemVAL, itemVAL->token_stack);
+                push_nonterm(stack, itemVAL);
                 return 0;
 
             }
