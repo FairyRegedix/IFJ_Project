@@ -10,7 +10,6 @@
 
 typedef struct parser_info{
     int error_code;
-    int internal_error;
 
     symbol_table_t st; //global symbol table  - only functions
     st_stack_t* local_st; //stack of symbol tables for currently proccessed function, current scope always first
