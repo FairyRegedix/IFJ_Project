@@ -347,30 +347,30 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_LT:
                     //E -> E < E
                     printf("LTS\n");
-                    itemOP3->type = TOKEN_BOOLEAN;
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_EQL:
                     // E -> E == E
                     printf("EQS\n");
-                    itemOP3->type = TOKEN_BOOLEAN;
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_NEQ:
                     // E -> E != E
                     printf("EQS\nNOTS\n");
-                    itemOP3->type = TOKEN_BOOLEAN;
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GT:
                     // E -> E < E
                     printf("GTS\n");
-                    itemOP3->type = TOKEN_BOOLEAN;
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GTE:
                     //volanie megovej funkcie
-                    itemOP3->type = TOKEN_BOOLEAN;
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_LTE:
                     //volanie megovej funkcie
-                    itemOP3->type = TOKEN_BOOLEAN;
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 default:
 
