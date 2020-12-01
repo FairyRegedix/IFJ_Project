@@ -4,19 +4,24 @@
 
 #include "generator.h"
 
+void generate_code_end(){
+    printf("LABEL $$final_end\n");
+    gen_EXIT("int@0\n");
+}
 void generate_header(){
    
     printf(".IFJcode20\n");
-    printf("DEFVAR GF@EXPRESULT");
-    printf("JUMP $$main\n");
+    printf("DEFVAR GF@EXPRESULT\n");
+    printf("JUMP $main\n");
+    printf("JUMP $$final_end\n");
 }
 
-void generate_start_of_main(){
+void generate_start_of_main(){//nepotrebne
     printf("LABEL $$main # main body\n");
     printf("PUSHFRAME\n");
 }
 
-void generate_end_of_main(){
+void generate_end_of_main(){//nepotrebne
     printf("POPFRAME\n");
     printf("CLEARS\n");
 }
@@ -27,7 +32,7 @@ void gen_defvar(char* id_of_variable){
 
 void gen_retval(data_type type){
     char* value = gen_var_value(type);
-    printf("DEFVAR LF@%retval\n");
+    printf("DEFVAR LF@retval\n");
     printf("MOVE LF@retval %s\n", value);
 }
 
@@ -44,7 +49,7 @@ char* gen_var_value(data_type type){
         return_value = "int@0";
         break;
     case type_float:
-        return_value = "float@0.0";
+        return_value = "float@0x0p+0";
         break;
     case type_bool:
         return_value = "bool@false";
@@ -91,9 +96,9 @@ void gen_end_of_function(){
     gen_LABEL_end();
 }
 
-void gen_if_start(char* label, int id, char* truefalse){
+void gen_if_start(char *label, int id) {
     printf("#IF $%s$if$%i\n",label, id);
-    printf("JUMPIFEQ $%s$if$%i$else bool@true %s\n", label, id, truefalse);
+    printf("JUMPIFEQ $%s$if$%i$else GF@EXPRESULT bool@false\n", label, id); //GF@EXPRESULT
 }
 
 void gen_if_else(char* label, int id){
@@ -200,10 +205,10 @@ void gen_stack_instructions(stack_instruction instruction){
 void gen_func_inputs(){
     printf("LABEL $inputs\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@%retval\n");
-    printf("MOVE LF@%retval nil@nil\n");
+    printf("DEFVAR LF@$retval\n");
+    printf("MOVE LF@$retval nil@nil\n");
     printf("DEFVAR LF@param1\n");
-    printf("MOVE LF@param1 LF@%1\n");
+    printf("MOVE LF@param1 LF@$1\n");
     printf("DEFVAR LF@errorCheck\n");
     printf("TYPE LF@errorCheck LF@param1\n");
     printf("JUMPIFNEQ $ERROR string@string LF@errorCheck\n");
@@ -215,7 +220,7 @@ void gen_func_inputs(){
     printf("JUMPIFNEQ $ENDOFINPUTS LF@getchar string@\\010\n");
     printf("SETCHAR LF@param1 LF@strlen string@\\000\n");
     printf("LABEL $ENDOFINPUTS\n");
-    printf("MOVE LF@%retval LF@param1\n");
+    printf("MOVE LF@$retval LF@param1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR\n");

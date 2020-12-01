@@ -300,7 +300,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
 
             //int checking = str_cmp(&itemOP1->token_stack.actual_value,&itemOP3->token_stack.actual_value);
 
-            if (itemOP1->dtype != itemOP3->dtype) {
+            if ((itemOP1->dtype != itemOP3->dtype) || itemOP1->dtype == TOKEN_BOOLEAN) {
                 //error
                 return 5;
             }

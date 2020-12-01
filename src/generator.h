@@ -3,7 +3,6 @@
 
 
 #include "libraries.h"
-#include "error.h"
 #include "symtable.h"
 #include "scanner.h"
 #include "str.h"
@@ -22,6 +21,7 @@ typedef enum{
     NOTS = 10,
 }stack_instruction;
 
+void generate_code_end();
 void generate_header();
 void generate_start_of_main();
 void generate_end_of_main();
@@ -37,7 +37,7 @@ void gen_LABEL_start(char* label);
 void gen_LABEL_end();
 void gen_start_of_function(char* function);
 void gen_end_of_function();
-void gen_if_start(char* label, int id, char* truefalse);
+void gen_if_start(char *label, int id);
 void gen_if_else(char* label, int id);
 void gen_if_end(char* label, int id);
 void gen_while_start(char* label, int id);

@@ -103,7 +103,9 @@ int for_def(parser_info *p) {
         CHECK(expression(p), SUCCESS);
 
         item->data.as.variable.value_type = (data_type) p->right_side_exp_types.str[0];
+        item->data.scope = p->scope;
         item->data.defined = true;
+        //TODO gen_defvar(char* id ,int scope, bool in_for)
 
     }
     return SUCCESS;
@@ -255,7 +257,10 @@ int var(parser_info *p) {
             CHECK(expression(p), SUCCESS);
 
             item->data.as.variable.value_type = (data_type) p->right_side_exp_types.str[0];
+            item->data.scope = p->scope;
             item->data.defined = true;
+
+            //gen_defvar();
             //....
             return SUCCESS;
 
@@ -313,7 +318,13 @@ int statement(parser_info *p) {
 
     } else if (p->token->type == TOKEN_IF) {
         get_next_token(p);
+
+        str_reinit(&p->right_side_exp_types);
         CHECK(expression(p), SUCCESS);
+        if(p->right_side_exp_types.str[0] != TOKEN_BOOLEAN)
+            return ERROR_SEM_COMP;
+        gen_if_start(p->in_function->key.str,0);
+
         //next token set
 
         MATCH(TOKEN_LCURLY, consume_token);
@@ -331,6 +342,8 @@ int statement(parser_info *p) {
 
         MATCH(TOKEN_ELSE, consume_token);
 
+        gen_if_else(p->in_function->key.str,0);
+
         MATCH(TOKEN_LCURLY, consume_token);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
 
@@ -343,6 +356,8 @@ int statement(parser_info *p) {
         MATCH(TOKEN_RCURLY, consume_token);
         CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
 
+        gen_if_end(p->in_function->key.str,0);
+
     } else if (p->token->type == TOKEN_FOR) {
         get_next_token(p);
         //CHECK(EOL_opt(p), SUCCESS);
@@ -351,9 +366,10 @@ int statement(parser_info *p) {
         //next token set
         MATCH(TOKEN_SEMICOLON, consume_token);
         //CHECK(EOL_opt(p), SUCCESS);
+        str_reinit(&p->right_side_exp_types);
         CHECK(expression(p), SUCCESS);
-        //if(exp_result != bool)
-        //  return ERROR_SEM_COMP;
+        if(p->right_side_exp_types.str[0] != TOKEN_BOOLEAN)
+            return ERROR_SEM_COMP;
         //next token set
         MATCH(TOKEN_SEMICOLON, consume_token);
         //CHECK(EOL_opt(p), SUCCESS);
@@ -521,6 +537,10 @@ int func(parser_info *p) {
     MATCH(TOKEN_ID, keep_token);
     p->in_function = st_get_item(&p->st, &p->token->actual_value);
     CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
+    gen_start_of_function(p->token->actual_value.str);
+    //TODO gen_params(&p->infunction->data.as.function.params);
+    //TODO gen_retvals(p->infunction->data.as.function.ret_types.len);
+    //
 
     get_next_token(p);
     MATCH(TOKEN_LBRACKET, consume_token);
@@ -537,6 +557,8 @@ int func(parser_info *p) {
     MATCH(TOKEN_RCURLY, consume_token);
 
     CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
+
+    gen_end_of_function();
     return SUCCESS;
 }
 
@@ -554,6 +576,7 @@ int prog(parser_info *p) {
         // next token set
         return prog(p);
     } else if (p->token->type == TOKEN_EOF) {//Prog -> EOF
+        generate_code_end();
         return SUCCESS;
     } else {
         return handle_error(ERROR_SYN,
@@ -566,7 +589,7 @@ int prog(parser_info *p) {
 //Prolog -> package id EOL EOL_opt Prog
 int prolog(parser_info *p) {
     int error_code;
-
+    generate_header();
     CHECK(EOL_opt(p), SUCCESS);
     MATCH(TOKEN_PACKAGE, consume_token);
     MATCH(TOKEN_ID, keep_token);
@@ -597,6 +620,7 @@ int parser() {
     p.local_st = NULL;
     p.in_function = NULL;
     p.scope = 0;
+    p.in_for = false;
 
     p.function_called = NULL;
     str_init(&p.left_side_vars_types);
