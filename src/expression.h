@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_STACK 10
+#define MAX_STACK 1000
 
 typedef enum {
     T_DIVMUL,            //spolocne ozancenie scitania a odcitania
@@ -51,7 +51,7 @@ typedef enum {
 
 // struktura tokenu na zasobniku
 typedef struct expr_stack {
-    token_t token_stack;                     //typ tokenu
+    token_t* token_stack;                     //typ tokenu
     tType type;                                 //typ / otvorena zatvorka (<) /  terminal    / neterminal
     token_type dtype;                         // neterminalovy typ
     struct  expr_stack *next;
@@ -111,6 +111,7 @@ int expressionParse(e_stack* stack,parser_info *p);
 long int Str_to_INT(string* value);
 
 double Str_to_Float(string* value);
+
 
 
 
