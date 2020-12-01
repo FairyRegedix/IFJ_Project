@@ -279,7 +279,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
             e_stack_item itemOP1;
             itemOP1 = pop_stack(stack);
 
-            // VAL -> (VAL)
+            // E -> (E)
             if (itemOP1->token_stack->type == TOKEN_RBRACKET) {
                 free(itemOP1);
                 e_stack_item itemVAL = pop_stack(stack);
@@ -347,24 +347,30 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_LT:
                     //E -> E < E
                     printf("LTS\n");
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_EQL:
                     // E -> E == E
                     printf("EQS\n");
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_NEQ:
                     // E -> E != E
                     printf("EQS\nNOTS\n");
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GT:
                     // E -> E < E
                     printf("GTS\n");
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GTE:
                     //volanie megovej funkcie
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_LTE:
                     //volanie megovej funkcie
+                    itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 default:
 
@@ -500,9 +506,3 @@ double Str_to_Float(string *value) {
     converted = atof(value->str);
     return converted;
 }
-
-
-
-
-
-
