@@ -8,6 +8,8 @@ void generate_header(){
    
     printf(".IFJcode20\n");
     printf("DEFVAR GF@EXPRESULT\n\n");
+    printf("DEFVAR GF@IF$COUNTER\n");
+    printf("DEFVAR GF@WHILE$COUNTER\n");
     gen_func_inputs();
     gen_func_inputf();
     gen_func_inputi();
@@ -17,17 +19,17 @@ void generate_header(){
 
 void gen_defvar(char* id,int scope, bool in_for){
     if(in_for){
-        printf("MOVE LF@%s$%s nil@nil",id, scope);
+        printf("MOVE LF@%s$%d nil@nil",id, scope);
     }else
     {
-        printf("DEFVAR LF@%s$%s",id, scope);
+        printf("DEFVAR LF@%s$%d",id, scope);
     }
     
 }
 
 void gen_retvals(int number_of_return_values){
     for(int i = 0; i < number_of_return_values; i++)
-        printf("DEFVAR LF@retval$%s\n", number_of_return_values);
+        printf("DEFVAR LF@retval$%d\n", i);
 }
 
 void gen_move_to_defvar(char* id_of_variable, char* value){
@@ -36,9 +38,9 @@ void gen_move_to_defvar(char* id_of_variable, char* value){
 
 void gen_params(string* params){
     printf("DEFVAR LF@$");
-    for(int i = 1; i < params->len; i++){
-        if((strcmp(params->str[i], '#')) != 0){
-            printf("%s", params->str[i]);
+    for(int i = 0; i < params->len-1; i++){
+        if(params->str[i] != '#'){
+            printf("%c", params->str[i]);
         }else
         {
             printf("\nDEFVAR LF@$");
