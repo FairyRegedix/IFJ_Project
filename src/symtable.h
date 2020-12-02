@@ -63,6 +63,7 @@ typedef st_item* symbol_table_t[ST_SIZE];
 
 typedef struct stack{
     symbol_table_t local_table;
+    int scope;
     struct stack* parent;
 }st_stack_t;
 
@@ -145,6 +146,6 @@ bool st_del_item(symbol_table_t* st, const string *key);
 void st_dispose(symbol_table_t* st);
 
 int enter_scope(st_stack_t** s, int *n);
-int leave_scope(st_stack_t** s, int *n);
+int leave_scope(st_stack_t **s);
 st_item* stack_lookup(st_stack_t* s, const string* key);
 #endif //IFJ_PROJECT_SYMTAB_H

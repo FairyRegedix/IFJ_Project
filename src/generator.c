@@ -16,18 +16,11 @@ void generate_header(){
     printf("JUMP $$final_end\n");
 }
 
-void generate_start_of_main(){//nepotrebne
-    printf("LABEL $$main # main body\n");
-    printf("PUSHFRAME\n");
-}
+void gen_defvar(char *id_of_variable, int scope, bool in_for) {
+    if(in_for)
+        printf("MOVE LF@%s$%i\n nil@nil", id_of_variable,scope);
 
-void generate_end_of_main(){//nepotrebne
-    printf("POPFRAME\n");
-    printf("CLEARS\n");
-}
-
-void gen_defvar(char* id_of_variable){
-    printf("DEFVAR LF@%s\n", id_of_variable);
+    printf("DEFVAR LF@%s$%i\n", id_of_variable,scope);
 }
 
 void gen_retval(data_type type){

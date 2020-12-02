@@ -257,7 +257,7 @@ int var(parser_info *p) {
             CHECK(expression(p), SUCCESS);
 
             item->data.as.variable.value_type = (data_type) p->right_side_exp_types.str[0];
-            item->data.scope = p->scope;
+            item->data.scope = p->local_st->scope;
             item->data.defined = true;
 
             //gen_defvar();
@@ -312,6 +312,10 @@ int var(parser_info *p) {
 
 int statement(parser_info *p) {
     int error_code;
+    int helper_scope;
+    token_t* helper_token;
+    bool nested_for = false;
+
     if (p->token->type == TOKEN_ID) {
         get_next_token(p);
         CHECK(var(p), SUCCESS);
@@ -338,7 +342,7 @@ int statement(parser_info *p) {
 
         //next token set
         MATCH(TOKEN_RCURLY, consume_token);
-        CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
+        CHECK(leave_scope(&p->local_st), SUCCESS);
 
         MATCH(TOKEN_ELSE, consume_token);
 
@@ -354,7 +358,7 @@ int statement(parser_info *p) {
         CHECK(statement_list(p), SUCCESS);
         //next token set
         MATCH(TOKEN_RCURLY, consume_token);
-        CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
+        CHECK(leave_scope(&p->local_st), SUCCESS);
 
         gen_if_end(p->in_function->key.str,0);
 
@@ -376,6 +380,43 @@ int statement(parser_info *p) {
 
         CHECK(for_assign(p), SUCCESS);
         //next token set
+        helper_scope = p->scope-1;
+        helper_token = p->token;
+        if(!p->in_for) {
+            int i=0;
+            int j = 0;
+            int k = 0;
+            int relative_scope = p->scope;
+            do {
+                if (helper_token->type == TOKEN_LCURLY) {
+                    helper_scope++;
+                    relative_scope = helper_scope;
+                    k++;
+                }
+                else if(helper_token->type == TOKEN_FOR){
+                    helper_scope++;
+                    relative_scope = helper_scope;
+                    k++;
+                    j++;
+                }
+                else if (helper_token->type == TOKEN_RCURLY){
+                    i++;
+                }
+                else if (helper_token->type == TOKEN_DEFINITION) {
+                    if (helper_token->prev->type == TOKEN_ID) {
+                        gen_defvar(helper_token->prev->actual_value.str, relative_scope, p->in_for);
+                    }
+                } else if (helper_token->type == TOKEN_EOF)
+                    break;
+                else {}
+
+                helper_token = helper_token->next;
+            } while ( k-i  != 0);
+            p->in_for = true;
+        }
+        else
+            nested_for = true;
+
         MATCH(TOKEN_LCURLY, consume_token);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
 
@@ -385,8 +426,11 @@ int statement(parser_info *p) {
         CHECK(statement_list(p), SUCCESS);
         //next token set
         MATCH(TOKEN_RCURLY, consume_token);
-        CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
-        CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
+        CHECK(leave_scope(&p->local_st), SUCCESS);
+        CHECK(leave_scope(&p->local_st), SUCCESS);
+
+        if(!nested_for)
+            p->in_for = false;
 
     } else if (p->token->type == TOKEN_RETURN) {
         //+semantic check return types
@@ -556,7 +600,7 @@ int func(parser_info *p) {
     //next token set
     MATCH(TOKEN_RCURLY, consume_token);
 
-    CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
+    CHECK(leave_scope(&p->local_st), SUCCESS);
 
     gen_end_of_function();
     return SUCCESS;
@@ -660,7 +704,7 @@ int parser() {
         st_dispose(&p.st);
         token_list_dispose(&p.token_list);
         while (p.local_st != NULL)
-            leave_scope(&p.local_st, &p.scope);
+            leave_scope(&p.local_st);
 
         return error_code;
     }
