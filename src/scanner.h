@@ -45,8 +45,8 @@ typedef enum{
     //-----------
 
     TOKEN_ID = 14, // main
-    TOKEN_RBRACKET = 15, // (
-    TOKEN_LBRACKET = 16, // )
+    TOKEN_RBRACKET = 15, // )
+    TOKEN_LBRACKET = 16, // (
     TOKEN_RCURLY = 17, // }
     TOKEN_LCURLY = 18, // {
     TOKEN_COMMA = 19, // ,
@@ -96,7 +96,6 @@ typedef struct token_list{
 int copy_token(token_t *t1, token_t *t2);
 int token_init(token_t *token);
 void token_list_init(token_list_t* l);
-void token_list_first(token_list_t* l);
 int token_list_insert(token_list_t* l, token_t* token);
 int token_list_next(token_list_t* l);
 void token_list_dispose(token_list_t* l);

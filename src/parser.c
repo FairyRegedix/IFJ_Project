@@ -1,6 +1,5 @@
 
-#include "error.h"
-#include "parser.h"
+#include "expression.h"
 
 #define consume_token 1 //helper variable for MATCH macro
 #define keep_token 0    //helper variable for MATCH macro
@@ -8,57 +7,20 @@
 
 #define MATCH(x, y) do{                 \
   if (p->token->type != (x)){        \
-    return handle_error(ERROR_SYN,      \
+   return handle_error(ERROR_SYN,      \
      "at line %i: expected token [%s] received [%s].\n", \
      p->token->lineno,token_enum_to_str((x)),token_enum_to_str(p->token->type));}\
   if((y))                               \
-    CHECK(get_next_token(p), SUCCESS);  \
+    get_next_token(p);  \
 }while(0)
 
 
-
-
-int get_next_token(parser_info* p){
+int get_next_token(parser_info *p) {
     token_list_next(&p->token_list);
     p->token = p->token_list.act;
     return SUCCESS;
 }
 
-int expression(parser_info *p) {//just for testing till expression module is working
-    int error_code;
-    bool exp = false;
-    while(true){
-        switch(p->token->type){
-            case TOKEN_INTEGER:
-            case TOKEN_FLOAT:
-            case TOKEN_ID:
-            case TOKEN_TRUE:
-            case TOKEN_FALSE:
-            case TOKEN_NOT:
-            case TOKEN_AND:
-            case TOKEN_OR:
-            case TOKEN_ADD:
-            case TOKEN_SUB:
-            case TOKEN_MUL:
-            case TOKEN_DIV:
-            case TOKEN_EQL:
-            case TOKEN_NEQ:
-            case TOKEN_LT:
-            case TOKEN_GT:
-            case TOKEN_LTE:
-            case TOKEN_GTE:
-                exp = true;
-                CHECK(get_next_token(p), SUCCESS);
-                break;
-            default:
-                if(exp)
-                    p->right_side_exp_count++;
-                goto out_of_while;
-        }
-    }
-    out_of_while:
-    return SUCCESS;
-}
 
 int prolog(parser_info *p);
 
@@ -102,116 +64,95 @@ int return_exp(parser_info *p);
 
 int for_assign(parser_info *p) {
     int error_code;
+    st_item *item;
     if (p->token->type == TOKEN_ID) {
-        CHECK(get_next_token(p), SUCCESS);
+
+        str_reinit(&p->left_side_vars_types);
+        if (strcmp(p->token->actual_value.str, "_") == 0)
+            CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
+        else {
+            item = stack_lookup(p->local_st, &p->token->actual_value);
+            if (item == NULL)//not defined beforehand
+                return ERROR_SEM_DEF;
+            CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
+        }
+
+        get_next_token(p);
         CHECK(assign(p), SUCCESS);
         MATCH(TOKEN_ASSIGN, consume_token);
         return end_assign(p);
     }
+
     return SUCCESS;
 }
 
 int for_def(parser_info *p) {
     int error_code;
-    st_item* item;
+    st_item *item;
+
     if (p->token->type == TOKEN_ID) {
-        item = st_insert(&p->local_st->local_table, &p->token->actual_value, type_variable, &error_code);
-        if(item->data.defined)
+        if (!strcmp(p->token->next->actual_value.str, "_"))
+            return ERROR_SEM_OTHER;
+        item = st_insert(&p->local_st->local_table, &p->token->actual_value, type_variable);
+        if (item->data.defined)
             return ERROR_SEM_DEF;
 
-        CHECK(get_next_token(p), SUCCESS);
+        get_next_token(p);
         MATCH(TOKEN_DEFINITION, consume_token);
-        return expression(p);
+        str_reinit(&p->right_side_exp_types);
+        CHECK(expression(p), SUCCESS);
+
+        item->data.as.variable.value_type = (data_type) p->right_side_exp_types.str[0];
+        item->data.scope = p->scope;
+        item->data.defined = true;
+        //TODO gen_defvar(char* id ,int scope, bool in_for)
+
     }
     return SUCCESS;
-
 }
 
 int return_exp(parser_info *p) {
     int error_code;
     if (p->token->type == TOKEN_EOL) {
-        if(p->in_function->data.as.function.ret_types.len != 0)
+        if (p->in_function->data.as.function.ret_types.len != 0)
             return ERROR_SEM_PAR;
-        else
-            return SUCCESS;
+
     } else {
-        //parser information about index of a currently proccessed expression??
-        //current token not processed yet
-        p->right_side_exp_count = 0;
         CHECK(expression(p), SUCCESS);
         CHECK(exp_n(p), SUCCESS);
-        if(p->right_side_exp_count != p->in_function->data.as.function.ret_types.len)
-            return ERROR_SEM_PAR;
-        return SUCCESS;
     }
+    return SUCCESS;
 }
 
 int term_n(parser_info *p) {
     int error_code;
-    st_item* item;
-
-    if (p->token->type == TOKEN_COMMA) {
-        CHECK(get_next_token(p), SUCCESS);
+    data_type type;
+    while (p->token->type == TOKEN_COMMA) {
+        get_next_token(p);
         CHECK(EOL_opt(p), SUCCESS);
-        switch (p->token->type) {
-            case TOKEN_ID:
-                if((item = stack_lookup(p->local_st, &p->token->actual_value)) == NULL)
-                    return ERROR_SEM_DEF;
-                CHECK(str_add_char(&p->called_params, item->data.as.variable.value_type), SUCCESS);
-                break;
-            case TOKEN_INTEGER:
-                CHECK(str_add_char(&p->called_params, TOKEN_INT), SUCCESS);
-                break;
-            case TOKEN_FLOAT:
-                CHECK(str_add_char(&p->called_params,TOKEN_FLOAT64), SUCCESS);
-                break;
-            case TOKEN_STR:
-                CHECK(str_add_char(&p->called_params, TOKEN_STRING), SUCCESS);
-                break;
-            case TOKEN_BOOLEAN:
-                CHECK(str_add_char(&p->called_params, TOKEN_BOOL), SUCCESS);
-                break;
-            default:
-                return handle_error(ERROR_SYN,
-                                    "at line %i: expected literal received [%s].\n",
-                                    p->token->lineno, token_enum_to_str(p->token->type));
-        }
-        CHECK(get_next_token(p), SUCCESS);
-        return term_n(p);
-    } else
-        return SUCCESS;
 
+        CHECK(set_data_type(p, p->token, &type, true), SUCCESS);
+        CHECK(str_add_char(&p->right_side_exp_types, type), SUCCESS);
 
+        get_next_token(p);
+    }
+
+    return SUCCESS;
 }
 
 int call_params(parser_info *p) {
     int error_code;
-    st_item* item;
-    str_reinit(&p->called_params);
+    data_type type;
+    str_reinit(&p->right_side_exp_types);
 
-    switch (p->token->type) {
-        case TOKEN_ID:
-            if((item = stack_lookup(p->local_st, &p->token->actual_value)) == NULL)
-                return ERROR_SEM_DEF;
-            CHECK(str_add_char(&p->called_params, item->data.as.variable.value_type), SUCCESS);
-            break;
-        case TOKEN_INTEGER:
-            CHECK(str_add_char(&p->called_params, TOKEN_INT), SUCCESS);
-            break;
-        case TOKEN_FLOAT:
-            CHECK(str_add_char(&p->called_params,TOKEN_FLOAT64), SUCCESS);
-            break;
-        case TOKEN_STR:
-            CHECK(str_add_char(&p->called_params, TOKEN_STRING), SUCCESS);
-            break;
-        case TOKEN_BOOLEAN:
-            CHECK(str_add_char(&p->called_params, TOKEN_BOOL), SUCCESS);
-            break;
-        default:
-            return SUCCESS;
-    }
-    CHECK(get_next_token(p), SUCCESS);
-    CHECK( term_n(p), SUCCESS);
+    if (p->token->type == TOKEN_RBRACKET)
+        return SUCCESS; // call_params -> eps
+
+    CHECK(set_data_type(p, p->token, &type, 0), SUCCESS);
+    CHECK(str_add_char(&p->right_side_exp_types, type), SUCCESS);
+
+    get_next_token(p);
+    CHECK(term_n(p), SUCCESS);
 
     return SUCCESS;
 }
@@ -222,9 +163,14 @@ int func_call(parser_info *p) {
     CHECK(EOL_opt(p), SUCCESS);
     CHECK(call_params(p), SUCCESS);
     MATCH(TOKEN_RBRACKET, consume_token);
-    if(str_cmp(&p->function_called->data.as.function.param_types, &p->called_params)) //parameter types or number off parameter does not match
-        return ERROR_SEM_PAR;
 
+    if (check_types(&p->left_side_vars_types, &p->function_called->data.as.function.ret_types))
+        return ERROR_SEM_PAR;
+    if (strcmp(p->function_called->key.str, "print") != 0) {
+        if (str_cmp(&p->function_called->data.as.function.param_types,
+                    &p->right_side_exp_types)) //parameter types or number off parameter does not match
+            return ERROR_SEM_PAR;
+    }
     return SUCCESS;
 }
 
@@ -232,123 +178,153 @@ int func_call(parser_info *p) {
 int exp_n(parser_info *p) {
 
     int error_code;
-    if (p->token->type == TOKEN_COMMA) {
-        CHECK(get_next_token(p), SUCCESS);
+    while (p->token->type == TOKEN_COMMA) {
+        get_next_token(p);
         CHECK(expression(p), SUCCESS);
-        return exp_n(p);
-    } else
-        return SUCCESS;
-
+    }
+    return SUCCESS;
 }
 
 int end_assign(parser_info *p) {
     int error_code;
     st_item *item;
+    str_reinit(&p->right_side_exp_types);
+
     if (p->token->type == TOKEN_ID) {
         item = stack_lookup(p->local_st, &p->token->actual_value);
         if (item == NULL)
             item = st_get_item(&p->st, &p->token->actual_value);
         if (item != NULL) {
-            if( item->data.type == type_function){
+            if (item->data.type == type_function) {
                 p->function_called = item;
-                CHECK(get_next_token(p), SUCCESS);
+                get_next_token(p);
                 return func_call(p);
             }
-        }else//identifier not defined
+        } else//identifier not defined
             return ERROR_SEM_DEF;
     }
-    //in expression if expression is valid p->right_side_exp_count++;
-    p->right_side_exp_count = 0;
+
     CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
-    return exp_n(p);
+    CHECK(exp_n(p), SUCCESS);
+
+    if (check_types(&p->left_side_vars_types, &p->right_side_exp_types))
+        return ERROR_SEM_OTHER;
+
+    return SUCCESS;
 }
 
 int assign(parser_info *p) {
     int error_code;
-    st_item* item;
+    st_item *item;
 
-    if (p->token->type == TOKEN_COMMA) {
-        CHECK(get_next_token(p), SUCCESS);
+    while (p->token->type == TOKEN_COMMA) {
+        get_next_token(p);
+        item = NULL;
         CHECK(EOL_opt(p), SUCCESS);
         //next token set
         MATCH(TOKEN_ID, keep_token);
-        item = stack_lookup(p->local_st, &p->token->actual_value);
-        if(item == NULL)//not defined beforehand
-            return ERROR_SEM_DEF;
-        p->left_side_vars_count++;
-        CHECK(get_next_token(p),SUCCESS);
-        return assign(p);
-    } else // eps
-        return SUCCESS;
+        if (strcmp(p->token->actual_value.str, "_") == 0)
+            CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
+        else {
+            item = stack_lookup(p->local_st, &p->token->actual_value);
+            if (item == NULL)//not defined beforehand
+                return ERROR_SEM_DEF;
+            CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
+        }
+
+        get_next_token(p);
+    }
+
+    return SUCCESS;
 }
 
 
 int var(parser_info *p) {
     int error_code;
-    st_item* item;
+    st_item *item;
 
     switch (p->token->type) {
         case TOKEN_DEFINITION:
-            item = st_insert(&p->local_st->local_table, &p->token->prev->actual_value, type_variable,&error_code);
+            str_reinit(&p->right_side_exp_types);
+            if (!strcmp(p->token->prev->actual_value.str, "_"))
+                return ERROR_SEM_DEF;
+            item = st_insert(&p->local_st->local_table, &p->token->prev->actual_value, type_variable);
             if (item == NULL)
                 return ERROR_TRANS;
-            if (item->data.defined) //redefinition of local variables
+            if (item->data.defined) //redefinition of local variable
                 return ERROR_SEM_DEF;
-
-            CHECK(get_next_token(p), SUCCESS);
+            get_next_token(p);
             CHECK(expression(p), SUCCESS);
-            //next token set
-            //CHECK(get_next_token(p),SUCCESS);
-            break;
-        case TOKEN_LBRACKET:
-            item = st_get_item(&p->st, &p->token->prev->actual_value);
-            if(item == NULL)
-                return ERROR_SEM_DEF;
-            p->function_called = item;
-            CHECK(func_call(p), SUCCESS);
-            break;
-        case TOKEN_ASSIGN:
-            item = stack_lookup(p->local_st, &p->token->prev->actual_value);
-            if(item == NULL)//not defined beforehand
-                return ERROR_SEM_DEF;
-            p->left_side_vars_count = 1;
 
-            CHECK(get_next_token(p), SUCCESS);
-            CHECK(EOL_opt(p), SUCCESS);
-            //next token set
-            CHECK(end_assign(p), SUCCESS);
-            break;
-        case TOKEN_COMMA:
+            item->data.as.variable.value_type = (data_type) p->right_side_exp_types.str[0];
+            item->data.scope = p->scope;
+            item->data.defined = true;
+
+            //gen_defvar();
+            //....
+            return SUCCESS;
+
+        case TOKEN_LBRACKET:
             item = stack_lookup(p->local_st, &p->token->prev->actual_value);
-            if(item == NULL)//not defined beforehand
+            if (item == NULL)
+                item = st_get_item(&p->st, &p->token->prev->actual_value);
+            if (item != NULL) {
+                if (item->data.type == type_function) {
+                    str_reinit(&p->left_side_vars_types);
+                    p->function_called = item;
+                    return func_call(p);
+                } else
+                    return ERROR_SEM_OTHER;
+            } else//identifier not defined
                 return ERROR_SEM_DEF;
-            p->left_side_vars_count = 1;
-            //CHECK(get_next_token(p), SUCCESS);
-            CHECK(assign(p), SUCCESS);
-            //next token set
-            MATCH(TOKEN_ASSIGN, consume_token);
+
+        case TOKEN_COMMA:
+        case TOKEN_ASSIGN:
+            str_reinit(&p->left_side_vars_types);
+            if (!strcmp(p->token->prev->actual_value.str, "_")) {
+                CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
+
+            } else {
+                item = stack_lookup(p->local_st, &p->token->prev->actual_value);
+                if (item == NULL)//not defined beforehand
+                    return ERROR_SEM_DEF;
+                CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
+            }
+
+            if (p->token->type == TOKEN_COMMA) {
+                CHECK(assign(p), SUCCESS);
+                MATCH(TOKEN_ASSIGN, consume_token);
+            } else
+                get_next_token(p);
+
             CHECK(EOL_opt(p), SUCCESS);
-            //next token set
             CHECK(end_assign(p), SUCCESS);
-            break;
+            return SUCCESS;
+
         default:
             return handle_error(ERROR_SYN,
                                 "at line %i: unexpected token [%s].\n",
                                 p->token->lineno, token_enum_to_str(p->token->type));
     }
-    return SUCCESS;
+    //return SUCCESS;
 
 }
 
 int statement(parser_info *p) {
     int error_code;
     if (p->token->type == TOKEN_ID) {
-        CHECK(get_next_token(p), SUCCESS);
+        get_next_token(p);
         CHECK(var(p), SUCCESS);
 
     } else if (p->token->type == TOKEN_IF) {
-        CHECK(get_next_token(p), SUCCESS);
+        get_next_token(p);
+
+        str_reinit(&p->right_side_exp_types);
         CHECK(expression(p), SUCCESS);
+        if(p->right_side_exp_types.str[0] != TOKEN_BOOLEAN)
+            return ERROR_SEM_COMP;
+        gen_if_start(p->in_function->key.str,0);
+
         //next token set
 
         MATCH(TOKEN_LCURLY, consume_token);
@@ -366,6 +342,8 @@ int statement(parser_info *p) {
 
         MATCH(TOKEN_ELSE, consume_token);
 
+        gen_if_else(p->in_function->key.str,0);
+
         MATCH(TOKEN_LCURLY, consume_token);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
 
@@ -378,22 +356,24 @@ int statement(parser_info *p) {
         MATCH(TOKEN_RCURLY, consume_token);
         CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
 
+        gen_if_end(p->in_function->key.str,0);
+
     } else if (p->token->type == TOKEN_FOR) {
-        CHECK(get_next_token(p), SUCCESS);
-        CHECK(EOL_opt(p), SUCCESS);
-        //next token set
+        get_next_token(p);
+        //CHECK(EOL_opt(p), SUCCESS);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
         CHECK(for_def(p), SUCCESS);
         //next token set
         MATCH(TOKEN_SEMICOLON, consume_token);
-        CHECK(EOL_opt(p), SUCCESS);
+        //CHECK(EOL_opt(p), SUCCESS);
+        str_reinit(&p->right_side_exp_types);
         CHECK(expression(p), SUCCESS);
+        if(p->right_side_exp_types.str[0] != TOKEN_BOOLEAN)
+            return ERROR_SEM_COMP;
         //next token set
-        //CHECK(get_next_token(p),SUCCESS);
-
         MATCH(TOKEN_SEMICOLON, consume_token);
-        CHECK(EOL_opt(p), SUCCESS);
-        //next token set
+        //CHECK(EOL_opt(p), SUCCESS);
+
         CHECK(for_assign(p), SUCCESS);
         //next token set
         MATCH(TOKEN_LCURLY, consume_token);
@@ -409,9 +389,13 @@ int statement(parser_info *p) {
         CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
 
     } else if (p->token->type == TOKEN_RETURN) {
-        //+semantic check for current function(p->in_func.as.function.ret_types) return types
-        CHECK(get_next_token(p), SUCCESS);
-        return return_exp(p);
+        //+semantic check return types
+        str_reinit(&p->right_side_exp_types);
+        get_next_token(p);
+        CHECK(return_exp(p), SUCCESS);
+        if (str_cmp(&p->in_function->data.as.function.ret_types, &p->right_side_exp_types))
+            return ERROR_SEM_PAR;
+
     } else { ; }
 
     return SUCCESS;
@@ -421,101 +405,72 @@ int statement(parser_info *p) {
 //Statement_list -> Statement EOL EOL_opt Statement_list | eps
 int statement_list(parser_info *p) {
     int error_code;
-
-    switch (p->token->type) {
-        case TOKEN_ID:
-        case TOKEN_IF:
-        case TOKEN_FOR:
-        case TOKEN_RETURN:
-            CHECK(statement(p), SUCCESS);
-            MATCH(TOKEN_EOL, consume_token);
-            CHECK(EOL_opt(p), SUCCESS);
-            return statement_list(p);
-
-        default:
-            return SUCCESS;
+    while(true){
+        switch (p->token->type) {
+            case TOKEN_ID:
+            case TOKEN_IF:
+            case TOKEN_FOR:
+            case TOKEN_RETURN:
+                CHECK(statement(p), SUCCESS);
+                MATCH(TOKEN_EOL, consume_token);
+                CHECK(EOL_opt(p), SUCCESS);
+                continue;
+            default:
+                return SUCCESS;
+        }
     }
 }
 
 //Ret_type_n -> , Type Ret_type_n | eps
 int ret_type_n(parser_info *p) {
     int error_code;
-
     //next token set already
-
-    if (p->token->type == TOKEN_COMMA) {//->,<- Type Ret_type_n
-        CHECK(get_next_token(p), SUCCESS);
+    while (p->token->type == TOKEN_COMMA) {//->,<- Type Ret_type_n
+        get_next_token(p);
         CHECK(EOL_opt(p), SUCCESS);
-
         //next token set
-        switch (p->token->type) {// , ->Type<- Ret_type_n
-            case TOKEN_INT:
-            case TOKEN_FLOAT64:
-            case TOKEN_STRING:
-                break;
-            default:
-                return handle_error(ERROR_SYN,
-                                    "at line %i: expected type specifier received [%s].\n",
-                                    p->token->lineno, token_enum_to_str(p->token->type));
-        }
-        CHECK(get_next_token(p), SUCCESS);
-        return ret_type_n(p);//, Type ->Ret_type_n<-
+        if (is_data_type(p->token->type)) {
+            get_next_token(p);
+        } else
+            return handle_error(ERROR_SYN,
+                                "at line %i: expected type specifier received [%s].\n",
+                                p->token->lineno, token_enum_to_str(p->token->type));
+    }
 
-
-    } else
-        return SUCCESS; //eps
-
-
+    return SUCCESS; //eps
 }
 
 //Ret_type -> ( Type Ret_type_n ) | Type
 int ret_type(parser_info *p) {
     int error_code;
-    bool in_paren = false;
-
     if (p->token->type == TOKEN_LBRACKET) {
-        in_paren = true;
-        CHECK(get_next_token(p), SUCCESS);
-    }
-
-    switch (p->token->type) {//type -> int | float | string | bool
-        case TOKEN_INT:
-        case TOKEN_FLOAT64:
-        case TOKEN_STRING:
-            break;
-        case TOKEN_RBRACKET:
-            if (!in_paren)//wrong syntax
-                return handle_error(ERROR_SYN,
-                                    "at line %i: unexpected [%s].\n",
-                                    p->token->lineno, token_enum_to_str(p->token->type));
-            else
-                in_paren = false;
-            break;
-        default:
-            goto end; //token not processed, ret_type -> eps or syntax error
-    }
-    CHECK(get_next_token(p), SUCCESS);
-    if (in_paren) {//( Type ->Ret_type_n<- )
-        CHECK(ret_type_n(p), SUCCESS);
-        //next token set
+        get_next_token(p);
+        if (is_data_type(p->token->type)) {
+            get_next_token(p);
+            CHECK(ret_type_n(p), SUCCESS);
+        }
         MATCH(TOKEN_RBRACKET, consume_token);
+        //return SUCCESS;
+
+    } else if (is_data_type(p->token->type)) {
+        get_next_token(p);
+        //return SUCCESS;
+    } else {
+        //return SUCCESS;
     }
-    //set next token for consistency
-    end:
     return SUCCESS;
 }
-
 
 //Params_n -> , id Type Params_n | eps
 int params_n(parser_info *p) {
     int error_code;
     if (p->token->type == TOKEN_COMMA) {
-        CHECK(get_next_token(p), SUCCESS);
+        get_next_token(p);
         CHECK(EOL_opt(p), SUCCESS);
 
         // next token set
         if (p->token->type == TOKEN_ID) {// ->id<- Type Params_n
-            st_item *item = st_insert(&p->local_st->local_table, &p->token->actual_value, type_variable, &p->internal_error);
+            st_item *item = st_insert(&p->local_st->local_table, &p->token->actual_value, type_variable);
             if (item == NULL)
                 return ERROR_TRANS;
             if (item->data.defined) //redefinition of local variables
@@ -523,22 +478,18 @@ int params_n(parser_info *p) {
             else
                 item->data.defined = true;
 
-            CHECK(get_next_token(p), SUCCESS);
+            get_next_token(p);
 
-            switch (p->token->type) {//id ->Type<- Params_n
-                case TOKEN_INT:
-                case TOKEN_FLOAT64:
-                case TOKEN_STRING:
-                    item->data.as.variable.value_type = p->token->type;
-                    break;
-                default:
-                    return handle_error(ERROR_SYN,
-                                        "at line %i: expected type specifier received [%s].\n",
-                                         p->token->lineno, token_enum_to_str(p->token->type));
-                    //break;
-            }//everything ok, received id and type specifier
-            CHECK(get_next_token(p), SUCCESS);
+            if (is_data_type(p->token->type))
+                item->data.as.variable.value_type = p->token->type;
+            else
+                return handle_error(ERROR_SYN,
+                                    "at line %i: expected type specifier received [%s].\n",
+                                    p->token->lineno, token_enum_to_str(p->token->type));
+            //everything ok, received id and type specifier
+            get_next_token(p);
             return params_n(p); //, id Type ->Params_n<-
+
         } else
             return handle_error(ERROR_SYN,
                                 "at line %i: expected identifier received [%s].\n",
@@ -555,29 +506,25 @@ int params(parser_info *p) {
     CHECK(EOL_opt(p), SUCCESS);
     // next token set
     if (p->token->type == TOKEN_ID) {// ->id<- Type Params_n | else eps
-        st_item *item = st_insert(&p->local_st->local_table, &p->token->actual_value, type_variable, &p->internal_error);
+        st_item *item = st_insert(&p->local_st->local_table, &p->token->actual_value, type_variable);
         if (item == NULL)
             return ERROR_TRANS;
         if (item->data.defined) //redefinition of local variables
             return ERROR_SEM_DEF;
+
+        item->data.defined = true;
+
+        get_next_token(p);
+
+        if (is_data_type(p->token->type))//id ->Type<- Params_n
+            item->data.as.variable.value_type = p->token->type;
         else
-            item->data.defined = true;
+            return handle_error(ERROR_SYN,
+                                "at line %i: expected type specifier received [%s].\n",
+                                p->token->lineno, token_enum_to_str(p->token->type));
 
-        CHECK(get_next_token(p), SUCCESS);
-
-        switch (p->token->type) {//id ->Type<- Params_n
-            case TOKEN_INT:
-            case TOKEN_FLOAT64:
-            case TOKEN_STRING:
-                item->data.as.variable.value_type = p->token->type;
-                break;
-            default:
-                return handle_error(ERROR_SYN,
-                                    "at line %i: expected type specifier received [%s].\n",
-                                    p->token->lineno, token_enum_to_str(p->token->type));
-                //break;
-        }//everything ok, received type specifier
-        CHECK(get_next_token(p), SUCCESS);
+        //everything ok, received type specifier
+        get_next_token(p);
         //id Type ->Params_n<-
         return params_n(p);
     } else //Params -> eps
@@ -590,17 +537,18 @@ int func(parser_info *p) {
     MATCH(TOKEN_ID, keep_token);
     p->in_function = st_get_item(&p->st, &p->token->actual_value);
     CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
-    CHECK(get_next_token(p), SUCCESS);
+    gen_start_of_function(p->token->actual_value.str);
+    //TODO gen_params(&p->infunction->data.as.function.params);
+    //TODO gen_retvals(p->infunction->data.as.function.ret_types.len);
+    //
 
+    get_next_token(p);
     MATCH(TOKEN_LBRACKET, consume_token);
     CHECK(params(p), SUCCESS);
     MATCH(TOKEN_RBRACKET, consume_token);
-
     CHECK(ret_type(p), SUCCESS);
 
     MATCH(TOKEN_LCURLY, consume_token);
-
-
     MATCH(TOKEN_EOL, consume_token);
     CHECK(EOL_opt(p), SUCCESS);
     //next token set
@@ -608,8 +556,9 @@ int func(parser_info *p) {
     //next token set
     MATCH(TOKEN_RCURLY, consume_token);
 
-
     CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
+
+    gen_end_of_function();
     return SUCCESS;
 }
 
@@ -620,18 +569,19 @@ int prog(parser_info *p) {
     int error_code;
 
     if (p->token->type == TOKEN_FUNC) {//Prog - > ->func<- ...
-        CHECK(get_next_token(p), SUCCESS);
+        get_next_token(p);
         CHECK(func(p), SUCCESS);
         MATCH(TOKEN_EOL, consume_token);
         CHECK(EOL_opt(p), SUCCESS);
         // next token set
         return prog(p);
     } else if (p->token->type == TOKEN_EOF) {//Prog -> EOF
+        generate_code_end();
         return SUCCESS;
     } else {
         return handle_error(ERROR_SYN,
                             "at line %i: expected EOF or func received [%s].\n",
-                             p->token->lineno, token_enum_to_str(p->token->type));
+                            p->token->lineno, token_enum_to_str(p->token->type));
     }
 
 }
@@ -639,12 +589,14 @@ int prog(parser_info *p) {
 //Prolog -> package id EOL EOL_opt Prog
 int prolog(parser_info *p) {
     int error_code;
+    generate_header();
+    CHECK(EOL_opt(p), SUCCESS);
     MATCH(TOKEN_PACKAGE, consume_token);
     MATCH(TOKEN_ID, keep_token);
     if (str_cmp_c_str(&p->token->actual_value, "main"))//package identifier not "main"
         return ERROR_SEM_OTHER;
     //token not consumed , get next
-    CHECK(get_next_token(p), SUCCESS);
+    get_next_token(p);
     MATCH(TOKEN_EOL, consume_token);
     CHECK(EOL_opt(p), SUCCESS);
 
@@ -652,9 +604,9 @@ int prolog(parser_info *p) {
 }
 
 int EOL_opt(parser_info *p) {
-    int error_code;
+    //int error_code;
     while (p->token->type == TOKEN_EOL) {
-        CHECK(get_next_token(p), SUCCESS);
+        get_next_token(p);
     }
     return SUCCESS;
 }
@@ -668,95 +620,95 @@ int parser() {
     p.local_st = NULL;
     p.in_function = NULL;
     p.scope = 0;
-    p.left_side_vars_count = 0;
-    p.right_side_exp_count = 0;
-    p.function_called = NULL;
+    p.in_for = false;
 
-    str_init(&p.called_params);
+    p.function_called = NULL;
+    str_init(&p.left_side_vars_types);
+    str_init(&p.right_side_exp_types);
     st_init(&p.st);
     token_list_init(&p.token_list);
 
-    if((error_code = scanner_fill_token_list(&p.token_list)) != SUCCESS){
+    if ((error_code = scanner_fill_token_list(&p.token_list)) != SUCCESS) {
         token_list_dispose(&p.token_list);
-        str_free(&p.called_params);
+        str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
         return error_code;
-    }
-    else if((error_code = first_pass(&p)) != SUCCESS){
+    } else if ((error_code = fill_st_with_builtin(&p.st)) != SUCCESS) {
         st_dispose(&p.st);
-        str_free(&p.called_params);
+        str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
         token_list_dispose(&p.token_list);
         return error_code;
-    }
-    else if ((error_code = get_next_token(&p)) != SUCCESS) {
+    } else if ((error_code = first_pass(&p)) != SUCCESS) {
         st_dispose(&p.st);
-        str_free(&p.called_params);
+        str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
+        token_list_dispose(&p.token_list);
+        return error_code;
+    } else if ((error_code = get_next_token(&p)) != SUCCESS) {
+        st_dispose(&p.st);
+        str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
         token_list_dispose(&p.token_list);
         return error_code;
     } else {
         error_code = prolog(&p);
-        str_free(&p.called_params);
+        if (error_code == SUCCESS)
+            error_code = check_main(&p.st);
+        str_free(&p.right_side_exp_types);
+        str_free(&p.left_side_vars_types);
         st_dispose(&p.st);
         token_list_dispose(&p.token_list);
-        while(p.local_st != NULL)
-            leave_scope(&p.local_st,&p.scope);
+        while (p.local_st != NULL)
+            leave_scope(&p.local_st, &p.scope);
 
         return error_code;
     }
 }
 
-int first_pass(parser_info* p){
-
+int first_pass(parser_info *p) {
+    //int error_code;
     st_item *func;
-
-    get_next_token(p);//get the first token
-
-    while(p->token->type != TOKEN_EOF){
-        //package main at the start of a valid IFJ code so we can safely skip 1 token;
+    get_next_token(p);
+    //"package main" at the start of a valid IFJ20 code file so we can safely skip 2 tokens;
+    while (p->token->type != TOKEN_EOF) {
         get_next_token(p);
-        if(p->token->type != TOKEN_FUNC)
+        if (p->token->type != TOKEN_FUNC)
             continue; //only interested in the function header
-
         get_next_token(p);
-        if(p->token->type != TOKEN_ID) //incorrect syntax skip
+        if (p->token->type != TOKEN_ID) //incorrect syntax skip
             continue;
 
         func = st_insert(&p->st,
                          &p->token->actual_value,
-                         type_function,
-                         &p->internal_error);
+                         type_function);
         if (func == NULL)
             return ERROR_TRANS;
         if (func->data.defined) //redefinition of function/variable
             return handle_error(ERROR_SEM_DEF,
-                                "at line %i: redefinition of function \"%s\".\n",
+                                "at line %i: redefinition of function \"%s\"",
                                 p->token->lineno, func->key.str);
+
         func->data.defined = true;
 
-        while(p->token->type != TOKEN_EOL && p->token->type != TOKEN_EOF){
+        while (p->token->type != TOKEN_EOL && p->token->type != TOKEN_EOF) {
             get_next_token(p);
-            if(p->token->type == TOKEN_ID){
+            if (p->token->type == TOKEN_ID) {
                 str_concat(&func->data.as.function.params, p->token->actual_value.str, p->token->actual_value.len);
-                str_add_char(&func->data.as.function.params,'#');
+                str_add_char(&func->data.as.function.params, '#');
 
                 get_next_token(p);
 
-                if(p->token->type != TOKEN_INT &&
-                p->token->type != TOKEN_FLOAT64 &&
-                p->token->type != TOKEN_STRING)
+                if (is_data_type(p->token->type))
+                    str_add_char(&func->data.as.function.param_types, p->token->type);
+                else
                     return handle_error(ERROR_SYN,
                                         "at line %i: incorrect syntax of a function header of \"%s\".\n",
-                                         p->token->lineno,func->key.str);
-                else{
-                    str_add_char(&func->data.as.function.param_types, p->token->type);
-                }
-            }
-            else if(p->token->type == TOKEN_INT)
+                                        p->token->lineno, func->key.str);
+
+            } else if (is_data_type(p->token->type))
                 str_add_char(&func->data.as.function.ret_types, p->token->type);
-            else if(p->token->type == TOKEN_FLOAT64)
-                str_add_char(&func->data.as.function.ret_types, p->token->type);
-            else if(p->token->type == TOKEN_STRING)
-                str_add_char(&func->data.as.function.ret_types, p->token->type);
-            else{}
+            else {}
         }
     }
     p->token_list.act = NULL;
@@ -764,7 +716,7 @@ int first_pass(parser_info* p){
 }
 
 int main() {//testing
-    printf("Done\n");
+    //printf("Done\n");
 
     int ret = parser();
     if (ret)
@@ -775,3 +727,132 @@ int main() {//testing
 }
 
 
+//func inputs() (string, int)
+//func inputi() (int,int)
+//func inputf() (float64,int)
+//func int2float(i int) (float64)
+//func float2int(f float64) (int)
+//func len(s string) (int)
+//func substr(s string, i int, n int) (string, int)
+//func ord(s string, i int) (int, int)
+//func chr(i int) (string, int)
+//func print( ... )
+int fill_st_with_builtin(symbol_table_t *st) {
+    //int error_code;
+    string name;
+    //type_float= \005,  type_int = \011,  type_string = \014,
+    char *func[10][4] = {{"inputs",    "",       "",             "\014\011"},
+                         {"inputi",    "",       "",             "\011\011"},
+                         {"inputf",    "",       "",             "\005\011"},
+                         {"int2float", "i#",     "\011",         "\005"},
+                         {"float2int", "f#",     "\005",         "\011"},
+                         {"len",       "s#",     "\014",         "\011"},
+                         {"substr",    "s#i#n#", "\014\011\011", "\014\011"},
+                         {"ord",       "s#i#",   "\014\011",     "\011\011"},
+                         {"chr",       "i#",     "\011",         "\014\011"},
+                         {"print",     "",       "",             ""}};
+    str_init(&name);
+    for (int i = 0; i < 10; i++) {
+        str_reinit(&name);
+        str_concat(&name, func[i][0], (int) strlen(func[i][0]));
+        st_item *item = st_insert(st, &name, type_function);
+
+        if (item == NULL) {
+            str_free(&name);
+            return ERROR_TRANS;
+        }
+
+        str_concat(&item->data.as.function.params, func[i][1], (int) strlen(func[i][1]));
+        str_concat(&item->data.as.function.param_types, func[i][2], (int) strlen(func[i][2]));
+        str_concat(&item->data.as.function.ret_types, func[i][3], (int) strlen(func[i][3]));
+
+        item->data.defined = true;
+    }
+    str_free(&name);
+    return SUCCESS;
+}
+
+int check_main(symbol_table_t *st) {
+    string name = c_str_to_str("main");
+    st_item *item = st_get_item(st, &name);
+    str_free(&name);
+
+    if (item == NULL)
+        return ERROR_SEM_DEF;
+    if (strcmp(item->data.as.function.param_types.str, ""))
+        return ERROR_SEM_PAR;
+    if (strcmp(item->data.as.function.ret_types.str, ""))
+        return ERROR_SEM_PAR;
+
+    return SUCCESS;
+}
+
+bool is_data_type(token_type type) {
+    switch (type) {
+        case TOKEN_INT:
+        case TOKEN_FLOAT64:
+        case TOKEN_STRING:
+            return true;
+        default:
+            return false;
+    }
+}
+
+int set_data_type(parser_info *p, token_t *token, data_type *type, bool throw_error_on_default) {
+    st_item *item = NULL;
+    switch (token->type) {
+        case TOKEN_INT:
+        case TOKEN_INTEGER:
+            *type = type_int;
+            break;
+        case TOKEN_FLOAT:
+        case TOKEN_FLOAT64:
+            *type = type_float;
+            break;
+        case TOKEN_STR:
+        case TOKEN_STRING:
+            *type = type_str;
+            break;
+        case TOKEN_ID:
+            if ((item = stack_lookup(p->local_st, &token->actual_value)) == NULL)
+                return handle_error(
+                        ERROR_SEM_DEF,
+                        "at line %i: undefined variable \"%s\".\n",
+                        token->lineno, token->actual_value.str);
+            else
+                *type = item->data.as.variable.value_type;
+            break;
+        default:
+            if (throw_error_on_default)
+                return handle_error(
+                        ERROR_SYN,
+                        "at line %i: unexpected token [%s].\n",
+                        token->lineno, token_enum_to_str(token->type));
+    }
+    return SUCCESS;
+}
+
+
+int check_types(string *s1, string *s2) {
+    int error_code = SUCCESS;
+    string tmp1, tmp2;
+
+    str_init(&tmp1);
+    str_init(&tmp2);
+    str_copy(&tmp1, s1);
+    str_copy(&tmp2, s2);
+
+    if (s1->len == s2->len) {
+        for (int i = 0; i < s1->len; i++) {
+            if (tmp1.str[i] == '_')
+                tmp2.str[i] = '_';
+        }
+        if (str_cmp(&tmp1, &tmp2))
+            error_code = -1;
+    } else
+        error_code = -1;
+
+    str_free(&tmp1);
+    str_free(&tmp2);
+    return error_code;
+}

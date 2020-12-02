@@ -22,7 +22,7 @@ unsigned long hash(char* str){
 }
 
 
-void st_init(symbol_table* st_ptr){
+void st_init(symbol_table_t* st_ptr){
     if(st_ptr != NULL){
         for(int i = 0; i < ST_SIZE; i++){
             (*st_ptr)[i] = NULL;
@@ -32,14 +32,13 @@ void st_init(symbol_table* st_ptr){
         return;
 }
 
-st_item* st_item_alloc(const string* key, item_type type, int* error_code){
+st_item *st_item_alloc(const string *key, item_type type) {
     st_item* item = malloc(sizeof(st_item));
     if(item == NULL){
-        *error_code = ERROR_TRANS;
         return NULL;
     }
     else{
-        if((*error_code = st_item_init(item,key,type)) != SUCCESS){
+        if(st_item_init(item,key,type) != SUCCESS){
             free(item);
             return NULL;
         }
@@ -84,7 +83,7 @@ int st_item_init(st_item* item, const string* key, item_type type){
     }
     else{//variable
         item->data.as.variable.value_type = -1;
-        item->data.as.variable.value.int_value = -1;
+//        item->data.as.variable.value.int_value = -1;
     }
     
     return error_code;
@@ -98,7 +97,7 @@ void st_item_free(st_item* item){
         str_free(&item->data.as.function.ret_types);
     }
     else if(item->data.type == type_variable && item->data.as.variable.value_type == type_str){
-        str_free(&item->data.as.variable.value.string_value);
+//        str_free(&item->data.as.variable.value.string_value);
     }
     else{
         ;
@@ -107,7 +106,7 @@ void st_item_free(st_item* item){
     free(item);
 }
 
-st_item* st_get_item(symbol_table *st, const string* key){
+st_item* st_get_item(symbol_table_t *st, const string* key){
     unsigned long hash_code = hash(key->str) % ST_SIZE;
     st_item* item = (*st)[hash_code];
     while(item != NULL && str_cmp(&item->key,key)){
@@ -118,7 +117,7 @@ st_item* st_get_item(symbol_table *st, const string* key){
 }
 
 
-bool st_search(symbol_table *st, const string* key) {
+bool st_search(symbol_table_t *st, const string* key) {
     st_item* item = st_get_item(st,key);
     if(item != NULL)
         return true;
@@ -126,7 +125,7 @@ bool st_search(symbol_table *st, const string* key) {
         return false;
 }
 
-st_item* st_insert(symbol_table* st, const string* key, const item_type type, int *error_code){
+st_item *st_insert(symbol_table_t *st, const string *key, const item_type type) {
     unsigned long hash_code = hash(key->str) % ST_SIZE;
     st_item* replace_item = (*st)[hash_code];
     st_item* prev_item = NULL;
@@ -139,7 +138,7 @@ st_item* st_insert(symbol_table* st, const string* key, const item_type type, in
     }
     else{//item not found
         st_item* new_item = NULL;
-        if((new_item = st_item_alloc(key, type, error_code)) == NULL){
+        if((new_item = st_item_alloc(key, type)) == NULL){
             return NULL;
         }
         else if(prev_item != NULL){
@@ -152,7 +151,7 @@ st_item* st_insert(symbol_table* st, const string* key, const item_type type, in
     }
 }
 
-bool st_del_item(symbol_table* st, const string *key){
+bool st_del_item(symbol_table_t* st, const string *key){
     unsigned long hash_code = hash(key->str) % ST_SIZE;
     st_item* del_item;
     del_item = (*st)[hash_code];
@@ -180,7 +179,7 @@ bool st_del_item(symbol_table* st, const string *key){
     }
 }
 
-void st_dispose(symbol_table* st){
+void st_dispose(symbol_table_t* st){
     st_item* item;
     st_item* del_item;
     for(int i = 0; i < ST_SIZE; i++){
