@@ -7,7 +7,10 @@
 void generate_header(){
    
     printf(".IFJcode20\n");
-    printf("DEFVAR GF@EXPRESULT");
+    printf("DEFVAR GF@EXPRESULT\n\n");
+    gen_func_inputs();
+    gen_func_inputf();
+    gen_func_inputi();
     printf("JUMP $$main\n");
 }
 
@@ -198,12 +201,13 @@ void gen_stack_instructions(stack_instruction instruction){
 }
 
 void gen_func_inputs(){
+    printf("#FUNCTION INPUTS\n\n");
     printf("LABEL $inputs\n");
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@%retval\n");
     printf("MOVE LF@%retval nil@nil\n");
     printf("DEFVAR LF@param1\n");
-    printf("MOVE LF@param1 LF@%1\n");
+    printf("READ LF@param1 string\n");
     printf("DEFVAR LF@errorCheck\n");
     printf("TYPE LF@errorCheck LF@param1\n");
     printf("JUMPIFNEQ $ERROR string@string LF@errorCheck\n");
@@ -219,15 +223,43 @@ void gen_func_inputs(){
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR\n");
-    printf("EXIT int@1\n");
+    printf("EXIT int@1\n\n");
 }
 
 void gen_func_inputi(){
-
+    printf("#FUNCTION INPUTI\n\n");
+    printf("LABEL $inputi\n");
+    printf("PUSHFRAME\n");
+    printf("DEFVAR LF@%retval\n");
+    printf("MOVE LF@%retval nil@nil\n");
+    printf("DEFVAR LF@param$1\n");
+    printf("DEFVAR LF@error$check\n");
+    printf("READ LF@param$1 int\n");
+    printf("TYPE LF@error$check LF@param$1\n");
+    printf("JUMPIFNEQ $ERROR string@int LF@error$check\n");
+    printf("MOVE LF@%retval LF@param$1\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+    printf("LABEL $ERROR\n");
+    printf("EXIT int@1\n\n");
 }
 
 void gen_func_inputf(){
-
+    printf("#FUNCTION INPUTF\n\n");
+    printf("LABEL $inputf\n");
+    printf("PUSHFRAME\n");
+    printf("DEFVAR LF@%retval\n");
+    printf("MOVE LF@%retval nil@nil\n");
+    printf("DEFVAR LF@param$1\n");
+    printf("DEFVAR LF@error$check\n");
+    printf("READ LF@param$1 float\n");
+    printf("TYPE LF@error$check LF@param$1\n");
+    printf("JUMPIFNEQ $ERROR string@float LF@error$check\n");
+    printf("MOVE LF@%retval LF@param$1\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+    printf("LABEL $ERROR\n");
+    printf("EXIT int@1\n\n");
 }
 
 void gen_func_print(){
