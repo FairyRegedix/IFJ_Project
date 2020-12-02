@@ -25,10 +25,10 @@ typedef enum{
 void generate_header();
 void generate_start_of_main();
 void generate_end_of_main();
-void gen_defvar(char* id_of_variable);
-void gen_retval(data_type type);
-void gen_move_to_defvar(char* id_of_variable, data_type type);
-char* gen_var_value(data_type type);
+void gen_defvar(char* id,int scope, bool in_for);
+void gen_retvals(int number_of_return_values);
+void gen_move_to_defvar(char* id_of_variable, char* value);
+void gen_params(string* params);
 void codeGenerator();
 void gen_call(char* function);
 void gen_return();

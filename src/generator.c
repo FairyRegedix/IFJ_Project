@@ -11,55 +11,39 @@ void generate_header(){
     gen_func_inputs();
     gen_func_inputf();
     gen_func_inputi();
-    printf("JUMP $$main\n");
+    printf("CALL $main\n");
+    printf("JUMP $$final_end\n");
 }
 
-void generate_start_of_main(){
-    printf("LABEL $$main # main body\n");
-    printf("PUSHFRAME\n");
+void gen_defvar(char* id,int scope, bool in_for){
+    if(in_for){
+        printf("MOVE LF@%s$%s nil@nil",id, scope);
+    }else
+    {
+        printf("DEFVAR LF@%s$%s",id, scope);
+    }
+    
 }
 
-void generate_end_of_main(){
-    printf("POPFRAME\n");
-    printf("CLEARS\n");
+void gen_retvals(int number_of_return_values){
+    for(int i = 0; i < number_of_return_values; i++)
+        printf("DEFVAR LF@retval$%s\n", number_of_return_values);
 }
 
-void gen_defvar(char* id_of_variable){
-    printf("DEFVAR LF@%s\n", id_of_variable);
-}
-
-void gen_retval(data_type type){
-    char* value = gen_var_value(type);
-    printf("DEFVAR LF@%retval\n");
-    printf("MOVE LF@retval %s\n", value);
-}
-
-void gen_move_to_defvar(char* id_of_variable, data_type type){
-    char* value = gen_var_value(type);
+void gen_move_to_defvar(char* id_of_variable, char* value){
     printf("MOVE LF@%s %s\n", id_of_variable, value);
 }
 
-char* gen_var_value(data_type type){
-    char *return_value;
-    switch (type)
-    {
-    case type_int:
-        return_value = "int@0";
-        break;
-    case type_float:
-        return_value = "float@0.0";
-        break;
-    case type_bool:
-        return_value = "bool@false";
-        break;
-    case type_str:
-        return_value = "string@";
-        break;
-    default:
-        break;
+void gen_params(string* params){
+    printf("DEFVAR LF@$");
+    for(int i = 1; i < params->len; i++){
+        if((strcmp(params->str[i], '#')) != 0){
+            printf("%s", params->str[i]);
+        }else
+        {
+            printf("\nDEFVAR LF@$");
+        }
     }
-    return return_value;
-
 }
 
 void gen_call(char* function){
@@ -204,8 +188,8 @@ void gen_func_inputs(){
     printf("#FUNCTION INPUTS\n\n");
     printf("LABEL $inputs\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@%retval\n");
-    printf("MOVE LF@%retval nil@nil\n");
+    printf("DEFVAR LF@$retval\n");
+    printf("MOVE LF@$retval nil@nil\n");
     printf("DEFVAR LF@param1\n");
     printf("READ LF@param1 string\n");
     printf("DEFVAR LF@errorCheck\n");
@@ -219,7 +203,7 @@ void gen_func_inputs(){
     printf("JUMPIFNEQ $ENDOFINPUTS LF@getchar string@\\010\n");
     printf("SETCHAR LF@param1 LF@strlen string@\\000\n");
     printf("LABEL $ENDOFINPUTS\n");
-    printf("MOVE LF@%retval LF@param1\n");
+    printf("MOVE LF@$retval LF@param1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR\n");
@@ -230,14 +214,14 @@ void gen_func_inputi(){
     printf("#FUNCTION INPUTI\n\n");
     printf("LABEL $inputi\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@%retval\n");
-    printf("MOVE LF@%retval nil@nil\n");
+    printf("DEFVAR LF@$retval\n");
+    printf("MOVE LF@$retval nil@nil\n");
     printf("DEFVAR LF@param$1\n");
     printf("DEFVAR LF@error$check\n");
     printf("READ LF@param$1 int\n");
     printf("TYPE LF@error$check LF@param$1\n");
     printf("JUMPIFNEQ $ERROR string@int LF@error$check\n");
-    printf("MOVE LF@%retval LF@param$1\n");
+    printf("MOVE LF@$retval LF@param$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR\n");
@@ -248,14 +232,14 @@ void gen_func_inputf(){
     printf("#FUNCTION INPUTF\n\n");
     printf("LABEL $inputf\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@%retval\n");
-    printf("MOVE LF@%retval nil@nil\n");
+    printf("DEFVAR LF@$retval\n");
+    printf("MOVE LF@$retval nil@nil\n");
     printf("DEFVAR LF@param$1\n");
     printf("DEFVAR LF@error$check\n");
     printf("READ LF@param$1 float\n");
     printf("TYPE LF@error$check LF@param$1\n");
     printf("JUMPIFNEQ $ERROR string@float LF@error$check\n");
-    printf("MOVE LF@%retval LF@param$1\n");
+    printf("MOVE LF@$retval LF@param$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR\n");
