@@ -3,13 +3,16 @@
 
 
 #include "generator.h"
+int GTEcounter = 0;
+int LTEcounter = 0;
+
 
 void generate_header(){
    
     printf(".IFJcode20\n");
     printf("DEFVAR GF@EXPRESULT\n\n");
-    printf("DEFVAR GF@IF$COUNTER\n");
-    printf("DEFVAR GF@WHILE$COUNTER\n");
+    printf("DEFVAR GF@BLOCK$COUNTER\n");
+    printf("MOVE GF@BLOCK$COUNTER int@0\n");
     gen_func_inputs();
     gen_func_inputf();
     gen_func_inputi();
@@ -118,33 +121,35 @@ void gen_JUMPIFNEQ(char* destination, char* s1, char *s2){
 }
 
 void gen_stack_GTE(){
-    printf("DEFVAR LF@$GTE$param1\n");
-    printf("DEFVAR LF@$GTE$param2\n");
-    printf("POPS LF@$GTE$param1\n");
-    printf("POPS LF@$GTE$param2\n");
-    printf("JUMPIFNEQ $EQS LF@$GTE$param1 LF@$GTE$param2\n");
+    GTEcounter++;
+    printf("DEFVAR LF@$GTE$param1%i\n", GTEcounter);
+    printf("DEFVAR LF@$GTE$param2%i\n", GTEcounter);
+    printf("POPS LF@$GTE$param1%i\n", GTEcounter);
+    printf("POPS LF@$GTE$param2%i\n", GTEcounter);
+    printf("JUMPIFNEQ $EQS LF@$GTE$param1%i LF@$GTE$param2%i\n", GTEcounter, GTEcounter);
     printf("PUSHS bool@true\n");
-    printf("JUMP $LTEGTEEND\n");
+    printf("JUMP $LTEGTEEND%i\n", GTEcounter);
     printf("LABEL $EQS\n");
-    printf("PUSHS LF@$GTE$param2\n");
-    printf("PUSHS LF@$GTE$param1\n");
+    printf("PUSHS LF@$GTE$param2%i\n", GTEcounter);
+    printf("PUSHS LF@$GTE$param1%i\n", GTEcounter);
     printf("GTS\n");
-    printf("LABEL $GTEEND\n");
+    printf("LABEL $GTEEND%i\n", GTEcounter);
 }
 
 void gen_stack_LTE(){
-    printf("DEFVAR LF@$LTE$param1\n");
-    printf("DEFVAR LF@$LTE$param2\n");
-    printf("POPS LF@$LTE$param1\n");
-    printf("POPS LF@$LTE$param2\n");
-    printf("JUMPIFNEQ $EQS LF@$LTE$param1 LF@$LTE$param2\n");
+    LTEcounter++;
+    printf("DEFVAR LF@$LTE$param1%i\n", LTEcounter);
+    printf("DEFVAR LF@$LTE$param2%i\n", LTEcounter);
+    printf("POPS LF@$LTE$param1%i\n", LTEcounter);
+    printf("POPS LF@$LTE$param2%i\n", LTEcounter);
+    printf("JUMPIFNEQ $EQS LF@$LTE$param1%i LF@$LTE$param2%i\n", LTEcounter, LTEcounter);
     printf("PUSHS bool@true\n");
-    printf("JUMP $LTEGTEEND\n");
+    printf("JUMP $LTEGTEEND%i\n", LTEcounter);
     printf("LABEL $EQS\n");
-    printf("PUSHS LF@$LTE$param2\n");
-    printf("PUSHS LF@$LTE$param1\n");
+    printf("PUSHS LF@$LTE$param2%i\n", LTEcounter);
+    printf("PUSHS LF@$LTE$param1%i\n", LTEcounter);
     printf("LTS\n");
-    printf("LABEL $LTEEND\n");
+    printf("LABEL $LTEEND%i\n", LTEcounter);
 }
 
 void gen_stack_instructions(stack_instruction instruction){
