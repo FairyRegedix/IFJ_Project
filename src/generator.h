@@ -22,6 +22,10 @@ typedef enum{
     NOTS = 10,
 }stack_instruction;
 
+int GTEcounter = 0;
+int LTEcounter = 0;
+StringList ListOfStrings;
+
 void generate_header();
 void generate_start_of_main();
 void generate_end_of_main();

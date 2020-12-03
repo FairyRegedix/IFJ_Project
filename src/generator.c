@@ -3,12 +3,11 @@
 
 
 #include "generator.h"
-int GTEcounter = 0;
-int LTEcounter = 0;
+
 
 
 void generate_header(){
-   
+    InitList(&ListOfStrings);
     printf(".IFJcode20\n");
     printf("DEFVAR GF@EXPRESULT\n\n");
     printf("DEFVAR GF@BLOCK$COUNTER\n");
@@ -49,6 +48,23 @@ void gen_params(string* params){
             printf("\nDEFVAR LF@$");
         }
     }
+}
+
+gen_for_start(char *for_id, char *expression){
+    printf("LABEL CHECK$FOR$%s\n", for_id);
+    InsertFirst(&ListOfStrings, expression);
+}
+
+gen_for_jump(char *for_id){
+    printf("PUSHS bool@true\n");
+    printf("JUMPIFNEQS END$FOR$%s\n", for_id);
+}
+
+gen_for_end(char *for_id){
+    printf("%s", ListOfStrings.First->data);
+    DeleteFirst(&ListOfStrings);
+    printf("JUMP CHECK$FOR$%s", for_id);
+    printf("LABEL END$FOR$%s", for_id);
 }
 
 void gen_call(char* function){
@@ -201,7 +217,7 @@ void gen_func_inputs(){
     printf("READ LF@param1 string\n");
     printf("DEFVAR LF@errorCheck\n");
     printf("TYPE LF@errorCheck LF@param1\n");
-    printf("JUMPIFNEQ $ERROR string@string LF@errorCheck\n");
+    printf("JUMPIFNEQ $ERROR$INPUTS string@string LF@errorCheck\n");
     printf("DEFVAR LF@strlen\n");
     printf("STRLEN LF@strlen LF@param1\n");
     printf("SUB LF@strlen LF@strlen int@1\n");
@@ -213,7 +229,7 @@ void gen_func_inputs(){
     printf("MOVE LF@$retval LF@param1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
-    printf("LABEL $ERROR\n");
+    printf("LABEL $ERROR$INPUTS\n");
     printf("EXIT int@1\n\n");
 }
 
@@ -227,11 +243,11 @@ void gen_func_inputi(){
     printf("DEFVAR LF@error$check\n");
     printf("READ LF@param$1 int\n");
     printf("TYPE LF@error$check LF@param$1\n");
-    printf("JUMPIFNEQ $ERROR string@int LF@error$check\n");
+    printf("JUMPIFNEQ $ERROR$INPUTI string@int LF@error$check\n");
     printf("MOVE LF@$retval LF@param$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
-    printf("LABEL $ERROR\n");
+    printf("LABEL $ERROR$INPUTI\n");
     printf("EXIT int@1\n\n");
 }
 
@@ -245,11 +261,11 @@ void gen_func_inputf(){
     printf("DEFVAR LF@error$check\n");
     printf("READ LF@param$1 float\n");
     printf("TYPE LF@error$check LF@param$1\n");
-    printf("JUMPIFNEQ $ERROR string@float LF@error$check\n");
+    printf("JUMPIFNEQ $ERROR$INPUTF string@float LF@error$check\n");
     printf("MOVE LF@$retval LF@param$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
-    printf("LABEL $ERROR\n");
+    printf("LABEL $ERROR$INPUTF\n");
     printf("EXIT int@1\n\n");
 }
 

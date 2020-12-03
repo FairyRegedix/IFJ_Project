@@ -21,4 +21,20 @@ char* str_to_c_str(const string *s);
 string c_str_to_str(const char *s);
 size_t str_len(const string *s);
 
+typedef struct StringElement{
+    struct ListElement *ptr;
+    char* data;
+} *StringElementPtr;
+
+typedef struct 
+{
+    StringElementPtr Actual;
+    StringElementPtr First;
+} StringList;
+
+void InitList(StringList *);
+void DisposeList (StringList *);
+void InsertFirst(StringList *, char *);
+void DeleteFirst(StringList *);
+
 #endif //IFJ_PROJECT_STR_H
