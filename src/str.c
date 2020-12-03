@@ -97,6 +97,7 @@ void DisposeList(StringList *List){
             StringElementPtr elemPtr;
             elemPtr = List->First->ptr;
             List->First->ptr = elemPtr->ptr;
+            free(elemPtr->data);
             free(elemPtr);
         }
         free(List->First->data);

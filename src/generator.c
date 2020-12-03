@@ -50,17 +50,27 @@ void gen_params(string* params){
     }
 }
 
-gen_for_start(char *for_id, char *expression){
+void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables){
+    for(int i = 0; i < NumberOfVariables; i++){
+    printf("%s", Expressions->First->data);
+    DeleteFirst(Expressions);
+    printf("POPS LF@%s", Variables->First->data);
+    DeleteFirst(Variables);
+    }
+
+}
+
+void gen_for_start(char *for_id, char *expression){
     printf("LABEL CHECK$FOR$%s\n", for_id);
     InsertFirst(&ListOfStrings, expression);
 }
 
-gen_for_jump(char *for_id){
+void gen_for_jump(char *for_id){
     printf("PUSHS bool@true\n");
     printf("JUMPIFNEQS END$FOR$%s\n", for_id);
 }
 
-gen_for_end(char *for_id){
+void gen_for_end(char *for_id){
     printf("%s", ListOfStrings.First->data);
     DeleteFirst(&ListOfStrings);
     printf("JUMP CHECK$FOR$%s", for_id);
