@@ -99,7 +99,7 @@ void DisposeList(StringList *List){
             List->First->ptr = elemPtr->ptr;
             free(elemPtr);
         }
-
+        free(List->First->data);
         free(List->First);
 
         List->First = NULL;
@@ -126,6 +126,7 @@ void DeleteFirst(StringList *List){
     
         StringElementPtr elemPtr;
         elemPtr = List->First->ptr;
+        free(List->First->data);
         free(List->First);
         List->First = elemPtr;
     }
