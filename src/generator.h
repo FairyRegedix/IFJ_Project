@@ -22,9 +22,12 @@ typedef enum{
     NOTS = 10,
 }stack_instruction;
 
-int GTEcounter = 0;
-int LTEcounter = 0;
+unsigned int GTEcounter = 0;
+unsigned int LTEcounter = 0;
+unsigned int tmp_id = 0;
+unsigned int ID = 0;
 StringList ListOfStrings;
+IntList ListOfInts;
 
 void generate_header();
 void generate_start_of_main();
@@ -34,9 +37,9 @@ void gen_retvals(int number_of_return_values);
 void gen_move_to_defvar(char* id_of_variable, char* value);
 void gen_params(string* params);
 void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables);
-void gen_for_start(char *for_id, char *expression);
-void gen_for_jump(char *for_id);
-void gen_for_end(char *for_id);
+void gen_for_start(char *expression);
+void gen_for_jump();
+void gen_for_end();
 void gen_call(char* function);
 void gen_return();
 void gen_WRITE(char* s1);
@@ -44,9 +47,9 @@ void gen_LABEL_start(char* label);
 void gen_LABEL_end();
 void gen_start_of_function(char* function);
 void gen_end_of_function();
-void gen_if_start(char* label, int id, char* truefalse);
-void gen_if_else(char* label, int id);
-void gen_if_end(char* label, int id);
+void gen_if_start(char* truefalse);
+void gen_if_else();
+void gen_if_end();
 void gen_while_start(char* label, int id);
 void gen_while_end(char* label, int id, char* truefalse);
 void gen_JUMP(char* destination);

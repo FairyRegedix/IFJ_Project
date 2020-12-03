@@ -8,6 +8,7 @@
 
 void generate_header(){
     InitList(&ListOfStrings);
+    InitList(&ListOfInts);
     printf(".IFJcode20\n");
     printf("DEFVAR GF@EXPRESULT\n\n");
     printf("DEFVAR GF@BLOCK$COUNTER\n");
@@ -51,30 +52,40 @@ void gen_params(string* params){
 }
 
 void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables){
+    for(int j = 0; j < NumberOfVariables; j++){
+        printf("%s", Expressions->First->data);
+        DeleteFirst(Expressions);
+        printf("POPS LF@$tmp$%d", tmp_id);
+        InsertFirstInt(&ListOfInts, tmp_id);
+        tmp_id++;
+    }
+
     for(int i = 0; i < NumberOfVariables; i++){
-    printf("%s", Expressions->First->data);
-    DeleteFirst(Expressions);
-    printf("POPS LF@%s", Variables->First->data);
-    DeleteFirst(Variables);
+        printf("POPS LF@%s LF@$tmp$d",Variables->First->data, ListOfInts.First->data);
+        DeleteFirst(Variables);
+        DeleteFirst(&ListOfInts);
     }
 
 }
 
-void gen_for_start(char *for_id, char *expression){
-    printf("LABEL CHECK$FOR$%s\n", for_id);
-    InsertFirst(&ListOfStrings, expression);
+void gen_for_start(char *expression){
+    printf("LABEL CHECK$FOR$%d\n", ID);
+    InsertFirstString(&ListOfStrings, expression);
+    InsertFirstInt(&ListOfInts, ID);
 }
 
-void gen_for_jump(char *for_id){
+void gen_for_jump(){
     printf("PUSHS bool@true\n");
-    printf("JUMPIFNEQS END$FOR$%s\n", for_id);
+    printf("JUMPIFNEQS END$FOR$%d\n", ID);
+    ID++;
 }
 
-void gen_for_end(char *for_id){
+void gen_for_end(){
     printf("%s", ListOfStrings.First->data);
-    DeleteFirst(&ListOfStrings);
-    printf("JUMP CHECK$FOR$%s", for_id);
-    printf("LABEL END$FOR$%s", for_id);
+    DeleteFirstString(&ListOfStrings);
+    printf("JUMP CHECK$FOR$%d", ListOfInts.First->data);
+    printf("LABEL END$FOR$%d", ListOfInts.First->data);
+    DeleteFirstInt(&ListOfInts);
 }
 
 void gen_call(char* function){
@@ -109,18 +120,21 @@ void gen_end_of_function(){
     gen_LABEL_end();
 }
 
-void gen_if_start(char* label, int id, char* truefalse){
-    printf("#IF $%s$if$%i\n",label, id);
-    printf("JUMPIFEQ $%s$if$%i$else bool@true %s\n", label, id, truefalse);
+void gen_if_start(char* truefalse){
+    printf("#IF $if$%d\n",ID);
+    printf("JUMPIFEQ $if$%d$else bool@true %s\n",ID, truefalse);
+    ID++;
+    InsertFirstInt(&ListOfInts, ID);
 }
 
-void gen_if_else(char* label, int id){
-    printf("JUMP $%s$if$%i$end\n", label, id);
-    printf("LABEL $%s$if$%i$else\n", label, id);
+void gen_if_else(){
+    printf("JUMP $if$%d$end\n", ListOfInts.First->data);
+    printf("LABEL $if$%d$else\n", ListOfInts.First->data);
 }
 
-void gen_if_end(char* label, int id){
-    printf("LABEL $%s$if$%i$end\n",label, id);
+void gen_if_end(){
+    printf("LABEL $if$%d$end\n", ListOfInts.First->data);
+    DeleteFirstInt(&ListOfInts);
 }
 
 void gen_while_start(char* label, int id){
