@@ -211,19 +211,28 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_INT:
                 case TOKEN_INTEGER:
                     dataType = TOKEN_INT;
-                    printf("PUSHS int@%s\n", itemOP->token_stack->actual_value.str);
+                    //sprintf("PUSHS int@%s\n", itemOP->token_stack->actual_value.str);
+                    str_concat(&p->exp_instruction,"PUSHS int@",strlen("PUSHS int@"));
+                    str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
+                    str_add_char(&p->exp_instruction,'\n');
                     break;
 
                 case TOKEN_FLOAT:
                 case TOKEN_FLOAT64:
                     dataType = TOKEN_FLOAT64;
-                    printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
+                    //printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
+                    str_concat(&p->exp_instruction,"PUSHS float@",strlen("PUSHS float@"));
+                    str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
+                    str_add_char(&p->exp_instruction,'\n');
                     break;
 
                 case TOKEN_STR:
                 case TOKEN_STRING:
                     dataType = TOKEN_STRING;
-                    printf("PUSHS string@%s\n", itemOP->token_stack->actual_value.str);
+                    //printf("PUSHS string@%s\n", itemOP->token_stack->actual_value.str);
+                    str_concat(&p->exp_instruction,"PUSHS string@",strlen("PUSHS string@"));
+                    str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
+                    str_add_char(&p->exp_instruction,'\n');
                     break;
                 case TOKEN_TRUE:
                     dataType = TOKEN_TRUE;
@@ -240,11 +249,21 @@ int expressionParse(e_stack *stack, parser_info *p) {
                     }
                     dataType = itemCheck->data.as.variable.value_type;
                     if (dataType == TOKEN_STRING) {
-                        printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
+                        //printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
+                        str_concat(&p->exp_instruction,"PUSHS LF@",strlen("PUSHS LF@"));
+                        str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
+                        str_add_char(&p->exp_instruction,'\n');
+
                     } else if (dataType == TOKEN_INT) {
-                        printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
+                        //printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
+                        str_concat(&p->exp_instruction,"PUSHS LF@",strlen("PUSHS LF@"));
+                        str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
+                        str_add_char(&p->exp_instruction,'\n');
                     } else {
-                        printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
+                        //printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
+                        str_concat(&p->exp_instruction,"PUSHS float@",strlen("PUSHS float@"));
+                        str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
+                        str_add_char(&p->exp_instruction,'\n');
                     }
                     break;
 
@@ -300,7 +319,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
 
             //int checking = str_cmp(&itemOP1->token_stack.actual_value,&itemOP3->token_stack.actual_value);
 
-            if (itemOP1->dtype != itemOP3->dtype) {
+            if ((itemOP1->dtype != itemOP3->dtype) || itemOP1->dtype == TOKEN_BOOLEAN) {
                 //error
                 return 5;
             }
@@ -308,27 +327,44 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_ADD:
                     // E -> E + E
                     if (itemOP1->dtype == TOKEN_STRING) {
-                        printf("DEFVAR GF@exp$string1");
-                        printf("DEFVAS GF@exp$string2");
+                        /*printf("DEFVAR GF@exp$string1");
+                        printf("DEFVAR GF@exp$string2");
                         printf("POPS GF@exp$string2");
                         printf("POPS GF@exp$string1");
-                        printf("CONCAT GF@EXPRESULT GF@exp$string1 GF@exp$string2");
-                        printf("PUSH GF@EXPRESULT");
-
+                        printf("CONCAT GF@CONCATRESULT GF@exp$string1 GF@exp$string2");
+                        printf("PUSH GF@CONCATRESULT");*/
+                        str_concat(&p->exp_instruction,"DEFVAR GF@exp$string1",strlen("DEFVAR GF@exp$string1"));
+                        str_add_char(&p->exp_instruction,'\n');
+                        str_concat(&p->exp_instruction,"DEFVAR GF@exp&string2",strlen("DEFVAR GF@exp&string2"));
+                        str_add_char(&p->exp_instruction,'\n');
+                        str_concat(&p->exp_instruction,"POPS GF@exp$string2",strlen("POPS GF@exp$string2"));
+                        str_add_char(&p->exp_instruction,'\n');
+                        str_concat(&p->exp_instruction,"POPS GF@exp$string1",strlen("POPS GF@exp$string1"));
+                        str_add_char(&p->exp_instruction,'\n');
+                        str_concat(&p->exp_instruction,"CONCAT GF@CONCATRESULT GF@exp$string1 GF@exp$string2",strlen("CONCAT GF@CONCATRESULT GF@exp$string1 GF@exp$string2"));
+                        str_add_char(&p->exp_instruction,'\n');
+                        str_concat(&p->exp_instruction,"PUSHS GF@CONCATRESULT",strlen("PUSHS GF@CONCATRESULT"));
+                        str_add_char(&p->exp_instruction,'\n');
                     }
-                    printf("ADDS\n");
+                    //printf("ADDS\n");
+                    str_concat(&p->exp_instruction,"ADDS",strlen("ADDS"));
+                    str_add_char(&p->exp_instruction,'\n');
                     break;
                 case TOKEN_SUB:
                     //E -> E - E
                     if (itemOP1->dtype != TOKEN_STRING) {
-                        printf("SUBS\n");
+                        //printf("SUBS\n");
+                        str_concat(&p->exp_instruction,"SUBS",strlen("SUBS"));
+                        str_add_char(&p->exp_instruction,'\n');
                         break;
                     }
                     return 5;
                 case TOKEN_MUL:
                     //E -> E * E
                     if (itemOP1->dtype != TOKEN_STRING) {
-                        printf("MULS\n");
+                        //printf("MULS\n");
+                        str_concat(&p->exp_instruction,"MULS",strlen("MULS"));
+                        str_add_char(&p->exp_instruction,'\n');
                         break;
                     }
                     return 5;
@@ -338,7 +374,9 @@ int expressionParse(e_stack *stack, parser_info *p) {
                         if (itemOP1->type == type_non_term0) {
                             return 9;
                         } else {
-                            printf("DIVS\n");
+                            //printf("DIVS\n");
+                            str_concat(&p->exp_instruction,"DIVS",strlen("DIVS"));
+                            str_add_char(&p->exp_instruction,'\n');
                             break;
                         }
 
@@ -346,26 +384,35 @@ int expressionParse(e_stack *stack, parser_info *p) {
                     return 5;
                 case TOKEN_LT:
                     //E -> E < E
-                    printf("LTS\n");
+                    //printf("LTS\n");
+                    str_concat(&p->exp_instruction,"LTS",strlen("LTS"));
+                    str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_EQL:
                     // E -> E == E
-                    printf("EQS\n");
+                    //printf("EQS\n");
+                    str_concat(&p->exp_instruction,"EQS",strlen("EQS"));
+                    str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_NEQ:
                     // E -> E != E
-                    printf("EQS\nNOTS\n");
+                    //printf("EQS\nNOTS\n");
+                    str_concat(&p->exp_instruction,"NEQ",strlen("NEQ"));
+                    str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GT:
                     // E -> E < E
-                    printf("GTS\n");
+                    //printf("GTS\n");
+                    str_concat(&p->exp_instruction,"GT",strlen("GT"));
+                    str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GTE:
                     //volanie megovej funkcie
+                    
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_LTE:
@@ -404,6 +451,8 @@ int expression(parser_info *p) {
     int loop = 0;
     int check = 0;
     str_reinit(&p->exp_instruction);
+    str_concat(&p->exp_instruction,"CLEARS",strlen("CLEARS"));
+    str_add_char(&p->exp_instruction,'\n');
 
 
     while (loop < 1) {
@@ -452,7 +501,9 @@ int expression(parser_info *p) {
                         loop = 2;
                     } else {
                         loop = 1;
-                        printf("POPS GF@EXPRESULT\n");
+                        //printf("POPS GF@EXPRESULT\n");
+                        str_concat(&p->exp_instruction,"POPS GF@EXPRESULT",strlen("POPS GF@EXPRESULT"));
+                        str_add_char(&p->exp_instruction,'\n');
                         //spravne ukoncenie analyzy vyrazu
                     }
 
