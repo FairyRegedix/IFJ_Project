@@ -97,15 +97,16 @@ void gen_params(string* params){
     }
 }
 
-void gen_call_params(token_t* last){
+void gen_call_params(token_t *last, st_stack_t *local_st) {
     token_t* prev = last;
     while(prev->type != TOKEN_LBRACKET){
-        gen_pushs_param(prev->type, &prev->actual_value, 0);
+        gen_pushs_param(prev->type, &prev->actual_value, local_st);
         prev = prev->prev;
     }
 
 }
-void gen_pushs_param(token_type type, string *value, int scope){
+void gen_pushs_param(token_type type, string *value, st_stack_t *local_st){
+    st_item* item;
     printf("PUSHS ");
     switch (type)
     {
@@ -118,7 +119,8 @@ void gen_pushs_param(token_type type, string *value, int scope){
         break;
 
     case TOKEN_ID:
-        printf("%s$%d\n", value->str, scope);
+        item = stack_lookup(local_st, value);
+        printf("%s$%d\n", value->str, item->data.scope);
         break; 
 
     case TOKEN_STRING:

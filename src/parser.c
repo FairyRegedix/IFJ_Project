@@ -133,6 +133,7 @@ int term_n(parser_info *p) {
 
         CHECK(set_data_type(p, p->token, &type, true), SUCCESS);
         CHECK(str_add_char(&p->right_side_exp_types, type), SUCCESS);
+        p->last_param = p->token;
 
         get_next_token(p);
     }
@@ -144,13 +145,14 @@ int call_params(parser_info *p) {
     int error_code;
     data_type type;
     str_reinit(&p->right_side_exp_types);
+    p->last_param = NULL;
 
     if (p->token->type == TOKEN_RBRACKET)
         return SUCCESS; // call_params -> eps
 
     CHECK(set_data_type(p, p->token, &type, 0), SUCCESS);
     CHECK(str_add_char(&p->right_side_exp_types, type), SUCCESS);
-
+    p->last_param = p->token;
     get_next_token(p);
     CHECK(term_n(p), SUCCESS);
 
@@ -171,6 +173,9 @@ int func_call(parser_info *p) {
                     &p->right_side_exp_types)) //parameter types or number off parameter does not match
             return ERROR_SEM_PAR;
     }
+    gen_call_start(p->function_called->key.str, p->right_side_exp_types.len);
+    gen_call_params(p->last_param, p->local_st);
+    gen_call(p->function_called->key.str);
     return SUCCESS;
 }
 
@@ -205,7 +210,6 @@ int end_assign(parser_info *p) {
     }
 
     CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
-
     CHECK(exp_n(p), SUCCESS);
 
     if (check_types(&p->left_side_vars_types, &p->right_side_exp_types))
