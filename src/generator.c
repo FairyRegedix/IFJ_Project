@@ -71,12 +71,12 @@ void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Vari
 void gen_for_start(char *expression){
     printf("LABEL CHECK$FOR$%d\n", ID);
     InsertFirstString(&ListOfStrings, expression);
-    InsertFirstInt(&ListOfInts, ID);
 }
 
 void gen_for_jump(){
     printf("PUSHS bool@true\n");
     printf("JUMPIFNEQS END$FOR$%d\n", ID);
+    InsertFirstInt(&ListOfInts, ID);
     ID++;
 }
 
@@ -123,8 +123,8 @@ void gen_end_of_function(){
 void gen_if_start(char* truefalse){
     printf("#IF $if$%d\n",ID);
     printf("JUMPIFEQ $if$%d$else bool@true %s\n",ID, truefalse);
-    ID++;
     InsertFirstInt(&ListOfInts, ID);
+    ID++;
 }
 
 void gen_if_else(){
