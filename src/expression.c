@@ -399,24 +399,33 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_NEQ:
                     // E -> E != E
                     //printf("EQS\nNOTS\n");
-                    str_concat(&p->exp_instruction,"NEQ",strlen("NEQ"));
+                    str_concat(&p->exp_instruction,"EQS",strlen("EQS"));
+                    str_add_char(&p->exp_instruction,'\n');
+                    str_concat(&p->exp_instruction,"NOTS",strlen("NOTS"));
                     str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GT:
-                    // E -> E < E
+                    // E -> E > E
                     //printf("GTS\n");
-                    str_concat(&p->exp_instruction,"GT",strlen("GT"));
+                    str_concat(&p->exp_instruction,"GTS",strlen("GTS"));
                     str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GTE:
                     //volanie megovej funkcie
-                    
+                    str_concat(&p->exp_instruction,"LTS",strlen("LTS"));
+                    str_add_char(&p->exp_instruction,'\n');
+                    str_concat(&p->exp_instruction,"NOTS",strlen("NOTS"));
+                    str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_LTE:
                     //volanie megovej funkcie
+                    str_concat(&p->exp_instruction,"GTS",strlen("GTS"));
+                    str_add_char(&p->exp_instruction,'\n');
+                    str_concat(&p->exp_instruction,"NOTS",strlen("NOTS"));
+                    str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 default:
