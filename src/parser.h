@@ -23,6 +23,7 @@ typedef struct parser_info{
     int right_side_exp_count; // v1,v2,v3 = exp1,exp2,exp3
     st_item* function_called; // v1,v2,v3 = f()
     string called_params;
+    string exp_instruction;
 
     //possibly more stuff coming
 

@@ -403,6 +403,7 @@ int expression(parser_info *p) {
     init_e_stack(&stack);
     int loop = 0;
     int check = 0;
+    str_reinit(&p->exp_instruction);
 
 
     while (loop < 1) {
