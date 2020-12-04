@@ -46,16 +46,17 @@ void generate_header(){
     gen_func_inputi();
     gen_func_int2float();
     gen_func_float2int();
+    gen_func_print();
     printf("CALL $main\n");
     printf("JUMP $$final_end\n");
 }
 
 void gen_defvar(char* id,int scope, bool in_for){
     if(in_for){
-        printf("MOVE LF@%s$%d nil@nil",id, scope);
+        printf("MOVE LF@%s$%d nil@nil\n",id, scope);
     }else
     {
-        printf("DEFVAR LF@%s$%d",id, scope);
+        printf("DEFVAR LF@%s$%d\n",id, scope);
     }
     
 }
@@ -70,7 +71,8 @@ void gen_move_to_defvar(char* id_of_variable, char* value){
 }
 
 void gen_params(string* params){
-
+    if(params->len <= 0)
+        return;
     printf("DEFVAR LF@");
     for(int i = 0; i < params->len-1; i++){
         if(params->str[i] != '#'){
@@ -141,17 +143,17 @@ void gen_add_to_exp(char* exp){
 }
 
 
-void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables){
+void gen_assign(int NumberOfVariables) {
     for(int j = 0; j < NumberOfVariables; j++){
-        printf("%s", Expressions->First->data);
-        DeleteFirstString(Expressions);
-        printf("POPS LF@$tmp$%d", ID);
+        printf("%s", Exps.First->data);
+        DeleteFirstString(&Exps);
+        printf("POPS LF@$tmp$%d\n", ID);
         push_int();
     }
 
     for(int i = 0; i < NumberOfVariables; i++){
-        printf("MOVE LF@%s LF@$tmp%d",Variables->First->data, IntStack[top]);
-        DeleteFirstString(Variables);
+        printf("MOVE LF@%s LF@$tmp%d\n",Vars.First->data, IntStack[top]);
+        DeleteFirstString(&Vars);
         pop_int();
     }
 
@@ -169,10 +171,15 @@ void gen_for_jump(){
 }
 
 void gen_for_end(){
-    printf("%s", ListOfStrings.First->data);
-    DeleteFirstString(&ListOfStrings);
-    printf("JUMP CHECK$FOR$%d", IntStack[top]);
-    printf("LABEL END$FOR$%d", IntStack[top]);
+    StringElementPtr tmp  = Vars.First;
+    int count = 0;
+    while(tmp != NULL){
+        tmp = tmp->ptr;
+        count++;
+    }
+    gen_assign(count);
+    printf("JUMP CHECK$FOR$%d\n", IntStack[top]);
+    printf("LABEL END$FOR$%d\n", IntStack[top]);
     pop_int();
 }
 

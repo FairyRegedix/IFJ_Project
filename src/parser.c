@@ -68,19 +68,23 @@ int for_assign(parser_info *p) {
     if (p->token->type == TOKEN_ID) {
 
         str_reinit(&p->left_side_vars_types);
-        if (strcmp(p->token->actual_value.str, "_") == 0)
+        if (strcmp(p->token->actual_value.str, "_") == 0){
             CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
-        else {
+            gen_add_to_vars("");
+        } else {
             item = stack_lookup(p->local_st, &p->token->actual_value);
             if (item == NULL)//not defined beforehand
                 return ERROR_SEM_DEF;
             CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
+            char var_name[item->key.len + BLOCK_SIZE];
+            sprintf(var_name, "%s$%d", item->key.str, item->data.scope);
+            gen_add_to_vars(var_name);
         }
 
         get_next_token(p);
         CHECK(assign(p), SUCCESS);
         MATCH(TOKEN_ASSIGN, consume_token);
-        return end_assign(p);
+        CHECK(end_assign(p), SUCCESS);
     }
 
     return SUCCESS;
@@ -105,7 +109,8 @@ int for_def(parser_info *p) {
         item->data.as.variable.value_type = (data_type) p->right_side_exp_types.str[0];
         item->data.scope = p->local_st->scope;
         item->data.defined = true;
-        gen_defvar(item->key.str, item->data.scope, p->in_for);
+        gen_defvar(item->key.str,item->data.scope,p->in_for);
+        printf("%sPOPS GF@EXPRESULT\n", p->exp_instruction.str);
         printf("MOVE LF@%s$%i GF@EXPRESULT\n",item->key.str,item->data.scope);
     }
     return SUCCESS;
@@ -186,6 +191,7 @@ int exp_n(parser_info *p) {
     while (p->token->type == TOKEN_COMMA) {
         get_next_token(p);
         CHECK(expression(p), SUCCESS);
+        gen_add_to_exp(p->exp_instruction.str);
     }
     return SUCCESS;
 }
@@ -210,6 +216,7 @@ int end_assign(parser_info *p) {
     }
 
     CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
+    gen_add_to_exp(p->exp_instruction.str);
     CHECK(exp_n(p), SUCCESS);
 
     if (check_types(&p->left_side_vars_types, &p->right_side_exp_types))
@@ -228,13 +235,18 @@ int assign(parser_info *p) {
         CHECK(EOL_opt(p), SUCCESS);
         //next token set
         MATCH(TOKEN_ID, keep_token);
-        if (strcmp(p->token->actual_value.str, "_") == 0)
+        if (strcmp(p->token->actual_value.str, "_") == 0){
             CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
+            gen_add_to_vars("_");
+        }
         else {
             item = stack_lookup(p->local_st, &p->token->actual_value);
             if (item == NULL)//not defined beforehand
                 return ERROR_SEM_DEF;
             CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
+            char var_name[item->key.len + BLOCK_SIZE];
+            sprintf(var_name, "%s$%d", item->key.str, item->data.scope);
+            gen_add_to_vars(var_name);
         }
 
         get_next_token(p);
@@ -266,6 +278,7 @@ int var(parser_info *p) {
             item->data.defined = true;
 
             gen_defvar(item->key.str,item->data.scope,p->in_for);
+            printf("%sPOPS GF@EXPRESULT\n", p->exp_instruction.str);
             printf("MOVE LF@%s$%i GF@EXPRESULT\n",item->key.str,item->data.scope);
 
             return SUCCESS;
@@ -289,12 +302,15 @@ int var(parser_info *p) {
             str_reinit(&p->left_side_vars_types);
             if (!strcmp(p->token->prev->actual_value.str, "_")) {
                 CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
-
+                gen_add_to_vars("_");
             } else {
                 item = stack_lookup(p->local_st, &p->token->prev->actual_value);
                 if (item == NULL)//not defined beforehand
                     return ERROR_SEM_DEF;
                 CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
+                char var_name[item->key.len + BLOCK_SIZE];
+                sprintf(var_name, "%s$%d", item->key.str, item->data.scope);
+                gen_add_to_vars(var_name);
             }
 
             if (p->token->type == TOKEN_COMMA) {
@@ -305,6 +321,7 @@ int var(parser_info *p) {
 
             CHECK(EOL_opt(p), SUCCESS);
             CHECK(end_assign(p), SUCCESS);
+            gen_assign(p->left_side_vars_types.len);
             return SUCCESS;
 
         default:
@@ -436,7 +453,7 @@ int statement(parser_info *p) {
         CHECK(leave_scope(&p->local_st), SUCCESS);
         CHECK(leave_scope(&p->local_st), SUCCESS);
         gen_for_end();
-
+        str_free(&for_expression);
         if(!nested_for)
             p->in_for = false;
 
@@ -686,27 +703,27 @@ int parser() {
         token_list_dispose(&p.token_list);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
-        str_init(&p.exp_instruction);
+        str_free(&p.exp_instruction);
         return error_code;
     } else if ((error_code = fill_st_with_builtin(&p.st)) != SUCCESS) {
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
-        str_init(&p.exp_instruction);
+        str_free(&p.exp_instruction);
         token_list_dispose(&p.token_list);
         return error_code;
     } else if ((error_code = first_pass(&p)) != SUCCESS) {
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
-        str_init(&p.exp_instruction);
+        str_free(&p.exp_instruction);
         token_list_dispose(&p.token_list);
         return error_code;
     } else if ((error_code = get_next_token(&p)) != SUCCESS) {
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
-        str_init(&p.exp_instruction);
+        str_free(&p.exp_instruction);
         token_list_dispose(&p.token_list);
         return error_code;
     } else {
@@ -715,7 +732,7 @@ int parser() {
             error_code = check_main(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
-        str_init(&p.exp_instruction);
+        str_free(&p.exp_instruction);
         st_dispose(&p.st);
         token_list_dispose(&p.token_list);
         while (p.local_st != NULL)

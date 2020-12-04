@@ -39,7 +39,7 @@ void gen_move_to_defvar(char* id_of_variable, char* value);
 void gen_params(string* params);
 void gen_call_params(token_t *last, st_stack_t *local_st);
 void gen_pushs_param(token_type type, string *value, st_stack_t *local_st);
-void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables);
+void gen_assign(int NumberOfVariables);
 void gen_for_start(char *expression);
 void gen_for_jump();
 void gen_for_end();

@@ -514,8 +514,8 @@ int expression(parser_info *p) {
                     } else {
                         loop = 1;
                         //printf("POPS GF@EXPRESULT\n");
-                        str_concat(&p->exp_instruction,"POPS GF@EXPRESULT",strlen("POPS GF@EXPRESULT"));
-                        str_add_char(&p->exp_instruction,'\n');
+//                        str_concat(&p->exp_instruction,"POPS GF@EXPRESULT",strlen("POPS GF@EXPRESULT"));
+//                        str_add_char(&p->exp_instruction,'\n');
                         //spravne ukoncenie analyzy vyrazu
                     }
 
