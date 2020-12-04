@@ -415,7 +415,7 @@ int statement(parser_info *p) {
         else
             nested_for = true;
 
-        gen_while_start(p->in_function->key.str);
+        gen_for(p->in_function->key.str);
 
         MATCH(TOKEN_LCURLY, consume_token);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
