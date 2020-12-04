@@ -1,5 +1,6 @@
 
 #include "instruction_list.h"
+#include "error.h"
 
 void InitListString(StringList *List){
     List->First = NULL;
@@ -29,7 +30,7 @@ void InsertFirstString(StringList *List, char *val){
     StringElementPtr newElemPtr = malloc(sizeof(struct StringElement));
 
     if(newElemPtr == NULL){
-        return ERROR_TRANS;
+        return;
     }else{
         newElemPtr->data = val;
         newElemPtr->ptr = List->First;
@@ -44,7 +45,6 @@ void DeleteFirstString(StringList *List){
     
         StringElementPtr elemPtr;
         elemPtr = List->First->ptr;
-        free(List->First->data);
         free(List->First);
         List->First = elemPtr;
     }
@@ -76,7 +76,7 @@ void InsertFirstInt(IntList *List, int ID){
     IntElementPtr newElemPtr = malloc(sizeof(struct IntElement));
 
     if(newElemPtr == NULL){
-        return ERROR_TRANS;
+        return;
     }else{
         newElemPtr->data = ID;
         newElemPtr->ptr = List->First;

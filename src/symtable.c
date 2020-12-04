@@ -195,6 +195,7 @@ void st_dispose(symbol_table_t* st){
 
 int enter_scope(st_stack_t** s, int *n){
     st_stack_t* new;
+
     if(s == NULL)
         return ERROR_TRANS;
 
@@ -203,6 +204,7 @@ int enter_scope(st_stack_t** s, int *n){
 
     st_init(&new->local_table);
     new->parent = NULL;
+    new->scope = *n;
 
     if(*s == NULL){//entered the first scope
        *s = new;
@@ -211,11 +213,12 @@ int enter_scope(st_stack_t** s, int *n){
         new->parent = *s;
         *s = new;
     }
+
     (*n)++;
     return SUCCESS;
 }
 
-int leave_scope(st_stack_t** s, int* n){
+int leave_scope(st_stack_t **s) {
     st_stack_t* del;
     if(s == NULL)
         return ERROR_TRANS;
@@ -226,7 +229,6 @@ int leave_scope(st_stack_t** s, int* n){
     *s = del->parent;
     st_dispose(&del->local_table);
     free(del);
-    (*n)--;
     return SUCCESS;
 }
 
@@ -236,6 +238,7 @@ st_item* stack_lookup(st_stack_t* s, const string* key){
 
     if(s == NULL)
         return NULL;
+
     parent = s->parent;
     item = st_get_item(&s->local_table, key);
     while(parent != NULL && item == NULL){

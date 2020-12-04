@@ -21,9 +21,10 @@ typedef struct parser_info{
     string left_side_vars_types; // v1,v2,...,v_n = ...
     string right_side_exp_types; // ... = exp1,exp2,...,exp_n | call params types
     st_item* function_called; // ... = f()
+    token_t* last_param;
+    string exp_instruction;
 
     //possibly more stuff coming
-
 }parser_info;
 bool is_data_type(token_type type);
 int set_data_type(parser_info *p, token_t *token, data_type *type, bool throw_error_on_default);

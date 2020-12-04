@@ -22,13 +22,11 @@ typedef enum{
     NOTS = 10,
 }stack_instruction;
 
-unsigned int GTEcounter = 0;
-unsigned int LTEcounter = 0;
-unsigned int ID = 0;
-StringList ListOfStrings;
 
-int IntStack[1000];
-int top = -1;
+
+
+void gen_add_to_vars(char* var);
+void gen_add_to_exp(char* exp);
 
 void push_int();
 void pop_int();
@@ -39,7 +37,8 @@ void gen_defvar(char* id,int scope, bool in_for);
 void gen_retvals(int number_of_return_values);
 void gen_move_to_defvar(char* id_of_variable, char* value);
 void gen_params(string* params);
-void gen_params_TF(token_type type, string *value, int scope);
+void gen_call_params(token_t* last);
+void gen_pushs_param(token_type type, string *value, int scope);
 void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables);
 void gen_for_start(char *expression);
 void gen_for_jump();

@@ -99,8 +99,6 @@ void token_list_init(token_list_t* l);
 int token_list_insert(token_list_t* l, token_t* token);
 int token_list_next(token_list_t* l);
 void token_list_dispose(token_list_t* l);
-
-
 int getToken(token_t* token);
 int scanner_fill_token_list(token_list_t* l);
 void print_token(token_t* token);

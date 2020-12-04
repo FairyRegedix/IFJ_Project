@@ -99,3 +99,31 @@ int str_concat(string* s1, const char* s2, int len){
     return SUCCESS;
 
 }
+
+void strrev(char* s){
+    int count = strlen(s);
+    int i = 0;
+    int j = count - 1;
+    char c;
+    while (i<j){
+        c = s[i];
+        s[i] = s[j];
+        s[j] = c;
+        i++;
+        j--;
+    }
+    s[count] = '\0';
+}
+
+
+long int Str_to_INT(string *value) {
+    int converted;
+    converted = atol(value->str);
+    return converted;
+}
+
+double Str_to_Float(string *value) {
+    double converted;
+    converted = atof(value->str);
+    return converted;
+}
