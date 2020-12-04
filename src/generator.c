@@ -27,6 +27,8 @@ void generate_header(){
     gen_func_inputs();
     gen_func_inputf();
     gen_func_inputi();
+    gen_func_int2float();
+    gen_func_float2int();
     printf("CALL $main\n");
     printf("JUMP $$final_end\n");
 }
@@ -71,7 +73,7 @@ void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Vari
     }
 
     for(int i = 0; i < NumberOfVariables; i++){
-        printf("POPS LF@%s LF@$tmp%d",Variables->First->data, IntStack[top]);
+        printf("MOVE LF@%s LF@$tmp%d",Variables->First->data, IntStack[top]);
         DeleteFirstString(Variables);
         pop_int();
     }
@@ -169,35 +171,33 @@ void gen_JUMPIFNEQ(char* destination, char* s1, char *s2){
 }
 
 void gen_stack_GTE(){
-    GTEcounter++;
-    printf("DEFVAR LF@$GTE$param1%i\n", GTEcounter);
-    printf("DEFVAR LF@$GTE$param2%i\n", GTEcounter);
-    printf("POPS LF@$GTE$param1%i\n", GTEcounter);
-    printf("POPS LF@$GTE$param2%i\n", GTEcounter);
-    printf("JUMPIFNEQ $EQS LF@$GTE$param1%i LF@$GTE$param2%i\n", GTEcounter, GTEcounter);
-    printf("PUSHS bool@true\n");
-    printf("JUMP $LTEGTEEND%i\n", GTEcounter);
-    printf("LABEL $EQS\n");
-    printf("PUSHS LF@$GTE$param2%i\n", GTEcounter);
-    printf("PUSHS LF@$GTE$param1%i\n", GTEcounter);
+    printf("DEFVAR LF@$GTE$param1$%d\n", GTEcounter);
+    printf("DEFVAR LF@$GTE$param2$%d\n", GTEcounter);
+    printf("POPS LF@$GTE$param1$%d\n", GTEcounter);
+    printf("POPS LF@$GTE$param2$%d\n", GTEcounter);
+    printf("PUSHS LF@$GTE$param2$%d\n", GTEcounter);
+    printf("PUSHS LF@$GTE$param1$%d\n", GTEcounter);
     printf("GTS\n");
-    printf("LABEL $GTEEND%i\n", GTEcounter);
+    printf("PUSHS LF@$GTE$param2$%d\n", GTEcounter);
+    printf("PUSHS LF@$GTE$param1$%d\n", GTEcounter);
+    printf("EQS\n");
+    printf("ORS\n");
+    GTEcounter++;
 }
 
 void gen_stack_LTE(){
+    printf("DEFVAR LF@$LTE$param1$%d\n", LTEcounter);
+    printf("DEFVAR LF@$LTE$param2$%d\n", LTEcounter);
+    printf("POPS LF@$LTE$param1$%d\n", LTEcounter);
+    printf("POPS LF@$LTE$param2$%d\n", LTEcounter);
+    printf("PUSHS LF@$LTE$param2$%d\n", LTEcounter);
+    printf("PUSHS LF@$LTE$param1$%d\n", LTEcounter);
+    printf("GTS\n");
+    printf("PUSHS LF@$LTE$param2$%d\n", LTEcounter);
+    printf("PUSHS LF@$LTE$param1$%d\n", LTEcounter);
+    printf("EQS\n");
+    printf("ORS\n");
     LTEcounter++;
-    printf("DEFVAR LF@$LTE$param1%i\n", LTEcounter);
-    printf("DEFVAR LF@$LTE$param2%i\n", LTEcounter);
-    printf("POPS LF@$LTE$param1%i\n", LTEcounter);
-    printf("POPS LF@$LTE$param2%i\n", LTEcounter);
-    printf("JUMPIFNEQ $EQS LF@$LTE$param1%i LF@$LTE$param2%i\n", LTEcounter, LTEcounter);
-    printf("PUSHS bool@true\n");
-    printf("JUMP $LTEGTEEND%i\n", LTEcounter);
-    printf("LABEL $EQS\n");
-    printf("PUSHS LF@$LTE$param2%i\n", LTEcounter);
-    printf("PUSHS LF@$LTE$param1%i\n", LTEcounter);
-    printf("LTS\n");
-    printf("LABEL $LTEEND%i\n", LTEcounter);
 }
 
 void gen_stack_instructions(stack_instruction instruction){
@@ -301,16 +301,44 @@ void gen_func_inputf(){
     printf("EXIT int@1\n\n");
 }
 
-void gen_func_print(){
-
+void gen_func_print(int number_of_params){
+    printf("#FUNCTION PRINT\n\n");
+    printf("LABEL $print\n");
+    printf("PUSHFRAME\n");
+    for(int i = 1; i <= number_of_params; i++)
+        printf("WRITE LF@$%d\n", i);
+    printf("CLEARS\n");
+    printf("RETURN\n");
 }
 
 void gen_func_int2float(){
-
+    printf("#FUNCTION INT2FLOAT\n\n");
+    printf("LABEL $int2float\n");
+    printf("PUSHFRAME\n");
+    printf("DEFVAR LF@$retval\n");
+    printf("DEFVAR LF@error$check\n");
+    printf("TYPE LF@error$check LF@$1\n");
+    printf("JUMPIFNEQ $ERROR$INT2FLOAT string@int LF@error$check\n");
+    printf("INT2FLOAT LF@$retval LF@$1\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+    printf("LABEL $ERROR$INT2FLOAT\n");
+    printf("EXIT int@6\n\n");
 }
 
 void gen_func_float2int(){
-
+    printf("#FUNCTION FLOAT2INT\n\n");
+    printf("LABEL $float2int\n");
+    printf("PUSHFRAME\n");
+    printf("DEFVAR LF@$retval\n");
+    printf("DEFVAR LF@error$check\n");
+    printf("TYPE LF@error$check LF@$1\n");
+    printf("JUMPIFNEQ $ERROR$FLOAT2INT string@float LF@error$check\n");
+    printf("FLOAT2INT LF@$retval LF@$1\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+    printf("LABEL $ERROR$FLOAT2INT\n");
+    printf("EXIT int@6\n\n");
 }
 
 void gen_func_len(){
