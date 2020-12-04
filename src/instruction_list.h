@@ -2,7 +2,6 @@
 #define IFJ_PROJECT_INSTRUCTION_LIST_H
 
 #include "libraries.h"
-#include "error.h"
 
 typedef struct StringElement{
     struct StringElement *ptr;
