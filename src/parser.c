@@ -205,6 +205,7 @@ int end_assign(parser_info *p) {
     }
 
     CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
+
     CHECK(exp_n(p), SUCCESS);
 
     if (check_types(&p->left_side_vars_types, &p->right_side_exp_types))
@@ -374,7 +375,9 @@ int statement(parser_info *p) {
         //CHECK(EOL_opt(p), SUCCESS);
         str_reinit(&p->right_side_exp_types);
         CHECK(expression(p), SUCCESS);
-        printf("MOVE GF@FOREXP GF@EXPRESULT\n");
+        string for_expression;
+        str_init(&for_expression);
+        str_copy(&for_expression,&p->exp_instruction);
 
         if(p->right_side_exp_types.str[0] != TOKEN_BOOLEAN)
             return ERROR_SEM_COMP;
@@ -415,7 +418,7 @@ int statement(parser_info *p) {
         else
             nested_for = true;
 
-        gen_for_start(p->in_function->key.str);
+        gen_for_start(for_expression.str);
 
         MATCH(TOKEN_LCURLY, consume_token);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
@@ -670,6 +673,8 @@ int parser() {
     p.function_called = NULL;
     str_init(&p.left_side_vars_types);
     str_init(&p.right_side_exp_types);
+    str_init(&p.exp_instruction);
+
     st_init(&p.st);
     token_list_init(&p.token_list);
 
@@ -677,23 +682,27 @@ int parser() {
         token_list_dispose(&p.token_list);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
+        str_init(&p.exp_instruction);
         return error_code;
     } else if ((error_code = fill_st_with_builtin(&p.st)) != SUCCESS) {
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
+        str_init(&p.exp_instruction);
         token_list_dispose(&p.token_list);
         return error_code;
     } else if ((error_code = first_pass(&p)) != SUCCESS) {
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
+        str_init(&p.exp_instruction);
         token_list_dispose(&p.token_list);
         return error_code;
     } else if ((error_code = get_next_token(&p)) != SUCCESS) {
         st_dispose(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
+        str_init(&p.exp_instruction);
         token_list_dispose(&p.token_list);
         return error_code;
     } else {
@@ -702,6 +711,7 @@ int parser() {
             error_code = check_main(&p.st);
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
+        str_init(&p.exp_instruction);
         st_dispose(&p.st);
         token_list_dispose(&p.token_list);
         while (p.local_st != NULL)
