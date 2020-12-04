@@ -143,7 +143,7 @@ void DisposeListInt(IntList *List){
     {
         while(List->First->ptr != NULL)
         {
-            StringElementPtr elemPtr;
+            IntElementPtr elemPtr;
             elemPtr = List->First->ptr;
             List->First->ptr = elemPtr->ptr;
             free(elemPtr);

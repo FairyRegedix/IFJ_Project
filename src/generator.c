@@ -7,8 +7,8 @@
 
 
 void generate_header(){
-    InitList(&ListOfStrings);
-    InitList(&ListOfInts);
+    InitListString(&ListOfStrings);
+    InitListInt(&ListOfInts);
     printf(".IFJcode20\n");
     printf("DEFVAR GF@EXPRESULT\n\n");
     printf("DEFVAR GF@BLOCK$COUNTER\n");
@@ -54,16 +54,16 @@ void gen_params(string* params){
 void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables){
     for(int j = 0; j < NumberOfVariables; j++){
         printf("%s", Expressions->First->data);
-        DeleteFirst(Expressions);
+        DeleteFirstString(Expressions);
         printf("POPS LF@$tmp$%d", tmp_id);
         InsertFirstInt(&ListOfInts, tmp_id);
         tmp_id++;
     }
 
     for(int i = 0; i < NumberOfVariables; i++){
-        printf("POPS LF@%s LF@$tmp$d",Variables->First->data, ListOfInts.First->data);
-        DeleteFirst(Variables);
-        DeleteFirst(&ListOfInts);
+        printf("POPS LF@%s LF@$tmp%d",Variables->First->data, ListOfInts.First->data);
+        DeleteFirstString(Variables);
+        DeleteFirstInt(&ListOfInts);
     }
 
 }
