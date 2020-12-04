@@ -7,7 +7,7 @@
 
 int str_init(string *s){
     if ((s->str = (char*) malloc(BLOCK_SIZE*sizeof(char))) == NULL)
-        return ERROR_STR;
+        return ERROR_TRANS;
     s->str[0] = '\0';
     s->len = 0;
     s->size = BLOCK_SIZE;
@@ -29,7 +29,7 @@ void str_reinit(string *s){
 int str_add_char(string *s1, char c){
     if (s1->len + 1 >= s1->size){
         if ((s1->str = (char*) realloc(s1->str, (s1->len + BLOCK_SIZE)*sizeof(char))) == NULL)
-            return ERROR_STR;
+            return ERROR_TRANS;
         s1->size = s1->len + BLOCK_SIZE;
     }
     s1->str[s1->len] = c;
@@ -60,7 +60,7 @@ int str_copy(string *s1, const string *s2){
     if (s2->len >= s1->size){
         s1->str = (char*)realloc(s1->str, (s2->len + 1)*sizeof(char));
         if (s1->str == NULL)
-            return ERROR_STR;
+            return ERROR_TRANS;
         s1->size = s2->len + 1;
     }
     strcpy(s1->str, s2->str);
@@ -82,6 +82,22 @@ char* str_to_c_str(const string *s){
 
 size_t str_len(const string *s){
     return s->len;
+}
+
+int str_concat(string* s1, const char* s2, int len){
+    if (s1->len + len >= s1->size){
+        if ((s1->str = (char*) realloc(s1->str, (s1->len + len + BLOCK_SIZE)*sizeof(char))) == NULL)
+            return ERROR_TRANS;
+        s1->size = s1->len + len + BLOCK_SIZE;
+    }
+    for(int i = 0; i < (int)len; i++){
+        s1->str[s1->len] = s2[i];
+        s1->len++;
+    }
+    s1->str[s1->len] = '\0';
+
+    return SUCCESS;
+
 }
 
 void InitListString(StringList *List){
@@ -112,7 +128,7 @@ void InsertFirstString(StringList *List, char *val){
     StringElementPtr newElemPtr = malloc(sizeof(struct StringElement));
 
     if(newElemPtr == NULL){
-        return;
+        return ERROR_TRANS;
     }else{
         newElemPtr->data = val;
         newElemPtr->ptr = List->First;
@@ -159,7 +175,7 @@ void InsertFirstInt(IntList *List, int ID){
     IntElementPtr newElemPtr = malloc(sizeof(struct IntElement));
 
     if(newElemPtr == NULL){
-        return;
+        return ERROR_TRANS;
     }else{
         newElemPtr->data = ID;
         newElemPtr->ptr = List->First;
