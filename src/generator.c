@@ -21,8 +21,8 @@ void close_generator(){
 void generate_header(){
     InitListString(&ListOfStrings);
     printf(".IFJcode20\n");
-    printf("DEFVAR GF@EXPRESULT\n\n");
-    printf("DEFVAR GF@BLOCK$COUNTER\n");
+    printf("DEFVAR GF@EXPRESULT\n");
+    printf("DEFVAR GF@CONCATRESULT\n\n");
     printf("MOVE GF@BLOCK$COUNTER int@0\n");
     gen_func_inputs();
     gen_func_inputf();
@@ -53,15 +53,59 @@ void gen_move_to_defvar(char* id_of_variable, char* value){
 }
 
 void gen_params(string* params){
-    printf("DEFVAR LF@$");
-    for(int i = 0; i < params->len-1; i++){
-        if(params->str[i] != '#'){
-            printf("%c", params->str[i]);
+    string tmp;
+    str_init(&tmp);
+    str_copy(&tmp, params);
+    printf("DEFVAR LF@");
+    for(int i = 0; i < tmp.len-1; i++){
+        if(tmp.str[i] != '#'){
+            printf("%c", tmp.str[i]);
         }else
         {
-            printf("\nDEFVAR LF@$");
+            printf("$0\nDEFVAR LF@");
         }
     }
+
+    char tmpchar[tmp.len];
+    int j = 0;
+    for(int i = tmp.len -1 ; i >= 0; i--){    
+        if(tmp.str[i] != '#'){
+            tmpchar[j] = tmp.str[i];
+            j++;
+        }else
+        {
+            tmpchar[j] = '\0';
+            strrev(tmpchar);
+            printf("POPS LF@%s$0\n", tmpchar);
+            j = 0;
+        }
+    }
+}
+
+void gen_params_TF(token_type type, string *value, int scope){
+    printf("PUSHS ");
+    switch (type)
+    {
+    case TOKEN_INT:
+        printf("int@%s", value->str);
+        break;
+
+    case TOKEN_FLOAT64:
+        printf("float@%a", Str_to_Float(value));
+        break;
+
+    case TOKEN_ID:
+        printf("%s$%d", value->str, scope);
+        break; 
+
+    case TOKEN_STRING:
+        printf("string@%s", value->str);
+        break;
+
+    default:
+        break;
+    }
+    printf("\n");
 }
 
 void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables){
@@ -99,8 +143,17 @@ void gen_for_end(){
     pop_int();
 }
 
+void gen_call_start(char* function, int count_of_vars){
+    printf("CREATEFRAME\n");
+    printf("CLEARS\n");
+    if(strcmp(function, "print") == 0){
+        printf("DEFVAR TF@$0\n");
+        printf("MOVE TF@$0 int@%d\n", count_of_vars);
+    }
+}
+
 void gen_call(char* function){
-    printf("CALL $%s\n", function);
+    printf("CALL func$%s\n", function);
 }
 
 void gen_return(){
@@ -112,7 +165,7 @@ void gen_WRITE(char* s1){
 }
 
 void gen_LABEL_start(char* label){
-    printf("LABEL $%s\n", label);
+    printf("LABEL func$%s\n", label);
     printf("PUSHFRAME\n");
 }
 
@@ -301,12 +354,16 @@ void gen_func_inputf(){
     printf("EXIT int@1\n\n");
 }
 
-void gen_func_print(int number_of_params){
-    printf("#FUNCTION PRINT\n\n");
+void gen_func_print(){
+    printf("#PRINT\n\n");
     printf("LABEL $print\n");
     printf("PUSHFRAME\n");
-    for(int i = 1; i <= number_of_params; i++)
-        printf("WRITE LF@$%d\n", i);
+    printf("DEFVAR LF@print$var\n");
+    printf("LABEL while$print\n");
+    printf("POPS LF@print$var\n");
+    printf("WRITE LF@print$var\n");
+    printf("SUB LF@$0 LF@$0 int@1\n");
+    printf("JUMPIFNEQ while$print LF@$0 int@0\n");
     printf("CLEARS\n");
     printf("RETURN\n");
 }
