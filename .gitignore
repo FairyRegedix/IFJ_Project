@@ -2,3 +2,5 @@
 /.idea
 /cmake-build-debug
 /CFGonlineform
+/input.txt
+/test_parser_scanner.c
