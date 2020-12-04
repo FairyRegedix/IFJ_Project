@@ -7,6 +7,7 @@
 #include "symtable.h"
 #include "scanner.h"
 #include "str.h"
+#include "instruction_list.h"
 
 typedef enum{
     ADDS = 0,
