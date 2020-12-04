@@ -3,32 +3,30 @@
 
 
 #include "generator.h"
-int GTEcounter = 0;
-int LTEcounter = 0;
-int if_for_id = -1;
+#include "instruction_list.h"
 
 
 
 void generate_header(){
-   
+    InitListString(&ListOfStrings);
+    InitListInt(&ListOfInts);
     printf(".IFJcode20\n");
-    printf("DEFVAR GF@EXPRESULT\n");
-    printf("DEFVAR GF@FOREXP\n");
-
-    //gen_func_inputs();
-    //gen_func_inputf();
-    //gen_func_inputi();
-    printf("CREATEFRAME\n");
+    printf("DEFVAR GF@EXPRESULT\n\n");
+    printf("DEFVAR GF@BLOCK$COUNTER\n");
+    printf("MOVE GF@BLOCK$COUNTER int@0\n");
+    gen_func_inputs();
+    gen_func_inputf();
+    gen_func_inputi();
     printf("CALL $main\n");
     printf("JUMP $$final_end\n");
 }
 
 void gen_defvar(char* id,int scope, bool in_for){
     if(in_for){
-        printf("MOVE LF@%s$%d nil@nil\n",id, scope);
+        printf("MOVE LF@%s$%d nil@nil",id, scope);
     }else
     {
-        printf("DEFVAR LF@%s$%d\n",id, scope);
+        printf("DEFVAR LF@%s$%d",id, scope);
     }
     
 }
@@ -39,23 +37,56 @@ void gen_retvals(int number_of_return_values){
 }
 
 void gen_move_to_defvar(char* id_of_variable, char* value){
-    printf("DEFVAR %s\n",id_of_variable);
-    printf("MOVE %s %s\n", id_of_variable, value);
+    printf("MOVE LF@%s %s\n", id_of_variable, value);
 }
 
 void gen_params(string* params){
-    if(params->len == 0)
-        return;
-    printf("DEFVAR LF@");
+    printf("DEFVAR LF@$");
     for(int i = 0; i < params->len-1; i++){
         if(params->str[i] != '#'){
             printf("%c", params->str[i]);
         }else
         {
-            printf("$0\nDEFVAR LF@$");
+            printf("\nDEFVAR LF@$");
         }
     }
-    printf("\n");
+}
+
+void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables){
+    for(int j = 0; j < NumberOfVariables; j++){
+        printf("%s", Expressions->First->data);
+        DeleteFirstString(Expressions);
+        printf("POPS LF@$tmp$%d", tmp_id);
+        InsertFirstInt(&ListOfInts, tmp_id);
+        tmp_id++;
+    }
+
+    for(int i = 0; i < NumberOfVariables; i++){
+        printf("POPS LF@%s LF@$tmp%d",Variables->First->data, ListOfInts.First->data);
+        DeleteFirstString(Variables);
+        DeleteFirstInt(&ListOfInts);
+    }
+
+}
+
+void gen_for_start(char *expression){
+    printf("LABEL CHECK$FOR$%d\n", ID);
+    InsertFirstString(&ListOfStrings, expression);
+}
+
+void gen_for_jump(){
+    printf("PUSHS bool@true\n");
+    printf("JUMPIFNEQS END$FOR$%d\n", ID);
+    InsertFirstInt(&ListOfInts, ID);
+    ID++;
+}
+
+void gen_for_end(){
+    printf("%s", ListOfStrings.First->data);
+    DeleteFirstString(&ListOfStrings);
+    printf("JUMP CHECK$FOR$%d", ListOfInts.First->data);
+    printf("LABEL END$FOR$%d", ListOfInts.First->data);
+    DeleteFirstInt(&ListOfInts);
 }
 
 void gen_call(char* function){
@@ -90,32 +121,32 @@ void gen_end_of_function(){
     gen_LABEL_end();
 }
 
-void gen_if_start(char *label) {
-    if_for_id++;
-    printf("#IF $%s$if$%i\n",label, if_for_id);
-    printf("JUMPIFEQ $%s$if$%i$else bool@false GF@EXPRESULT\n", label, if_for_id);
+void gen_if_start(char* truefalse){
+    printf("#IF $if$%d\n",ID);
+    printf("JUMPIFEQ $if$%d$else bool@true %s\n",ID, truefalse);
+    InsertFirstInt(&ListOfInts, ID);
+    ID++;
 }
 
-void gen_if_else(char *label) {
-    printf("JUMP $%s$if$%i$end\n", label, if_for_id);
-    printf("LABEL $%s$if$%i$else\n", label, if_for_id);
+void gen_if_else(){
+    printf("JUMP $if$%d$end\n", ListOfInts.First->data);
+    printf("LABEL $if$%d$else\n", ListOfInts.First->data);
 }
 
-void gen_if_end(char *label) {
-    printf("LABEL $%s$if$%i$end\n",label, if_for_id);
+void gen_if_end(){
+    printf("LABEL $if$%d$end\n", ListOfInts.First->data);
+    DeleteFirstInt(&ListOfInts);
 }
 
-void gen_while_start(char *label) {
-    if_for_id++;
-    printf("#WHILE $%s$while$%i\n",label,if_for_id);
-    printf("LABEL $%s$while$%i$start\n", label, if_for_id);
-    printf("JUMPIFEQ $%s$while$%i$end bool@false GF@FOREXP\n", label, if_for_id);
-
+void gen_while_start(char* label, int id){
+    printf("#WHILE $%s$while$%i\n",label, id);
+    printf("LABEL $%s$while$%i$start\n", label, id);
 }
 
-void gen_while_end(char *label) {
-    printf("JUMP $%s$while$%i$start\n", label,if_for_id);
-    printf("LABEL $%s$while$%i$end\n", label, if_for_id);
+void gen_while_end(char* label, int id, char* truefalse){
+    printf("JUMPIFEQ $%s$while$%i$end bool@true %s\n", label, id, truefalse);
+    printf("JUMP $%s$while$%i$start\n", label, id);
+    printf("LABEL $%s$while$%i$end\n", label, id);
 }
 
 void gen_JUMP(char* destination){
@@ -211,7 +242,7 @@ void gen_func_inputs(){
     printf("READ LF@param1 string\n");
     printf("DEFVAR LF@errorCheck\n");
     printf("TYPE LF@errorCheck LF@param1\n");
-    printf("JUMPIFNEQ $ERROR string@string LF@errorCheck\n");
+    printf("JUMPIFNEQ $ERROR$INPUTS string@string LF@errorCheck\n");
     printf("DEFVAR LF@strlen\n");
     printf("STRLEN LF@strlen LF@param1\n");
     printf("SUB LF@strlen LF@strlen int@1\n");
@@ -223,7 +254,7 @@ void gen_func_inputs(){
     printf("MOVE LF@$retval LF@param1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
-    printf("LABEL $ERROR\n");
+    printf("LABEL $ERROR$INPUTS\n");
     printf("EXIT int@1\n\n");
 }
 
@@ -237,11 +268,11 @@ void gen_func_inputi(){
     printf("DEFVAR LF@error$check\n");
     printf("READ LF@param$1 int\n");
     printf("TYPE LF@error$check LF@param$1\n");
-    printf("JUMPIFNEQ $ERROR string@int LF@error$check\n");
+    printf("JUMPIFNEQ $ERROR$INPUTI string@int LF@error$check\n");
     printf("MOVE LF@$retval LF@param$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
-    printf("LABEL $ERROR\n");
+    printf("LABEL $ERROR$INPUTI\n");
     printf("EXIT int@1\n\n");
 }
 
@@ -255,11 +286,11 @@ void gen_func_inputf(){
     printf("DEFVAR LF@error$check\n");
     printf("READ LF@param$1 float\n");
     printf("TYPE LF@error$check LF@param$1\n");
-    printf("JUMPIFNEQ $ERROR string@float LF@error$check\n");
+    printf("JUMPIFNEQ $ERROR$INPUTF string@float LF@error$check\n");
     printf("MOVE LF@$retval LF@param$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
-    printf("LABEL $ERROR\n");
+    printf("LABEL $ERROR$INPUTF\n");
     printf("EXIT int@1\n\n");
 }
 
@@ -402,7 +433,3 @@ void gen_DPRINT(char* s1){
 void gen_EOL(){
     printf("\n");
 }
-
-void generate_code_end(){
-    printf("LABEL $$final_end\n");
-};

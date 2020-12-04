@@ -1,6 +1,7 @@
 
 #include "instruction_list.h"
 #include "error.h"
+
 void InitListString(StringList *List){
     List->First = NULL;
     List->Actual = NULL;
