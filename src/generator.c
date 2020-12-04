@@ -40,15 +40,17 @@ void generate_header(){
     printf(".IFJcode20\n");
     printf("DEFVAR GF@EXPRESULT\n");
     printf("DEFVAR GF@CONCATRESULT\n\n");
-    printf("MOVE GF@BLOCK$COUNTER int@0\n");
+    printf("CREATEFRAME\n");
+    printf("CALL func$main\n");
+    printf("JUMP $$final_end\n");
+
     gen_func_inputs();
     gen_func_inputf();
     gen_func_inputi();
     gen_func_int2float();
     gen_func_float2int();
     gen_func_print();
-    printf("CALL $main\n");
-    printf("JUMP $$final_end\n");
+
 }
 
 void gen_defvar(char* id,int scope, bool in_for){
@@ -109,24 +111,22 @@ void gen_call_params(token_t *last, st_stack_t *local_st) {
 }
 void gen_pushs_param(token_type type, string *value, st_stack_t *local_st){
     st_item* item;
-    printf("PUSHS ");
     switch (type)
     {
-    case TOKEN_INT:
-        printf("int@%s\n", value->str);
+    case TOKEN_INTEGER:
+        printf("PUSHS int@%s\n", value->str);
         break;
 
-    case TOKEN_FLOAT64:
-        printf("float@%a\n", Str_to_Float(value));
+    case TOKEN_FLOAT:
+        printf("PUSHS float@%a\n", Str_to_Float(value));
         break;
-
     case TOKEN_ID:
         item = stack_lookup(local_st, value);
-        printf("%s$%d\n", value->str, item->data.scope);
-        break; 
+        printf("PUSHS LF@%s$%d\n", value->str, item->data.scope);
+        break;
 
-    case TOKEN_STRING:
-        printf("string@%s\n", value->str);
+    case TOKEN_STR:
+        printf("PUSHS string@%s\n", value->str);
         break;
 
     default:
@@ -135,24 +135,35 @@ void gen_pushs_param(token_type type, string *value, st_stack_t *local_st){
 
 }
 
-void gen_add_to_vars(char* var){
-    InsertFirstString(&Vars, var);
+void gen_add_to_vars(char *var_name, int scope) {
+    char* tmp = malloc(strlen(var_name)+BLOCK_SIZE);
+    if(scope < 0)
+        sprintf(tmp,"%s",var_name);
+    else
+        sprintf(tmp,"%s$%i",var_name,scope);
+    InsertFirstString(&Vars, tmp);
 }
 void gen_add_to_exp(char* exp){
-    InsertFirstString(&Exps, exp);
+    char* tmp = malloc(strlen(exp)+1);
+    strcpy(tmp,exp);
+    InsertFirstString(&Exps, tmp);
 }
 
 
 void gen_assign(int NumberOfVariables) {
+    if(NumberOfVariables <= 0)
+        return;
+    printf("CREATEFRAME\n");
     for(int j = 0; j < NumberOfVariables; j++){
         printf("%s", Exps.First->data);
         DeleteFirstString(&Exps);
-        printf("POPS LF@$tmp$%d\n", ID);
+        printf("DEFVAR TF@$tmp$%d\n",ID);
+        printf("POPS TF@$tmp$%d\n", ID);
         push_int();
     }
 
     for(int i = 0; i < NumberOfVariables; i++){
-        printf("MOVE LF@%s LF@$tmp%d\n",Vars.First->data, IntStack[top]);
+        printf("MOVE LF@%s TF@$tmp$%d\n",Vars.First->data, IntStack[top]);
         DeleteFirstString(&Vars);
         pop_int();
     }
@@ -161,7 +172,8 @@ void gen_assign(int NumberOfVariables) {
 
 void gen_for_start(char *expression){
     printf("LABEL CHECK$FOR$%d\n", ID);
-    InsertFirstString(&ListOfStrings, expression);
+    printf("%s",expression);
+    gen_for_jump();
 }
 
 void gen_for_jump(){
@@ -177,7 +189,6 @@ void gen_for_end(){
         tmp = tmp->ptr;
         count++;
     }
-    gen_assign(count);
     printf("JUMP CHECK$FOR$%d\n", IntStack[top]);
     printf("LABEL END$FOR$%d\n", IntStack[top]);
     pop_int();
@@ -334,7 +345,7 @@ void gen_stack_instructions(stack_instruction instruction){
 
 void gen_func_inputs(){
     printf("#FUNCTION INPUTS\n\n");
-    printf("LABEL $inputs\n");
+    printf("LABEL func$inputs\n");
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@$retval\n");
     printf("MOVE LF@$retval nil@nil\n");
@@ -360,7 +371,7 @@ void gen_func_inputs(){
 
 void gen_func_inputi(){
     printf("#FUNCTION INPUTI\n\n");
-    printf("LABEL $inputi\n");
+    printf("LABEL func$inputi\n");
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@$retval\n");
     printf("MOVE LF@$retval nil@nil\n");
@@ -378,7 +389,7 @@ void gen_func_inputi(){
 
 void gen_func_inputf(){
     printf("#FUNCTION INPUTF\n\n");
-    printf("LABEL $inputf\n");
+    printf("LABEL func$inputf\n");
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@$retval\n");
     printf("MOVE LF@$retval nil@nil\n");
@@ -396,7 +407,7 @@ void gen_func_inputf(){
 
 void gen_func_print(){
     printf("#PRINT\n\n");
-    printf("LABEL $print\n");
+    printf("LABEL func$print\n");
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@print$var\n");
     printf("LABEL while$print\n");
@@ -405,12 +416,13 @@ void gen_func_print(){
     printf("SUB LF@$0 LF@$0 int@1\n");
     printf("JUMPIFNEQ while$print LF@$0 int@0\n");
     printf("CLEARS\n");
+    printf("POPFRAME\n");
     printf("RETURN\n");
 }
 
 void gen_func_int2float(){
     printf("#FUNCTION INT2FLOAT\n\n");
-    printf("LABEL $int2float\n");
+    printf("LABEL func$int2float\n");
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@$retval\n");
     printf("DEFVAR LF@error$check\n");
@@ -425,7 +437,7 @@ void gen_func_int2float(){
 
 void gen_func_float2int(){
     printf("#FUNCTION FLOAT2INT\n\n");
-    printf("LABEL $float2int\n");
+    printf("LABEL func$float2int\n");
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@$retval\n");
     printf("DEFVAR LF@error$check\n");
@@ -440,7 +452,7 @@ void gen_func_float2int(){
 
 void gen_func_len(){
     printf("#FUNCTION LEN\n\n");
-    printf("LABEL $len\n");
+    printf("LABEL func$len\n");
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@$retval1\n");
     printf("POPS LF@$retval1\n");
@@ -449,7 +461,7 @@ void gen_func_len(){
 }
 
 void gen_func_substr(){
-    printf("LABEL $substr");
+    printf("LABEL func$substr");
     printf("PUSHFRAME");
     printf("DEFVAR LF@string");
     printf("DEFVAR LF@i");

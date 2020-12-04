@@ -70,15 +70,13 @@ int for_assign(parser_info *p) {
         str_reinit(&p->left_side_vars_types);
         if (strcmp(p->token->actual_value.str, "_") == 0){
             CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
-            gen_add_to_vars("");
+            gen_add_to_vars("_", -1);
         } else {
             item = stack_lookup(p->local_st, &p->token->actual_value);
             if (item == NULL)//not defined beforehand
                 return ERROR_SEM_DEF;
             CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
-            char var_name[item->key.len + BLOCK_SIZE];
-            sprintf(var_name, "%s$%d", item->key.str, item->data.scope);
-            gen_add_to_vars(var_name);
+            gen_add_to_vars(item->key.str, item->data.scope);
         }
 
         get_next_token(p);
@@ -237,16 +235,14 @@ int assign(parser_info *p) {
         MATCH(TOKEN_ID, keep_token);
         if (strcmp(p->token->actual_value.str, "_") == 0){
             CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
-            gen_add_to_vars("_");
+            gen_add_to_vars("_", -1);
         }
         else {
             item = stack_lookup(p->local_st, &p->token->actual_value);
             if (item == NULL)//not defined beforehand
                 return ERROR_SEM_DEF;
             CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
-            char var_name[item->key.len + BLOCK_SIZE];
-            sprintf(var_name, "%s$%d", item->key.str, item->data.scope);
-            gen_add_to_vars(var_name);
+            gen_add_to_vars(item->key.str, item->data.scope);
         }
 
         get_next_token(p);
@@ -302,15 +298,13 @@ int var(parser_info *p) {
             str_reinit(&p->left_side_vars_types);
             if (!strcmp(p->token->prev->actual_value.str, "_")) {
                 CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
-                gen_add_to_vars("_");
+                gen_add_to_vars("_", -1);
             } else {
                 item = stack_lookup(p->local_st, &p->token->prev->actual_value);
                 if (item == NULL)//not defined beforehand
                     return ERROR_SEM_DEF;
                 CHECK(str_add_char(&p->left_side_vars_types, item->data.as.variable.value_type), SUCCESS);
-                char var_name[item->key.len + BLOCK_SIZE];
-                sprintf(var_name, "%s$%d", item->key.str, item->data.scope);
-                gen_add_to_vars(var_name);
+                gen_add_to_vars(item->key.str, item->data.scope);
             }
 
             if (p->token->type == TOKEN_COMMA) {
@@ -438,7 +432,6 @@ int statement(parser_info *p) {
         }
         else
             nested_for = true;
-
         gen_for_start(for_expression.str);
 
         MATCH(TOKEN_LCURLY, consume_token);
@@ -452,6 +445,8 @@ int statement(parser_info *p) {
         MATCH(TOKEN_RCURLY, consume_token);
         CHECK(leave_scope(&p->local_st), SUCCESS);
         CHECK(leave_scope(&p->local_st), SUCCESS);
+
+        gen_assign(1);
         gen_for_end();
         str_free(&for_expression);
         if(!nested_for)
@@ -880,17 +875,14 @@ int set_data_type(parser_info *p, token_t *token, data_type *type, bool throw_er
         case TOKEN_INT:
         case TOKEN_INTEGER:
             *type = type_int;
-            gen_move_to_defvar("TF@%1 int@",token->actual_value.str);
             break;
         case TOKEN_FLOAT:
         case TOKEN_FLOAT64:
             *type = type_float;
-            gen_move_to_defvar("TF@%1 float@",token->actual_value.str);
             break;
         case TOKEN_STR:
         case TOKEN_STRING:
             *type = type_str;
-            gen_move_to_defvar("TF@%1 string@",token->actual_value.str);
             break;
         case TOKEN_ID:
             if ((item = stack_lookup(p->local_st, &token->actual_value)) == NULL)
