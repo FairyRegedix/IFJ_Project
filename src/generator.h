@@ -25,6 +25,9 @@ typedef enum{
 
 
 
+void gen_add_to_vars(char* var);
+void gen_add_to_exp(char* exp);
+
 void push_int();
 void pop_int();
 void generate_header();

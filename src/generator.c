@@ -8,6 +8,8 @@ unsigned int GTEcounter = 0;
 unsigned int LTEcounter = 0;
 unsigned int ID = 0;
 StringList ListOfStrings;
+StringList Vars;
+StringList Exps;
 
 int IntStack[1000];
 int top = -1;
@@ -24,10 +26,17 @@ void pop_int(){
 
 void close_generator(){
     DisposeListString(&ListOfStrings);
+    DisposeListString(&Vars);
+    DisposeListString(&Exps);
+
+
 }
 
 void generate_header(){
     InitListString(&ListOfStrings);
+    InitListString(&Vars);
+    InitListString(&Exps);
+
     printf(".IFJcode20\n");
     printf("DEFVAR GF@EXPRESULT\n");
     printf("DEFVAR GF@CONCATRESULT\n\n");
@@ -121,6 +130,14 @@ void gen_pushs_param(token_type type, string *value, int scope){
     }
 
 }
+
+void gen_add_to_vars(char* var){
+    ;
+}
+void gen_add_to_exp(char* exp){
+    ;
+}
+
 
 void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables){
     for(int j = 0; j < NumberOfVariables; j++){
