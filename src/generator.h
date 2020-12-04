@@ -3,7 +3,6 @@
 
 
 #include "libraries.h"
-#include "error.h"
 #include "symtable.h"
 #include "scanner.h"
 #include "str.h"
@@ -25,11 +24,14 @@ typedef enum{
 
 unsigned int GTEcounter = 0;
 unsigned int LTEcounter = 0;
-unsigned int tmp_id = 0;
 unsigned int ID = 0;
 StringList ListOfStrings;
-IntList ListOfInts;
 
+int IntStack[1000];
+int top = -1;
+
+void push_int();
+void pop_int();
 void generate_header();
 void generate_start_of_main();
 void generate_end_of_main();
