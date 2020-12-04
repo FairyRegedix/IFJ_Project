@@ -415,7 +415,7 @@ int statement(parser_info *p) {
         else
             nested_for = true;
 
-        gen_for(p->in_function->key.str);
+        gen_for_start(p->in_function->key.str);
 
         MATCH(TOKEN_LCURLY, consume_token);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
@@ -428,7 +428,7 @@ int statement(parser_info *p) {
         MATCH(TOKEN_RCURLY, consume_token);
         CHECK(leave_scope(&p->local_st), SUCCESS);
         CHECK(leave_scope(&p->local_st), SUCCESS);
-        gen_while_end(p->in_function->key.str);
+        gen_for_end();
 
         if(!nested_for)
             p->in_for = false;
@@ -621,7 +621,7 @@ int prog(parser_info *p) {
         // next token set
         return prog(p);
     } else if (p->token->type == TOKEN_EOF) {//Prog -> EOF
-        generate_code_end();
+        //TODO generate_code_end();
         return SUCCESS;
     } else {
         return handle_error(ERROR_SYN,

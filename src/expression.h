@@ -107,11 +107,7 @@ eTypeTerm GetTerm(token_type Ttype);
 eTypeRel Relation(eTypeTerm current, eTypeTerm new);
 
 //funkcia na uplatnovanie pravidiel podla precedencnej tabulky na zjednodusovanie vyrazu a generovanie kodu
-int expressionParse(e_stack* stack,parser_info *p);  
-
-long int Str_to_INT(string* value);
-
-double Str_to_Float(string* value);
+int expressionParse(e_stack* stack,parser_info *p);
 
 
 

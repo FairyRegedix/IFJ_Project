@@ -495,14 +495,3 @@ int expression(parser_info *p) {
 }
 
 
-long int Str_to_INT(string *value) {
-    int converted;
-    converted = atol(value->str);
-    return converted;
-}
-
-double Str_to_Float(string *value) {
-    double converted;
-    converted = atof(value->str);
-    return converted;
-}
