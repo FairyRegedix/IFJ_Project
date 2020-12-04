@@ -134,10 +134,10 @@ void gen_pushs_param(token_type type, string *value, st_stack_t *local_st){
 }
 
 void gen_add_to_vars(char* var){
-    ;
+    InsertFirstString(&Vars, var);
 }
 void gen_add_to_exp(char* exp){
-    ;
+    InsertFirstString(&Exps, exp);
 }
 
 
