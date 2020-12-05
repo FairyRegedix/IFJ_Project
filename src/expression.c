@@ -363,9 +363,14 @@ int expressionParse(e_stack *stack, parser_info *p) {
                         if (itemOP1->type == type_non_term0) {
                             return 9;
                         } else {
-                            //printf("DIVS\n");
-                            str_concat(&p->exp_instruction,"DIVS",strlen("DIVS"));
-                            str_add_char(&p->exp_instruction,'\n');
+                            if(itemOP1->dtype == TOKEN_INT){
+                                str_concat(&p->exp_instruction,"IDIVS",strlen("IDIVS"));
+                                str_add_char(&p->exp_instruction,'\n');
+                            }else{
+                                //printf("DIVS\n");
+                                str_concat(&p->exp_instruction,"DIVS",strlen("DIVS"));
+                                str_add_char(&p->exp_instruction,'\n');
+                            }
                             break;
                         }
 

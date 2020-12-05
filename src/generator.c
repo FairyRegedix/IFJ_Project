@@ -55,6 +55,10 @@ void generate_header(){
     gen_func_inputi();
     gen_func_int2float();
     gen_func_float2int();
+    gen_func_len();
+    gen_func_substr();
+    gen_func_ord();
+    gen_func_chr();
     gen_func_print();
 
 }
@@ -143,6 +147,8 @@ void gen_pushs_param(token_type type, string *value, st_stack_t *local_st){
 
 void gen_add_to_vars(char *var_name, int scope) {
     char* tmp = malloc(strlen(var_name)+BLOCK_SIZE);
+    if(tmp == NULL)
+        exit(99);
     if(scope < 0)
         sprintf(tmp,"%s",var_name);
     else
@@ -172,8 +178,10 @@ void gen_assign(int NumberOfVariables) {
     }
 
     for(int i = 0; i < NumberOfVariables; i++){
-        if(strcmp(Vars.First->data, "_") == 0)
+        if(strcmp(Vars.First->data, "_") == 0){
+            DeleteFirstString(&Vars);
             continue;
+        }
         printf("MOVE LF@%s TF@$tmp$%d\n",Vars.First->data, IntStack[top]);
         DeleteFirstString(&Vars);
         pop_int();
@@ -183,8 +191,10 @@ void gen_assign(int NumberOfVariables) {
 
 void gen_assign_return(int NumberOfVariables){
     for(int i = NumberOfVariables; i > 0; i--){
-        if(strcmp(Vars.First->data, "_") == 0)
+        if(strcmp(Vars.First->data, "_") == 0){
+            DeleteFirstString(&Vars);
             continue;
+        }
         printf("MOVE LF@%s TF@retval$%i\n",Vars.First->data, i);
         DeleteFirstString(&Vars);
     }
@@ -384,8 +394,10 @@ void gen_func_inputs(){
     printf("#FUNCTION INPUTS\n\n");
     printf("LABEL func$inputs\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@$retval\n");
-    printf("MOVE LF@$retval nil@nil\n");
+    printf("DEFVAR LF@retval$1\n");
+    printf("DEFVAR LF@retval$2\n");
+    printf("MOVE LF@retval$1 string@\n");
+    printf("MOVE LF@retval$2 int@0\n");
     printf("DEFVAR LF@param1\n");
     printf("READ LF@param1 string\n");
     printf("DEFVAR LF@errorCheck\n");
@@ -399,47 +411,58 @@ void gen_func_inputs(){
     printf("JUMPIFNEQ $ENDOFINPUTS LF@getchar string@\\010\n");
     printf("SETCHAR LF@param1 LF@strlen string@\\000\n");
     printf("LABEL $ENDOFINPUTS\n");
-    printf("MOVE LF@$retval LF@param1\n");
+    printf("MOVE LF@retval$1 LF@param1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR$INPUTS\n");
-    printf("EXIT int@1\n\n");
+    printf("MOVE LF@retval$2 int@1\n");
+    printf("MOVE LF@retval$1 string@\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
 }
 
 void gen_func_inputi(){
     printf("#FUNCTION INPUTI\n\n");
     printf("LABEL func$inputi\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@$retval\n");
-    printf("MOVE LF@$retval nil@nil\n");
+    printf("DEFVAR LF@retval$1\n");
+    printf("DEFVAR LF@retval$2\n");
+    printf("MOVE LF@retval$1 nil@nil\n");
+    printf("MOVE LF@retval$2 int@0\n");
     printf("DEFVAR LF@param$1\n");
     printf("DEFVAR LF@error$check\n");
     printf("READ LF@param$1 int\n");
     printf("TYPE LF@error$check LF@param$1\n");
     printf("JUMPIFNEQ $ERROR$INPUTI string@int LF@error$check\n");
-    printf("MOVE LF@$retval LF@param$1\n");
+    printf("MOVE LF@retval$1 LF@param$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR$INPUTI\n");
-    printf("EXIT int@1\n\n");
+    printf("MOVE LF@retval$2 int@1\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
 }
 
 void gen_func_inputf(){
     printf("#FUNCTION INPUTF\n\n");
     printf("LABEL func$inputf\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@$retval\n");
-    printf("MOVE LF@$retval nil@nil\n");
+    printf("DEFVAR LF@retval$1\n");
+    printf("DEFVAR LF@retval$2\n");
+    printf("MOVE LF@retval$1 nil@nil\n");
+    printf("MOVE LF@retval$2 int@0\n");
     printf("DEFVAR LF@param$1\n");
     printf("DEFVAR LF@error$check\n");
     printf("READ LF@param$1 float\n");
     printf("TYPE LF@error$check LF@param$1\n");
     printf("JUMPIFNEQ $ERROR$INPUTF string@float LF@error$check\n");
-    printf("MOVE LF@$retval LF@param$1\n");
+    printf("MOVE LF@retval$1 LF@param$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR$INPUTF\n");
-    printf("EXIT int@1\n\n");
+    printf("MOVE LF@retval$2 int@1\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
 }
 
 void gen_func_print(){
@@ -461,11 +484,13 @@ void gen_func_int2float(){
     printf("#FUNCTION INT2FLOAT\n\n");
     printf("LABEL func$int2float\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@$retval\n");
+    printf("DEFVAR LF@$1\n");
+    printf("POPS LF@$1\n");
+    printf("DEFVAR LF@retval$1\n");
     printf("DEFVAR LF@error$check\n");
     printf("TYPE LF@error$check LF@$1\n");
     printf("JUMPIFNEQ $ERROR$INT2FLOAT string@int LF@error$check\n");
-    printf("INT2FLOAT LF@$retval LF@$1\n");
+    printf("INT2FLOAT LF@retval$1 LF@$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR$INT2FLOAT\n");
@@ -476,11 +501,13 @@ void gen_func_float2int(){
     printf("#FUNCTION FLOAT2INT\n\n");
     printf("LABEL func$float2int\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@$retval\n");
+    printf("DEFVAR LF@$1\n");
+    printf("POPS LF@$1\n");
+    printf("DEFVAR LF@retval$1\n");
     printf("DEFVAR LF@error$check\n");
     printf("TYPE LF@error$check LF@$1\n");
     printf("JUMPIFNEQ $ERROR$FLOAT2INT string@float LF@error$check\n");
-    printf("FLOAT2INT LF@$retval LF@$1\n");
+    printf("FLOAT2INT LF@retval$1 LF@$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR$FLOAT2INT\n");
@@ -491,8 +518,9 @@ void gen_func_len(){
     printf("#FUNCTION LEN\n\n");
     printf("LABEL func$len\n");
     printf("PUSHFRAME\n");
-    printf("DEFVAR LF@$retval1\n");
-    printf("POPS LF@$retval1\n");
+    printf("DEFVAR LF@retval$1\n");
+    printf("POPS LF@retval$1\n");
+    printf("STRLEN LF@retval$1 LF@retval$1\n");
     printf("POPFRAME\n");
     printf("RETURN\n");
 }
@@ -508,16 +536,16 @@ void gen_func_substr(){
     printf("POPS LF@i\n");
     printf("POPS LF@n\n");
 
-    printf("DEFVAR LF@$retval1\n");
-    printf("DEFVAR LF@$retval2\n");
+    printf("DEFVAR LF@retval$1\n");
+    printf("DEFVAR LF@retval$2\n");
 
     printf("DEFVAR LF@$bool\n");
     printf("DEFVAR LF@$len\n");
     printf("DEFVAR LF@$tmpstring\n");
 
     printf("STRLEN LF@$len LF@string\n");
-    printf("MOVE LF@$retval1 string@\n");
-    printf("MOVE LF@$retval2 int@0\n");
+    printf("MOVE LF@retval$1 string@\n");
+    printf("MOVE LF@retval$2 int@0\n");
 
     printf("CLEARS\n");
     printf("PUSHS LF@$len\n");
@@ -559,13 +587,13 @@ void gen_func_substr(){
     printf("JUMPIFEQ $substr$end LF@$bool bool@false\n");
 
     printf("GETCHAR LF@$tmpstring LF@string LF@i\n");
-    printf("CONCAT LF@$retval1 LF@$retval1 LF@$tmpstring\n");
+    printf("CONCAT LF@retval$1 LF@retval$1 LF@$tmpstring\n");
 
     printf("ADD LF@i LF@i int@1\n");
     printf("JUMP $substr$whilestart\n");
 
     printf("label $substr$error\n");
-    printf("MOVE LF@$retval2 int@1\n");
+    printf("MOVE LF@retval$2 int@1\n");
 
     printf("label $substr$end\n");
     printf("POPFRAME\n");
@@ -579,12 +607,15 @@ void gen_func_ord(){
     printf("DEFVAR LF@ord$string\n");
     printf("DEFVAR LF@ord$int\n");
     printf("DEFVAR LF@retval$1\n");
+    printf("DEFVAR LF@retval$2\n");
+    printf("MOVE LF@retval$2 int@0\n");
     printf("POPS LF@ord$string\n");
     printf("POPS LF@ord$int\n");
     printf("DEFVAR LF@error$check\n");
     printf("PUSHS LF@ord$int\n");
     printf("PUSHS int@0\n");
-    printf("GTS\n");
+    printf("LTS\n");
+    printf("NOTS\n");
     printf("DEFVAR LF@$lenght$ord\n");
     printf("STRLEN LF@$lenght$ord LF@ord$string\n");
     printf("PUSHS LF@ord$int\n");
@@ -597,7 +628,10 @@ void gen_func_ord(){
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR$ORD\n");
-    printf("EXIT int@1\n\n");
+    printf("MOVE LF@retval$2 int@1\n");
+    printf("MOVE LF@retval$1 int@0\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
 }
 
 void gen_func_chr(){
@@ -606,6 +640,9 @@ void gen_func_chr(){
     printf("PUSHFRAME\n");
     printf("DEFVAR LF@chr$int\n");
     printf("DEFVAR LF@retval$1\n");
+    printf("DEFVAR LF@retval$2\n");
+    printf("MOVE LF@retval$1 string@\n");
+    printf("MOVE LF@retval$2 int@0\n");
     printf("POPS LF@chr$int\n");
     printf("PUSHS LF@chr$int\n");
     printf("PUSHS int@-1\n");
@@ -620,7 +657,9 @@ void gen_func_chr(){
     printf("POPFRAME\n");
     printf("RETURN\n");
     printf("LABEL $ERROR$CHR\n");
-    printf("EXIT int@1\n\n");
+    printf("MOVE LF@retval$2 int@1\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
 }
 
 void gen_pushs(char* s1){

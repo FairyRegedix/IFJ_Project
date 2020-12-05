@@ -65,9 +65,9 @@ int return_exp(parser_info *p);
 int for_assign(parser_info *p) {
     int error_code;
     st_item *item;
+    str_reinit(&p->left_side_vars_types);
     if (p->token->type == TOKEN_ID) {
 
-        str_reinit(&p->left_side_vars_types);
         if (strcmp(p->token->actual_value.str, "_") == 0){
             CHECK(str_add_char(&p->left_side_vars_types, '_'), SUCCESS);
             gen_add_to_vars("_", -1);
@@ -199,6 +199,7 @@ int end_assign(parser_info *p) {
     int error_code;
     st_item *item;
     str_reinit(&p->right_side_exp_types);
+    p->function_called = NULL;
 
     if (p->token->type == TOKEN_ID) {
         item = stack_lookup(p->local_st, &p->token->actual_value);
@@ -209,7 +210,7 @@ int end_assign(parser_info *p) {
                 p->function_called = item;
                 get_next_token(p);
                 CHECK( func_call(p), SUCCESS);
-                gen_assign_return(item->data.as.function.ret_types.len);
+                //gen_assign_return(item->data.as.function.ret_types.len);
                 return SUCCESS;
             }
         } else//identifier not defined
@@ -222,8 +223,6 @@ int end_assign(parser_info *p) {
 
     if (check_types(&p->left_side_vars_types, &p->right_side_exp_types))
         return ERROR_SEM_OTHER;
-
-    gen_assign(p->left_side_vars_types.len);
 
     return SUCCESS;
 }
@@ -320,6 +319,12 @@ int var(parser_info *p) {
 
             CHECK(EOL_opt(p), SUCCESS);
             CHECK(end_assign(p), SUCCESS);
+            if(p->function_called != NULL){
+                gen_assign_return(p->function_called->data.as.function.ret_types.len);
+                p->function_called = NULL;
+            }
+            else
+                gen_assign(p->left_side_vars_types.len);
 
             return SUCCESS;
 
@@ -437,6 +442,7 @@ int statement(parser_info *p) {
         }
         else
             nested_for = true;
+
         gen_for_start(for_expression.str);
 
         MATCH(TOKEN_LCURLY, consume_token);
@@ -465,6 +471,7 @@ int statement(parser_info *p) {
         gen_set_retvals(p->right_side_exp_types.len);
         if (str_cmp(&p->in_function->data.as.function.ret_types, &p->right_side_exp_types))
             return ERROR_SEM_PAR;
+        gen_end_of_function();
 
     } else { ; }
 

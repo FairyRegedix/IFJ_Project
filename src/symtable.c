@@ -110,7 +110,6 @@ st_item* st_get_item(symbol_table_t *st, const string* key){
     unsigned long hash_code = hash(key->str) % ST_SIZE;
     st_item* item = (*st)[hash_code];
     while(item != NULL && str_cmp(&item->key,key)){
-        printf("%s\n",item->key.str);
         item=item->next;
     }
     return item; //NULL or desired item
