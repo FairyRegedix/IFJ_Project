@@ -25,7 +25,7 @@ typedef enum{
 
 
 
-void gen_add_to_vars(char* var);
+void gen_add_to_vars(char *var_name, int scope);
 void gen_add_to_exp(char* exp);
 
 void push_int();
@@ -37,9 +37,9 @@ void gen_defvar(char* id,int scope, bool in_for);
 void gen_retvals(int number_of_return_values);
 void gen_move_to_defvar(char* id_of_variable, char* value);
 void gen_params(string* params);
-void gen_call_params(token_t* last);
-void gen_pushs_param(token_type type, string *value, int scope);
-void gen_assign(int NumberOfVariables, StringList *Expressions, StringList *Variables);
+void gen_call_params(token_t *last, st_stack_t *local_st);
+void gen_pushs_param(token_type type, string *value, st_stack_t *local_st);
+void gen_assign(int NumberOfVariables);
 void gen_for_start(char *expression);
 void gen_for_jump();
 void gen_for_end();

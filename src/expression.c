@@ -1,6 +1,5 @@
 #include "expression.h"
 
-
 unsigned int StackItems = 0;
 unsigned int DisposedItems = 0;
 
@@ -248,22 +247,26 @@ int expressionParse(e_stack *stack, parser_info *p) {
                         return 3;
                     }
                     dataType = itemCheck->data.as.variable.value_type;
+                    char scope[50];
                     if (dataType == TOKEN_STRING) {
                         //printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
                         str_concat(&p->exp_instruction,"PUSHS LF@",strlen("PUSHS LF@"));
                         str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
-                        str_add_char(&p->exp_instruction,'\n');
+                        sprintf(scope,"$%d\n", itemCheck->data.scope);
+                        str_concat(&p->exp_instruction, scope, strlen(scope));
 
                     } else if (dataType == TOKEN_INT) {
                         //printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
                         str_concat(&p->exp_instruction,"PUSHS LF@",strlen("PUSHS LF@"));
                         str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
-                        str_add_char(&p->exp_instruction,'\n');
+                        sprintf(scope,"$%d\n", itemCheck->data.scope);
+                        str_concat(&p->exp_instruction, scope, strlen(scope));
                     } else {
                         //printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
                         str_concat(&p->exp_instruction,"PUSHS float@",strlen("PUSHS float@"));
                         str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
-                        str_add_char(&p->exp_instruction,'\n');
+                        sprintf(scope,"$%d\n", itemCheck->data.scope);
+                        str_concat(&p->exp_instruction, scope, strlen(scope));
                     }
                     break;
 
@@ -511,8 +514,8 @@ int expression(parser_info *p) {
                     } else {
                         loop = 1;
                         //printf("POPS GF@EXPRESULT\n");
-                        str_concat(&p->exp_instruction,"POPS GF@EXPRESULT",strlen("POPS GF@EXPRESULT"));
-                        str_add_char(&p->exp_instruction,'\n');
+//                        str_concat(&p->exp_instruction,"POPS GF@EXPRESULT",strlen("POPS GF@EXPRESULT"));
+//                        str_add_char(&p->exp_instruction,'\n');
                         //spravne ukoncenie analyzy vyrazu
                     }
 

@@ -45,6 +45,7 @@ void DeleteFirstString(StringList *List){
     
         StringElementPtr elemPtr;
         elemPtr = List->First->ptr;
+        free(List->First->data);
         free(List->First);
         List->First = elemPtr;
     }
