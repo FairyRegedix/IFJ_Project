@@ -189,7 +189,7 @@ int exp_n(parser_info *p) {
     while (p->token->type == TOKEN_COMMA) {
         get_next_token(p);
         CHECK(expression(p), SUCCESS);
-        gen_add_to_exp(p->exp_instruction.str);
+        gen_add_to_exp(p->exp_instruction.str, p->in_for);
     }
     return SUCCESS;
 }
@@ -214,7 +214,7 @@ int end_assign(parser_info *p) {
     }
 
     CHECK(expression(p), SUCCESS);//call to expression and then subsequent calls to expression in exp_n
-    gen_add_to_exp(p->exp_instruction.str);
+    gen_add_to_exp(p->exp_instruction.str, p->in_for);
     CHECK(exp_n(p), SUCCESS);
 
     if (check_types(&p->left_side_vars_types, &p->right_side_exp_types))
@@ -390,6 +390,7 @@ int statement(parser_info *p) {
         //CHECK(EOL_opt(p), SUCCESS);
         str_reinit(&p->right_side_exp_types);
         CHECK(expression(p), SUCCESS);
+
         string for_expression;
         str_init(&for_expression);
         str_copy(&for_expression,&p->exp_instruction);
@@ -401,6 +402,7 @@ int statement(parser_info *p) {
         //CHECK(EOL_opt(p), SUCCESS);
 
         CHECK(for_assign(p), SUCCESS);
+        int varno = p->left_side_vars_types.len;
         //next token set
         helper_token = p->token->next;
         helper_scope = p->scope;
@@ -446,7 +448,7 @@ int statement(parser_info *p) {
         CHECK(leave_scope(&p->local_st), SUCCESS);
         CHECK(leave_scope(&p->local_st), SUCCESS);
 
-        gen_assign(1);
+        gen_assign(varno);
         gen_for_end();
         str_free(&for_expression);
         if(!nested_for)

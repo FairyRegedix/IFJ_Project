@@ -51,7 +51,9 @@ void InsertLastString(StringList *List, char *val){
     }else
     {
         newElemPtr->data = val;
-        List->Last->ptr = newElemPtr;
+        newElemPtr->ptr = NULL;
+        if(List->Last != NULL)
+            List->Last->ptr = newElemPtr;
         List->Last = newElemPtr;
         if(List->First == NULL){
             List->First = List->Last;
@@ -61,21 +63,26 @@ void InsertLastString(StringList *List, char *val){
 }
 
 void DeleteFirstString(StringList *List){
+    StringElementPtr elemPtr;
+
     if(List->First != NULL){
         if(List->Actual == List->First)
             List->Actual = NULL;
-    
-        StringElementPtr elemPtr;
+
         elemPtr = List->First->ptr;
         free(List->First->data);
         free(List->First);
         List->First = elemPtr;
+
+        if(List->First == NULL)
+            List->Last = NULL;
     }
 }
 
 void InitListInt(IntList *List){
     List->Actual = NULL;
     List->First = NULL;
+
 }
 
 void DisposeListInt(IntList *List){

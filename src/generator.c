@@ -144,10 +144,13 @@ void gen_add_to_vars(char *var_name, int scope) {
         sprintf(tmp,"%s$%i",var_name,scope);
     InsertFirstString(&Vars, tmp);
 }
-void gen_add_to_exp(char* exp){
+void gen_add_to_exp(char *exp, bool in_for) {
     char* tmp = malloc(strlen(exp)+1);
     strcpy(tmp,exp);
-    InsertLastString(&Exps, tmp);
+    if(in_for)
+        InsertFirstString(&Exps, tmp);
+    else
+        InsertLastString(&Exps, tmp);
 }
 
 
