@@ -202,11 +202,12 @@ int expressionParse(e_stack *stack, parser_info *p) {
     st_item *itemCheck;
     switch (ruleSize) {
         case 1:{
-
+            char scope[50];
             //token_type dataType;
             itemOP = pop_stack(stack);
             // pravidlo E -> <val>
             switch (itemOP->dtype) {
+
                 case TOKEN_INT:
                 case TOKEN_INTEGER:
                     dataType = TOKEN_INT;
@@ -220,8 +221,11 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_FLOAT64:
                     dataType = TOKEN_FLOAT64;
                     //printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
+
+                    sprintf(scope,"%a",Str_to_Float(&itemOP->token_stack->actual_value));
+
                     str_concat(&p->exp_instruction,"PUSHS float@",strlen("PUSHS float@"));
-                    str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
+                    str_concat(&p->exp_instruction,scope,strlen(scope));
                     str_add_char(&p->exp_instruction,'\n');
                     break;
 
@@ -247,27 +251,12 @@ int expressionParse(e_stack *stack, parser_info *p) {
                         return 3;
                     }
                     dataType = itemCheck->data.as.variable.value_type;
-                    char scope[50];
-                    if (dataType == TOKEN_STRING) {
-                        //printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
-                        str_concat(&p->exp_instruction,"PUSHS LF@",strlen("PUSHS LF@"));
-                        str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
-                        sprintf(scope,"$%d\n", itemCheck->data.scope);
-                        str_concat(&p->exp_instruction, scope, strlen(scope));
 
-                    } else if (dataType == TOKEN_INT) {
-                        //printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
-                        str_concat(&p->exp_instruction,"PUSHS LF@",strlen("PUSHS LF@"));
-                        str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
-                        sprintf(scope,"$%d\n", itemCheck->data.scope);
-                        str_concat(&p->exp_instruction, scope, strlen(scope));
-                    } else {
-                        //printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
-                        str_concat(&p->exp_instruction,"PUSHS float@",strlen("PUSHS float@"));
-                        str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
-                        sprintf(scope,"$%d\n", itemCheck->data.scope);
-                        str_concat(&p->exp_instruction, scope, strlen(scope));
-                    }
+                    //printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
+                    str_concat(&p->exp_instruction,"PUSHS LF@",strlen("PUSHS LF@"));
+                    str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
+                    sprintf(scope,"$%d\n", itemCheck->data.scope);
+                    str_concat(&p->exp_instruction, scope, strlen(scope));
                     break;
 
                 default:
@@ -336,10 +325,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
                         printf("POPS GF@exp$string1");
                         printf("CONCAT GF@CONCATRESULT GF@exp$string1 GF@exp$string2");
                         printf("PUSH GF@CONCATRESULT");*/
-                        str_concat(&p->exp_instruction,"DEFVAR GF@exp$string1",strlen("DEFVAR GF@exp$string1"));
-                        str_add_char(&p->exp_instruction,'\n');
-                        str_concat(&p->exp_instruction,"DEFVAR GF@exp&string2",strlen("DEFVAR GF@exp&string2"));
-                        str_add_char(&p->exp_instruction,'\n');
                         str_concat(&p->exp_instruction,"POPS GF@exp$string2",strlen("POPS GF@exp$string2"));
                         str_add_char(&p->exp_instruction,'\n');
                         str_concat(&p->exp_instruction,"POPS GF@exp$string1",strlen("POPS GF@exp$string1"));
@@ -349,9 +334,10 @@ int expressionParse(e_stack *stack, parser_info *p) {
                         str_concat(&p->exp_instruction,"PUSHS GF@CONCATRESULT",strlen("PUSHS GF@CONCATRESULT"));
                         str_add_char(&p->exp_instruction,'\n');
                     }
-                    //printf("ADDS\n");
-                    str_concat(&p->exp_instruction,"ADDS",strlen("ADDS"));
-                    str_add_char(&p->exp_instruction,'\n');
+                    else{
+                        str_concat(&p->exp_instruction,"ADDS",strlen("ADDS"));
+                        str_add_char(&p->exp_instruction,'\n');
+                    }
                     break;
                 case TOKEN_SUB:
                     //E -> E - E

@@ -218,7 +218,7 @@ int enter_scope(st_stack_t** s, int *n){
     return SUCCESS;
 }
 
-int leave_scope(st_stack_t **s) {
+int leave_scope(st_stack_t **s, int *n) {
     st_stack_t* del;
     if(s == NULL)
         return ERROR_TRANS;
@@ -229,6 +229,8 @@ int leave_scope(st_stack_t **s) {
     *s = del->parent;
     st_dispose(&del->local_table);
     free(del);
+    if(*s == NULL)
+        *n = 0;
     return SUCCESS;
 }
 

@@ -122,6 +122,7 @@ int return_exp(parser_info *p) {
 
     } else {
         CHECK(expression(p), SUCCESS);
+        gen_add_to_exp(p->exp_instruction.str, p->in_for);
         CHECK(exp_n(p), SUCCESS);
     }
     return SUCCESS;
@@ -153,7 +154,7 @@ int call_params(parser_info *p) {
     if (p->token->type == TOKEN_RBRACKET)
         return SUCCESS; // call_params -> eps
 
-    CHECK(set_data_type(p, p->token, &type, 0), SUCCESS);
+    CHECK(set_data_type(p, p->token, &type, true), SUCCESS);
     CHECK(str_add_char(&p->right_side_exp_types, type), SUCCESS);
     p->last_param = p->token;
     get_next_token(p);
@@ -207,7 +208,9 @@ int end_assign(parser_info *p) {
             if (item->data.type == type_function) {
                 p->function_called = item;
                 get_next_token(p);
-                return func_call(p);
+                CHECK( func_call(p), SUCCESS);
+                gen_assign_return(item->data.as.function.ret_types.len);
+                return SUCCESS;
             }
         } else//identifier not defined
             return ERROR_SEM_DEF;
@@ -219,6 +222,8 @@ int end_assign(parser_info *p) {
 
     if (check_types(&p->left_side_vars_types, &p->right_side_exp_types))
         return ERROR_SEM_OTHER;
+
+    gen_assign(p->left_side_vars_types.len);
 
     return SUCCESS;
 }
@@ -315,7 +320,7 @@ int var(parser_info *p) {
 
             CHECK(EOL_opt(p), SUCCESS);
             CHECK(end_assign(p), SUCCESS);
-            gen_assign(p->left_side_vars_types.len);
+
             return SUCCESS;
 
         default:
@@ -345,7 +350,7 @@ int statement(parser_info *p) {
         CHECK(expression(p), SUCCESS);
         if(p->right_side_exp_types.str[0] != TOKEN_BOOLEAN)
             return ERROR_SEM_COMP;
-        gen_if_start(p->in_function->key.str);
+        gen_if_start(p->exp_instruction.str);
 
         //next token set
 
@@ -360,12 +365,10 @@ int statement(parser_info *p) {
 
         //next token set
         MATCH(TOKEN_RCURLY, consume_token);
-        CHECK(leave_scope(&p->local_st), SUCCESS);
+        CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
 
         MATCH(TOKEN_ELSE, consume_token);
-
-        gen_if_else(p->in_function->key.str);
-
+        gen_else();
         MATCH(TOKEN_LCURLY, consume_token);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
 
@@ -376,9 +379,9 @@ int statement(parser_info *p) {
         CHECK(statement_list(p), SUCCESS);
         //next token set
         MATCH(TOKEN_RCURLY, consume_token);
-        CHECK(leave_scope(&p->local_st), SUCCESS);
+        CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
 
-        gen_if_end(p->in_function->key.str);
+        gen_if_end();
 
     } else if (p->token->type == TOKEN_FOR) {
         get_next_token(p);
@@ -445,8 +448,8 @@ int statement(parser_info *p) {
         CHECK(statement_list(p), SUCCESS);
         //next token set
         MATCH(TOKEN_RCURLY, consume_token);
-        CHECK(leave_scope(&p->local_st), SUCCESS);
-        CHECK(leave_scope(&p->local_st), SUCCESS);
+        CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
+        CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
 
         gen_assign(varno);
         gen_for_end();
@@ -459,6 +462,7 @@ int statement(parser_info *p) {
         str_reinit(&p->right_side_exp_types);
         get_next_token(p);
         CHECK(return_exp(p), SUCCESS);
+        gen_set_retvals(p->right_side_exp_types.len);
         if (str_cmp(&p->in_function->data.as.function.ret_types, &p->right_side_exp_types))
             return ERROR_SEM_PAR;
 
@@ -541,8 +545,10 @@ int params_n(parser_info *p) {
                 return ERROR_TRANS;
             if (item->data.defined) //redefinition of local variables
                 return ERROR_SEM_DEF;
-            else
+            else{
+                item->data.scope = 0;
                 item->data.defined = true;
+            }
 
             get_next_token(p);
 
@@ -577,7 +583,7 @@ int params(parser_info *p) {
             return ERROR_TRANS;
         if (item->data.defined) //redefinition of local variables
             return ERROR_SEM_DEF;
-
+        item->data.scope = 0;
         item->data.defined = true;
 
         get_next_token(p);
@@ -622,7 +628,7 @@ int func(parser_info *p) {
     //next token set
     MATCH(TOKEN_RCURLY, consume_token);
 
-    CHECK(leave_scope(&p->local_st), SUCCESS);
+    CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
 
     gen_end_of_function();
     return SUCCESS;
@@ -727,13 +733,14 @@ int parser() {
         error_code = prolog(&p);
         if (error_code == SUCCESS)
             error_code = check_main(&p.st);
+        close_generator();
         str_free(&p.right_side_exp_types);
         str_free(&p.left_side_vars_types);
         str_free(&p.exp_instruction);
         st_dispose(&p.st);
         token_list_dispose(&p.token_list);
         while (p.local_st != NULL)
-            leave_scope(&p.local_st);
+            leave_scope(&p.local_st, &p.scope);
 
         return error_code;
     }
@@ -795,7 +802,7 @@ int main() {//testing
     if (ret)
         return ret;
     else
-        printf("Parsing Successful!!\n");
+        fprintf(stderr,"Parsing Successful!!\n");
     return 0;
 }
 
@@ -874,16 +881,13 @@ bool is_data_type(token_type type) {
 int set_data_type(parser_info *p, token_t *token, data_type *type, bool throw_error_on_default) {
     st_item *item = NULL;
     switch (token->type) {
-        case TOKEN_INT:
         case TOKEN_INTEGER:
             *type = type_int;
             break;
         case TOKEN_FLOAT:
-        case TOKEN_FLOAT64:
             *type = type_float;
             break;
         case TOKEN_STR:
-        case TOKEN_STRING:
             *type = type_str;
             break;
         case TOKEN_ID:

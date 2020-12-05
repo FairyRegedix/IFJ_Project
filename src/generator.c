@@ -26,6 +26,9 @@ void pop_int(){
 }
 
 void close_generator(){
+    printf("LABEL $$final_end\n");
+    //printf("WRITE string@Program\\032end!");
+    printf("EXIT int@0\n");
     DisposeListString(&ListOfStrings);
     DisposeListString(&Vars);
     DisposeListString(&Exps);
@@ -40,7 +43,9 @@ void generate_header(){
 
     printf(".IFJcode20\n");
     printf("DEFVAR GF@EXPRESULT\n");
-    printf("DEFVAR GF@CONCATRESULT\n\n");
+    printf("DEFVAR GF@CONCATRESULT\n");
+    printf("DEFVAR GF@exp$string1\n");
+    printf("DEFVAR GF@exp$string2\n");
     printf("CREATEFRAME\n");
     printf("CALL func$main\n");
     printf("JUMP $$final_end\n");
@@ -85,17 +90,15 @@ void gen_params(string* params){
             printf("$0\nDEFVAR LF@");
         }
     }
-
+    printf("$0\n");
     char tmpchar[params->len];
     int j = 0;
-    for(int i = params->len-1 ; i >= 0; i--){
+    for(int i = 0 ; i < params->len; i++){
         if(params->str[i] != '#'){
-            tmpchar[j] = params->str[i];
-            j++;
+            tmpchar[j++] = params->str[i];
         }else
         {
             tmpchar[j] = '\0';
-            strrev(tmpchar);
             printf("POPS LF@%s$0\n", tmpchar);
             j = 0;
         }
@@ -104,6 +107,8 @@ void gen_params(string* params){
 
 void gen_call_params(token_t *last, st_stack_t *local_st) {
     token_t* prev = last;
+    if (prev == NULL)
+        return;
     while(prev->type != TOKEN_LBRACKET){
         gen_pushs_param(prev->type, &prev->actual_value, local_st);
         prev = prev->prev;
@@ -167,12 +172,32 @@ void gen_assign(int NumberOfVariables) {
     }
 
     for(int i = 0; i < NumberOfVariables; i++){
+        if(strcmp(Vars.First->data, "_") == 0)
+            continue;
         printf("MOVE LF@%s TF@$tmp$%d\n",Vars.First->data, IntStack[top]);
         DeleteFirstString(&Vars);
         pop_int();
     }
 
 }
+
+void gen_assign_return(int NumberOfVariables){
+    for(int i = NumberOfVariables; i > 0; i--){
+        if(strcmp(Vars.First->data, "_") == 0)
+            continue;
+        printf("MOVE LF@%s TF@retval$%i\n",Vars.First->data, i);
+        DeleteFirstString(&Vars);
+    }
+}
+
+void gen_set_retvals(int NumberOfReturns){
+    for(int i = 1; i <= NumberOfReturns; i++){
+        printf("%s", Exps.First->data);
+        DeleteFirstString(&Exps);
+        printf("POPS LF@retval$%i\n",i);
+    }
+}
+
 
 void gen_for_start(char *expression){
     printf("LABEL CHECK$FOR$%d\n", ID);
@@ -211,10 +236,6 @@ void gen_call(char* function){
     printf("CALL func$%s\n", function);
 }
 
-void gen_return(){
-    printf("RETURN\n");
-}
-
 void gen_WRITE(char* s1){
     printf("WRITE LF%s\n", s1);
 }
@@ -242,6 +263,7 @@ void gen_end_of_function(){
 void gen_if_start(char* expression){
     printf("#IF $if$%d\n",ID);
     printf("%s", expression);
+    printf("PUSHS bool@true\n");
     printf("JUMPIFNEQS $if$%d$else$%d\n",ID, elseCounter);
     push_int();
 }
@@ -251,6 +273,7 @@ void gen_if_else(char* expression){
     printf("LABEL $if$%d$else$%d\n", IntStack[top], elseCounter);
     printf("%s", expression);
     elseCounter++;
+    printf("PUSHS bool@true\n");
     printf("JUMPIFNEQS $if$%d$else$%d\n",ID, elseCounter);
 }
 
@@ -550,6 +573,7 @@ void gen_func_substr(){
 }
 
 void gen_func_ord(){
+
 
 }
 

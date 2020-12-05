@@ -24,10 +24,13 @@ typedef enum{
 
 
 
+void gen_set_retvals(int NumberOfReturns);
+void gen_assign_return(int NumberOfVariables);
 
 void gen_add_to_vars(char *var_name, int scope);
 void gen_add_to_exp(char *exp, bool in_for);
 
+void close_generator();
 void push_int();
 void pop_int();
 void generate_header();
