@@ -573,12 +573,54 @@ void gen_func_substr(){
 }
 
 void gen_func_ord(){
-
-
+    printf("#FUNCTION ORD\n\n");
+    printf("LABEL func$ord\n");
+    printf("PUSHFRAME\n");
+    printf("DEFVAR LF@ord$string\n");
+    printf("DEFVAR LF@ord$int\n");
+    printf("DEFVAR LF@retval$1\n");
+    printf("POPS LF@ord$string\n");
+    printf("POPS LF@ord$int\n");
+    printf("DEFVAR LF@error$check\n");
+    printf("PUSHS LF@ord$int\n");
+    printf("PUSHS int@0\n");
+    printf("GTS\n");
+    printf("DEFVAR LF@$lenght$ord\n");
+    printf("STRLEN LF@$lenght$ord LF@ord$string\n");
+    printf("PUSHS LF@ord$int\n");
+    printf("PUSHS LF@$lenght$ord\n");
+    printf("LTS\n");
+    printf("ANDS\n");
+    printf("PUSHS bool@true\n");
+    printf("JUMPIFNEQS $ERROR$ORD\n");
+    printf("STRI2INT LF@retval$1 LF@ord$string LF@ord$int\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+    printf("LABEL $ERROR$ORD\n");
+    printf("EXIT int@1\n\n");
 }
 
 void gen_func_chr(){
-    
+    printf("#FUNCTION CHR\n\n");
+    printf("LABEL func$chr\n");
+    printf("PUSHFRAME\n");
+    printf("DEFVAR LF@chr$int\n");
+    printf("DEFVAR LF@retval$1\n");
+    printf("POPS LF@chr$int\n");
+    printf("PUSHS LF@chr$int\n");
+    printf("PUSHS int@-1\n");
+    printf("GTS\n");
+    printf("PUSHS LF@chr$int\n");
+    printf("PUSHS int@256\n");
+    printf("LTS\n");
+    printf("ANDS\n");
+    printf("PUSHS bool@true\n");
+    printf("JUMPIFNEQS $ERROR$CHR\n");
+    printf("INT2CHAR LF@retval$1 LF@chr$int\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+    printf("LABEL $ERROR$CHR\n");
+    printf("EXIT int@1\n\n");
 }
 
 void gen_pushs(char* s1){
