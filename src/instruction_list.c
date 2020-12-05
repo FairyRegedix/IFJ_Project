@@ -5,6 +5,7 @@
 void InitListString(StringList *List){
     List->First = NULL;
     List->Actual = NULL;
+    List->Last = NULL;
 }
 
 void DisposeListString(StringList *List){
@@ -23,6 +24,7 @@ void DisposeListString(StringList *List){
 
         List->First = NULL;
         List->Actual = NULL;
+        List->Last = NULL;
     }
 }
 
@@ -35,7 +37,27 @@ void InsertFirstString(StringList *List, char *val){
         newElemPtr->data = val;
         newElemPtr->ptr = List->First;
         List->First = newElemPtr;
+        if(List->Last == NULL){
+            List->Last = List->First;
+        }
     }
+}
+
+void InsertLastString(StringList *List, char *val){
+    StringElementPtr newElemPtr = malloc(sizeof(struct StringElement));
+
+    if(newElemPtr == NULL){
+        return;
+    }else
+    {
+        newElemPtr->data = val;
+        List->Last->ptr = newElemPtr;
+        List->Last = newElemPtr;
+        if(List->First == NULL){
+            List->First = List->Last;
+        }
+    }
+    
 }
 
 void DeleteFirstString(StringList *List){

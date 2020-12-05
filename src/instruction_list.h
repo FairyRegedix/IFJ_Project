@@ -12,11 +12,13 @@ typedef struct
 {
     StringElementPtr Actual;
     StringElementPtr First;
+    StringElementPtr Last;
 } StringList;
 
 void InitListString(StringList *);
 void DisposeListString(StringList *);
 void InsertFirstString(StringList *, char *);
+void InsertLastString(StringList *List, char *val);
 void DeleteFirstString(StringList *);
 
 typedef struct IntElement{
