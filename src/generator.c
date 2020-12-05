@@ -7,6 +7,7 @@
 unsigned int GTEcounter = 0;
 unsigned int LTEcounter = 0;
 unsigned int ID = 0;
+unsigned int elseCounter = 0;
 StringList ListOfStrings;
 StringList Vars;
 StringList Exps;
@@ -146,7 +147,7 @@ void gen_add_to_vars(char *var_name, int scope) {
 void gen_add_to_exp(char* exp){
     char* tmp = malloc(strlen(exp)+1);
     strcpy(tmp,exp);
-    InsertFirstString(&Exps, tmp);
+    InsertLastString(&Exps, tmp);
 }
 
 
@@ -235,20 +236,30 @@ void gen_end_of_function(){
     gen_LABEL_end();
 }
 
-void gen_if_start(char* truefalse){
+void gen_if_start(char* expression){
     printf("#IF $if$%d\n",ID);
-    printf("JUMPIFEQ $if$%d$else bool@true %s\n",ID, truefalse);
+    printf("%s", expression);
+    printf("JUMPIFNEQS $if$%d$else$%d\n",ID, elseCounter);
     push_int();
 }
 
-void gen_if_else(){
+void gen_if_else(char* expression){
     printf("JUMP $if$%d$end\n", IntStack[top]);
-    printf("LABEL $if$%d$else\n", IntStack[top]);
+    printf("LABEL $if$%d$else$%d\n", IntStack[top], elseCounter);
+    printf("%s", expression);
+    elseCounter++;
+    printf("JUMPIFNEQS $if$%d$else$%d\n",ID, elseCounter);
+}
+
+void gen_else(){
+    printf("JUMP $if$%d$end\n", IntStack[top]);
+    printf("LABEL $if$%d$else$%d\n", IntStack[top], elseCounter);
 }
 
 void gen_if_end(){
     printf("LABEL $if$%d$end\n", IntStack[top]);
     pop_int();
+    elseCounter = 0;
 }
 
 void gen_while_start(char* label, int id){
@@ -461,78 +472,78 @@ void gen_func_len(){
 }
 
 void gen_func_substr(){
-    printf("LABEL func$substr");
-    printf("PUSHFRAME");
-    printf("DEFVAR LF@string");
-    printf("DEFVAR LF@i");
-    printf("DEFVAR LF@n");
+    printf("LABEL func$substr\n\n");
+    printf("PUSHFRAME\n");
+    printf("DEFVAR LF@string\n");
+    printf("DEFVAR LF@i\n");
+    printf("DEFVAR LF@n\n");
 
-    printf("POPS LF@string");
-    printf("POPS LF@i");
-    printf("POPS LF@n");
+    printf("POPS LF@string\n");
+    printf("POPS LF@i\n");
+    printf("POPS LF@n\n");
 
-    printf("DEFVAR LF@$retval1");
-    printf("DEFVAR LF@$retval2");
+    printf("DEFVAR LF@$retval1\n");
+    printf("DEFVAR LF@$retval2\n");
 
-    printf("DEFVAR LF@$bool");
-    printf("DEFVAR LF@$len");
-    printf("DEFVAR LF@$tmpstring");
+    printf("DEFVAR LF@$bool\n");
+    printf("DEFVAR LF@$len\n");
+    printf("DEFVAR LF@$tmpstring\n");
 
-    printf("STRLEN LF@$len LF@string");
-    printf("MOVE LF@$retval1 string@");
-    printf("MOVE LF@$retval2 int@0");
+    printf("STRLEN LF@$len LF@string\n");
+    printf("MOVE LF@$retval1 string@\n");
+    printf("MOVE LF@$retval2 int@0\n");
 
-    printf("CLEARS");
-    printf("PUSHS LF@$len");
-    printf("PUSHS LF@i");
-    printf("GTS");
-    printf("PUSHS LF@i");
-    printf("PUSHS int@0");
-    printf("LTS");
-    printf("NOTS");
-    printf("ANDS");
+    printf("CLEARS\n");
+    printf("PUSHS LF@$len\n");
+    printf("PUSHS LF@i\n");
+    printf("GTS\n");
+    printf("PUSHS LF@i\n");
+    printf("PUSHS int@0\n");
+    printf("LTS\n");
+    printf("NOTS\n");
+    printf("ANDS\n");
 
-    printf("PUSHS LF@n");
-    printf("PUSHS int@0");
-    printf("LTS");
-    printf("NOTS");
-    printf("ANDS");
+    printf("PUSHS LF@n\n");
+    printf("PUSHS int@0\n");
+    printf("LTS\n");
+    printf("NOTS\n");
+    printf("ANDS\n");
 
-    printf("POPS LF@$bool");
-    printf("JUMPIFEQ $substr$error LF@$bool bool@false");
+    printf("POPS LF@$bool\n");
+    printf("JUMPIFEQ $substr$error LF@$bool bool@false\n");
 
-    printf("PUSHS LF@$len");
-    printf("PUSHS LF@i");
-    printf("SUBS");
-    printf("PUSHS LF@n");
-    printf("LTS");
+    printf("PUSHS LF@$len\n");
+    printf("PUSHS LF@i\n");
+    printf("SUBS\n");
+    printf("PUSHS LF@n\n");
+    printf("LTS\n");
 
-    printf("POPS LF@$bool");
-    printf("ADD LF@n LF@n LF@i #defaultvalue");
-    printf("JUMPIFEQ $substr$lts bool@false LF@$bool");
-    printf("MOVE LF@n LF@$len");
-    printf("LABEL $substr$lts");
+    printf("POPS LF@$bool\n");
+    printf("ADD LF@n LF@n LF@i #defaultvalue\n");
+    printf("JUMPIFEQ $substr$lts bool@false LF@$bool\n");
+    printf("MOVE LF@n LF@$len\n");
+    printf("LABEL $substr$lts\n");
 
 
-    printf("LABEL $substr$whilestart");
-    printf("PUSHS LF@i");
-    printf("PUSHS LF@n");
-    printf("LTS");
-    printf("POPS LF@$bool");
-    printf("JUMPIFEQ $substr$end LF@$bool bool@false");
+    printf("LABEL $substr$whilestart\n");
+    printf("PUSHS LF@i\n");
+    printf("PUSHS LF@n\n");
+    printf("LTS\n");
+    printf("POPS LF@$bool\n");
+    printf("JUMPIFEQ $substr$end LF@$bool bool@false\n");
 
-    printf("GETCHAR LF@$tmpstring LF@string LF@i");
-    printf("CONCAT LF@$retval1 LF@$retval1 LF@$tmpstring");
+    printf("GETCHAR LF@$tmpstring LF@string LF@i\n");
+    printf("CONCAT LF@$retval1 LF@$retval1 LF@$tmpstring\n");
 
-    printf("ADD LF@i LF@i int@1");
-    printf("JUMP $substr$whilestart");
+    printf("ADD LF@i LF@i int@1\n");
+    printf("JUMP $substr$whilestart\n");
 
-    printf("label $substr$error");
-    printf("MOVE LF@$retval2 int@1");
+    printf("label $substr$error\n");
+    printf("MOVE LF@$retval2 int@1\n");
 
-    printf("label $substr$end");
-    printf("POPFRAME");
-    printf("RETURN");
+    printf("label $substr$end\n");
+    printf("POPFRAME\n");
+    printf("RETURN\n\n");
 }
 
 void gen_func_ord(){
