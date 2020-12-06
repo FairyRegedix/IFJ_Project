@@ -1,8 +1,15 @@
-// IFJ2020
+/**
+ * IFJ Projekt 2020
+ *
+ * Errors
+ *
+ * @author <xdemsk00> Patrik Demský
+ * @author <xsabol03> František Sabol
+ */
 
+#ifndef IFJ_ERROR_H
+#define IFJ_ERROR_H
 
-
-#include <stdio.h>
 
 typedef enum error{
   SUCCESS = 0,  //Success
@@ -17,3 +24,7 @@ typedef enum error{
   ERROR_STR  = 10, //chyba pri praci s retazcami
   ERROR_TRANS = 99,  //interná chyba prekladača (napr chyba alokácie, pamäti ...)
 } ERROR;
+
+int handle_error(ERROR error, char* format, ...);
+
+#endif //IFJ_ERROR_H

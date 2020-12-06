@@ -1,5 +1,7 @@
 #subor ktory bude git ignorovat 
 /.idea
 /cmake-build-debug
-/CFGonlineform
+/CFGonlineform2
 /input.txt
+/test_parser_scanner.c
+/CFGonlineform

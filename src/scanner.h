@@ -1,8 +1,17 @@
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of scanner
+ *
+ * @author <xdemsk00> Patrik Demský
+ * @author <xsabol03> František Sabol
+ */
+
+
 #ifndef IFJ_SCANNER_H
 #define IFJ_SCANNER_H
 
-#include <stdlib.h>
-#include <stdbool.h>
+
 #include "str.h"
 
 
@@ -43,8 +52,8 @@ typedef enum{
     //-----------
 
     TOKEN_ID = 14, // main
-    TOKEN_RBRACKET = 15, // (
-    TOKEN_LBRACKET = 16, // )
+    TOKEN_RBRACKET = 15, // )
+    TOKEN_LBRACKET = 16, // (
     TOKEN_RCURLY = 17, // }
     TOKEN_LCURLY = 18, // {
     TOKEN_COMMA = 19, // ,
@@ -53,38 +62,54 @@ typedef enum{
     TOKEN_EOF = 22, // eof
     TOKEN_DEFINITION = 23, // :=
     TOKEN_ASSIGN = 24, // =
-    TOKEN_INTEGER = 25, // int
-    TOKEN_FLOAT = 26, // float
-    TOKEN_STR = 27, // str
+    TOKEN_INTEGER = 25, // int literal
+    TOKEN_FLOAT = 26, // float literal
+    TOKEN_STR = 27, // str literal
+    TOKEN_BOOLEAN = 28, //bool literal
 
-    TOKEN_NOT = 28, // !
-    TOKEN_AND = 29, // &
-    TOKEN_OR = 30, // ||
-    TOKEN_ADD = 31, // +
-    TOKEN_SUB = 32, // -
-    TOKEN_MUL = 33, // *
-    TOKEN_DIV = 34, // /
-    TOKEN_EQL = 35, // ==
-    TOKEN_NEQ = 36, // !=
-    TOKEN_LT = 37, // <
-    TOKEN_GT = 38, // >
-    TOKEN_LTE = 39, // <=
-    TOKEN_GTE = 40, // >=
+    TOKEN_NOT = 29, // !
+    TOKEN_AND = 30, // &&
+    TOKEN_OR = 31, // ||
+    TOKEN_ADD = 32, // +
+    TOKEN_SUB = 33, // -
+    TOKEN_MUL = 34, // *
+    TOKEN_DIV = 35, // /
+    TOKEN_EQL = 36, // ==
+    TOKEN_NEQ = 37, // !=
+    TOKEN_LT = 38, // <
+    TOKEN_GT = 39, // >
+    TOKEN_LTE = 40, // <=
+    TOKEN_GTE = 41, // >=
 
 } token_type;
 
 
 //token
-typedef struct{
+typedef struct token{
     token_type type;
     string actual_value; //storing int,float,string value
     int lineno; //line number
-    int pos; //position of the first char of the token
+    struct token* next; //pointer to the next token in the list
+    struct token* prev; //pointer to the previous token in the list
 }token_t;
+
+typedef struct token_list{
+    token_t* act;
+    token_t* last;
+    token_t* first;
+}token_list_t;
+
 
 int copy_token(token_t *t1, token_t *t2);
 int token_init(token_t *token);
-int get_next_token(token_t* token);
+void token_list_init(token_list_t* l);
+int token_list_insert(token_list_t* l, token_t* token);
+int token_list_next(token_list_t* l);
+void token_list_dispose(token_list_t* l);
+int getToken(token_t* token);
+int scanner_fill_token_list(token_list_t* l);
+void print_token(token_t* token);
+char* token_enum_to_str(token_type type);
 void isKeyword(int *type, char *tmp);
 
 #endif //IFJ_SCANNER_H
