@@ -1,10 +1,20 @@
-//Scanner
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of lexical analysis
+ *
+ * @author <xdemsk00> Patrik Demský
+ * @author <xsabol03> František Sabol
+ */
 
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 
 #include "error.h"
-#include "libraries.h"
 #include "scanner.h"
-#include "parser.h"
 
 
 #define MATCH_BASE(expr) do{                                                \

@@ -1,8 +1,9 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "error.h"
+
 #include "str.h"
+#include "error.h"
 
 
 int str_init(string *s){
@@ -80,7 +81,7 @@ char* str_to_c_str(const string *s){
     return s->str;
 }
 
-size_t str_len(const string *s){
+int str_len(const string *s){
     return s->len;
 }
 

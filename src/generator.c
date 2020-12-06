@@ -1,7 +1,17 @@
-//generator
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of code generator
+ *
+ * @author <xhrmor00> Richard Hrmo
+ * @author <xsabol03> František Sabol
+ */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-
+#include "scanner.h"
 #include "generator.h"
 
 unsigned int ID = 0;
@@ -29,8 +39,6 @@ void close_generator(){
     DisposeListString(&ListOfStrings);
     DisposeListString(&Vars);
     DisposeListString(&Exps);
-
-
 }
 
 void generate_header(){

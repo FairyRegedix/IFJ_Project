@@ -1,27 +1,18 @@
-#ifndef GENERATOR_H
-#define GENERATOR_H
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of code generator
+ *
+ * @author <xhrmor00> Richard Hrmo
+ * @author <xsabol03> František Sabol
+ */
+
+#ifndef IFJ_GENERATOR_H
+#define IFJ_GENERATOR_H
 
 
-#include "libraries.h"
 #include "symtable.h"
-#include "scanner.h"
-#include "str.h"
 #include "instruction_list.h"
-
-typedef enum{
-    ADDS = 0,
-    SUBS = 1,
-    MULS = 2,
-    DIVS = 3,
-    IDIVS = 4,
-    LTS = 5,
-    GTS = 6,
-    EQS = 7,
-    ANDS = 8,
-    ORS = 9,
-    NOTS = 10,
-}stack_instruction;
-
 
 
 void gen_set_retvals(int NumberOfReturns, bool in_for);
@@ -68,4 +59,4 @@ void gen_func_chr();
 void gen_func_print();
 
 
-#endif //GENERATOR_H
+#endif //IFJ_GENERATOR_H

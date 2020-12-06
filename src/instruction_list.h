@@ -1,7 +1,14 @@
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of linked list ADT for strings
+ *
+ * @author <xhrmor00> Richard Hrmo
+ */
+
 #ifndef IFJ_PROJECT_INSTRUCTION_LIST_H
 #define IFJ_PROJECT_INSTRUCTION_LIST_H
 
-#include "libraries.h"
 
 typedef struct StringElement{
     struct StringElement *ptr;
