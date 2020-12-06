@@ -148,6 +148,7 @@ void gen_add_to_vars(char *var_name, int scope) {
         sprintf(tmp,"%s$%i",var_name,scope);
     InsertFirstString(&Vars, tmp);
 }
+
 void gen_add_to_exp(char *exp, bool in_for) {
     char* tmp = malloc(strlen(exp)+1);
     strcpy(tmp,exp);
@@ -157,8 +158,7 @@ void gen_add_to_exp(char *exp, bool in_for) {
         InsertLastString(&Exps, tmp);
 }
 
-
-void gen_assign(int NumberOfVariables) {
+void gen_for_assign(int NumberOfVariables){
     if(NumberOfVariables <= 0)
         return;
     printf("CREATEFRAME\n");
@@ -169,13 +169,36 @@ void gen_assign(int NumberOfVariables) {
         printf("POPS TF@$tmp$%d\n", ID);
         push_int();
     }
-
     for(int i = 0; i < NumberOfVariables; i++){
         if(strcmp(Vars.First->data, "_") == 0){
             DeleteFirstString(&Vars);
             continue;
         }
         printf("MOVE LF@%s TF@$tmp$%d\n",Vars.First->data, IntStack[top]);
+        DeleteFirstString(&Vars);
+        pop_int();
+    }
+}
+
+void gen_assign(int NumberOfVariables, bool in_for) {
+    int tmp_top;
+    if(NumberOfVariables <= 0)
+        return;
+    printf("CREATEFRAME\n");
+    for(int j = 0; j < NumberOfVariables; j++){
+        printf("%s", Exps.First->data);
+        DeleteFirstString(&Exps);
+        printf("DEFVAR TF@$tmp$%d\n",ID);
+        printf("POPS TF@$tmp$%d\n", ID);
+        push_int();
+    }
+    tmp_top = top-NumberOfVariables+1;
+    for(int i = 0; i < NumberOfVariables; i++){
+        if(strcmp(Vars.First->data, "_") == 0){
+            DeleteFirstString(&Vars);
+            continue;
+        }
+        printf("MOVE LF@%s TF@$tmp$%d\n",Vars.First->data, IntStack[in_for?tmp_top++:top]);
         DeleteFirstString(&Vars);
         pop_int();
     }
@@ -194,6 +217,7 @@ void gen_assign_return(int NumberOfVariables){
 }
 
 void gen_set_retvals(int NumberOfReturns, bool in_for) {
+
     if (!in_for){
         for(int i = 1; i <= NumberOfReturns; i++){
             printf("%s", Exps.First->data);

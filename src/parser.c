@@ -324,7 +324,7 @@ int var(parser_info *p) {
                 p->function_called = NULL;
             }
             else
-                gen_assign(p->left_side_vars_types.len);
+                gen_assign(p->left_side_vars_types.len, p->in_for);
 
             return SUCCESS;
 
@@ -457,7 +457,7 @@ int statement(parser_info *p) {
         CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
         CHECK(leave_scope(&p->local_st, &p->scope), SUCCESS);
 
-        gen_assign(varno);
+        gen_for_assign(varno);
         gen_for_end();
         str_free(&for_expression);
         if(!nested_for)
@@ -658,7 +658,6 @@ int prog(parser_info *p) {
         // next token set
         return prog(p);
     } else if (p->token->type == TOKEN_EOF) {//Prog -> EOF
-        //TODO generate_code_end();
         return SUCCESS;
     } else {
         return handle_error(ERROR_SYN,
