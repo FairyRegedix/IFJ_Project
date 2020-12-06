@@ -771,10 +771,10 @@ int scanner_fill_token_list(token_list_t* l){
 
     }while(token->type != TOKEN_EOF);
 
-    token = l->first;
-    while(token != NULL){//testing
-        print_token(token);
-        token=token->next;
-    }
+//    token = l->first;
+//    while(token != NULL){//testing
+//        print_token(token);
+//        token=token->next;
+//    }
     return SUCCESS;
 }
