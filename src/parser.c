@@ -468,7 +468,7 @@ int statement(parser_info *p) {
         str_reinit(&p->right_side_exp_types);
         get_next_token(p);
         CHECK(return_exp(p), SUCCESS);
-        gen_set_retvals(p->right_side_exp_types.len);
+        gen_set_retvals(p->right_side_exp_types.len, p->in_for);
         if (str_cmp(&p->in_function->data.as.function.ret_types, &p->right_side_exp_types))
             return ERROR_SEM_PAR;
         gen_end_of_function();
@@ -650,7 +650,10 @@ int prog(parser_info *p) {
     if (p->token->type == TOKEN_FUNC) {//Prog - > ->func<- ...
         get_next_token(p);
         CHECK(func(p), SUCCESS);
-        MATCH(TOKEN_EOL, consume_token);
+        if(p->token->type == TOKEN_EOF)
+            return SUCCESS;
+        else
+            MATCH(TOKEN_EOL, consume_token);
         CHECK(EOL_opt(p), SUCCESS);
         // next token set
         return prog(p);

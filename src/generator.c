@@ -193,11 +193,19 @@ void gen_assign_return(int NumberOfVariables){
     }
 }
 
-void gen_set_retvals(int NumberOfReturns){
-    for(int i = 1; i <= NumberOfReturns; i++){
-        printf("%s", Exps.First->data);
-        DeleteFirstString(&Exps);
-        printf("POPS LF@retval$%i\n",i);
+void gen_set_retvals(int NumberOfReturns, bool in_for) {
+    if (!in_for){
+        for(int i = 1; i <= NumberOfReturns; i++){
+            printf("%s", Exps.First->data);
+            DeleteFirstString(&Exps);
+            printf("POPS LF@retval$%i\n",i);
+        }
+    }else{
+        for(int i = NumberOfReturns; i >= 1; i--){
+            printf("%s", Exps.First->data);
+            DeleteFirstString(&Exps);
+            printf("POPS LF@retval$%i\n",i);
+        }
     }
 }
 
