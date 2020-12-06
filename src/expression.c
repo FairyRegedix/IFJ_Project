@@ -1,3 +1,15 @@
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of expression parsing ( precedence analysis )
+ *
+ * @author <xbican03> Matúš Bičanovský
+ * @author <xsabol03> František Sabol
+ */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "expression.h"
 
 unsigned int StackItems = 0;

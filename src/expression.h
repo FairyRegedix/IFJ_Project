@@ -1,13 +1,16 @@
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of expression parsing ( precedence analysis )
+ *
+ * @author <xbican03> Matúš Bičanovský
+ * @author <xsabol03> František Sabol
+ */
 
 #include "error.h"
-#include "scanner.h"
 #include "parser.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdbool.h>
+
 
 #define MAX_STACK 1000
 
@@ -29,17 +32,6 @@ typedef enum{
 } eTypeRel;
 
 
-
-//typedef enum {
-//    T_INT = type_int,
-//    T_FLOAT = type_float,
-//    T_STRING = type_str,
-//    T_ID = TOKEN_ID,
-//    //T_NIL,
-//    T_BOOL,
-//    T_ELSE ,
-//}NonTermDataType;
-
 typedef enum {
     type_OPEN,                                   //otvorena zatvorka (<)
     type_term,                                   //terminal
@@ -55,7 +47,7 @@ typedef struct expr_stack {
     token_t* token_stack;                     //typ tokenu
     tType type;                                 //typ / otvorena zatvorka (<) /  terminal    / neterminal
     token_type dtype;                         // neterminalovy typ
-    struct  expr_stack *next;
+    //struct  expr_stack *next; ->never used asi vymaz
 } *e_stack_item;
 
 

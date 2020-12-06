@@ -1,5 +1,17 @@
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of syntactic and semantic analysis
+ *
+ * @author <xsabol03> František Sabol
+ */
 
+#include <stdio.h>
+#include <string.h>
+
+#include "parser.h"
 #include "expression.h"
+#include "generator.h"
 
 #define consume_token 1 //helper variable for MATCH macro
 #define keep_token 0    //helper variable for MATCH macro

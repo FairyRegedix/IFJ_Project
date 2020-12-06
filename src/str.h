@@ -19,7 +19,7 @@ int str_cmp(const string *s1, const string *s2);
 int str_cmp_c_str(const string *s1, const char* s2);
 char* str_to_c_str(const string *s);
 string c_str_to_str(const char *s);
-size_t str_len(const string *s);
+int str_len(const string *s);
 long int Str_to_INT(string* value);
 double Str_to_Float(string* value);
 void strrev(char* s);

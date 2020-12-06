@@ -1,6 +1,15 @@
-/*
- * */
+/**
+ * IFJ Projekt 2020
+ *
+ * Errors
+ *
+ * @author <xdemsk00> Patrik Demský
+ * @author <xsabol03> František Sabol
+ */
+
+#include <stdio.h>
 #include <stdarg.h>
+
 #include "error.h"
 
 int handle_error(ERROR error, char* format, ...){

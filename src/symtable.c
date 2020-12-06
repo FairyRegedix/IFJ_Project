@@ -1,13 +1,14 @@
-//
-// Created by Frantisek on 04.11.2020.
-//
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of a symbol table
+ *
+ * @author <xsabol03> František Sabol
+ */
 
 #include <stdlib.h>
-#include "str.h"
 #include "symtable.h"
 #include "error.h"
-
-
 
 //djb2 algorithm
 unsigned long hash(char* str){
@@ -16,7 +17,7 @@ unsigned long hash(char* str){
     int c;
 
     while ((c = *str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+        hash = ((hash << 5) + hash) + c;
 
     return hash;
 }
@@ -61,8 +62,7 @@ int st_item_init(st_item* item, const string* key, item_type type){
     item->next = NULL;
     item->data.type = type;
     item->data.defined = false;
-    item->data.built_in = false;
-    
+
     if(type == type_function){//function
         if((error_code = str_init(&item->data.as.function.params)) != SUCCESS){
                 str_free(&item->key);
@@ -83,7 +83,6 @@ int st_item_init(st_item* item, const string* key, item_type type){
     }
     else{//variable
         item->data.as.variable.value_type = -1;
-//        item->data.as.variable.value.int_value = -1;
     }
     
     return error_code;
@@ -95,9 +94,6 @@ void st_item_free(st_item* item){
         str_free(&item->data.as.function.params);
         str_free(&item->data.as.function.param_types);
         str_free(&item->data.as.function.ret_types);
-    }
-    else if(item->data.type == type_variable && item->data.as.variable.value_type == type_str){
-//        str_free(&item->data.as.variable.value.string_value);
     }
     else{
         ;
@@ -124,7 +120,7 @@ bool st_search(symbol_table_t *st, const string* key) {
         return false;
 }
 
-st_item *st_insert(symbol_table_t *st, const string *key, const item_type type) {
+st_item *st_insert(symbol_table_t *st, const string *key, item_type type) {
     unsigned long hash_code = hash(key->str) % ST_SIZE;
     st_item* replace_item = (*st)[hash_code];
     st_item* prev_item = NULL;

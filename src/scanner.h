@@ -1,10 +1,17 @@
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of scanner
+ *
+ * @author <xdemsk00> Patrik Demský
+ * @author <xsabol03> František Sabol
+ */
+
+
 #ifndef IFJ_SCANNER_H
 #define IFJ_SCANNER_H
 
 
-
-#include <stdlib.h>
-#include <stdbool.h>
 #include "str.h"
 
 

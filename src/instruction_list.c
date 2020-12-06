@@ -1,6 +1,14 @@
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of linked list ADT for strings
+ *
+ * @author <xhrmor00> Richard Hrmo
+ */
 
+#include <stdlib.h>
 #include "instruction_list.h"
-#include "error.h"
+
 
 void InitListString(StringList *List){
     List->First = NULL;

@@ -1,21 +1,24 @@
+/**
+ * IFJ Projekt 2020
+ *
+ * Implementation of a symbol table
+ *
+ * @author <xsabol03> František Sabol
+ */
 
-#ifndef IFJ_PROJECT_SYMTAB_H
-#define IFJ_PROJECT_SYMTAB_H
+#ifndef IFJ_SYMTAB_H
+#define IFJ_SYMTAB_H
 
-//#include <stdlib.h>
-//#include <stdbool.h>
-//#include "str.h"
-#include <stdint.h>
-#include "scanner.h"
+#include <stdbool.h>
+#include "str.h"
 #define ST_SIZE 133
 
 
 
 typedef enum data_type{
-    type_int = TOKEN_INT,
-    type_float = TOKEN_FLOAT64,
-    type_str = TOKEN_STRING,
-    type_bool = TOKEN_BOOL,
+    type_int = 9,    // = TOKEN_INT,
+    type_float = 5,  // = TOKEN_FLOAT64,
+    type_str = 12    // = TOKEN_STRING
 } data_type;
 
 typedef enum item_type{
@@ -34,18 +37,12 @@ typedef struct function_t{
 typedef struct variable_t{
     data_type value_type; //data type of the variable
     string* value;
-//    union{
-//        int64_t int_value; //also for bool value
-//        double float_value;
-//        string string_value;
-//    }value;
 } variable_t; //variable signature
 
 typedef struct item_data{
     item_type type; // function | var ?
     int scope;
     bool defined;
-    bool built_in;
     union{
         function_t function;
         variable_t variable;
@@ -63,8 +60,8 @@ typedef st_item* symbol_table_t[ST_SIZE];
 
 typedef struct stack{
     symbol_table_t local_table;
-    int scope;
-    struct stack* parent;
+    int scope; //unique scope for every table
+    struct stack* parent; //pointer to the parent table
 }st_stack_t;
 
 
@@ -78,7 +75,6 @@ unsigned long hash(char* s);
  * @param   st  :pointer to a symbol table to be initialized
  * */
 void st_init(symbol_table_t* st);
-
 
 
 /* Allocates and initializes dynamic memory for item and returns pointer to that initialized memory.
@@ -130,7 +126,7 @@ void st_item_free(st_item* item);
  * @param   error_code  : pointer to a variable to pass error code if any internal error occurred
  * @return  pointer to a st_item or NULL
  * */
-st_item *st_insert(symbol_table_t *st, const string *key, const item_type type);
+st_item *st_insert(symbol_table_t *st, const string *key, item_type type);
 
 /* Deletes an item with the given key from the symbol table
  * if an item with the given key is not found nothing happens
@@ -148,4 +144,4 @@ void st_dispose(symbol_table_t* st);
 int enter_scope(st_stack_t** s, int *n);
 int leave_scope(st_stack_t **s, int *n);
 st_item* stack_lookup(st_stack_t* s, const string* key);
-#endif //IFJ_PROJECT_SYMTAB_H
+#endif //IFJ_SYMTAB_H
