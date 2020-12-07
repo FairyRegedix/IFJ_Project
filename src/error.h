@@ -21,7 +21,6 @@ typedef enum error{
   ERROR_SEM_PAR = 6,  //sémantická chyba v programe - zlý počet/typ parametrov či návratových hodnôť u volania/návratu funkcie
   ERROR_SEM_OTHER = 7,  //ostatné sémantické chyby
   ERROR_NULL = 9,  //sémantická chyba delenia nulovou konštantou
-  ERROR_STR  = 10, //chyba pri praci s retazcami
   ERROR_TRANS = 99,  //interná chyba prekladača (napr chyba alokácie, pamäti ...)
 } ERROR;
 
