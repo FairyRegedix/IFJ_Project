@@ -91,7 +91,7 @@ eTypeRel Relation(eTypeTerm current, eTypeTerm new) {
 
 void init_e_stack(e_stack *stack) {
 
-    //stack->p = malloc(sizeof(e_stack));
+    
     for (int i = 0; i < MAX_STACK; i++) {
         stack->p[i] = NULL;
     }
@@ -114,7 +114,6 @@ void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token_) {
     } else {
         tokenPushed = malloc(sizeof(struct expr_stack));
         if (tokenPushed != NULL) {
-            //tokenPushed->next = stack->top;
             tokenPushed->token_stack = token_;
             tokenPushed->type = type_term;
             stack->p[stack->top] = tokenPushed;
@@ -141,7 +140,6 @@ void push_openb(e_stack *stack, int position) {
 
     e_stack_item openb = malloc(sizeof(struct expr_stack));
     if (openb != NULL) {
-        //openb->next = stack->top;
         openb->type = type_OPEN;
         stack->p[position] = openb;
     }
