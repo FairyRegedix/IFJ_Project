@@ -86,7 +86,7 @@ typedef enum{
 
 //token
 typedef struct token{
-    token_type type;
+    token_type type; //type
     string actual_value; //storing int,float,string value
     int lineno; //line number
     struct token* next; //pointer to the next token in the list
@@ -99,36 +99,73 @@ typedef struct token_list{
     token_t* first;
 }token_list_t;
 
-
+/*
+ *
+ * */
 int copy_token(token_t *t1, token_t *t2);
 
 /*
  * Initializes a token.
- * @param  token  : pointer to a token to be initialized.
+ * @param  token  pointer to a token to be initialized.
  * */
 int token_init(token_t *token);
 
 /*
  * Initializes a token list.
- * @param  l  : pointer to a list to be initialized.
+ * @param  l  pointer to a list to be initialized.
  * */
 void token_list_init(token_list_t* l);
 
-
+/*
+ * Inserts tokens to the list.
+ * @param  l  pointer to a list.
+ * @param  token  pointer to a token.
+ * @return
+ * */
 int token_list_insert(token_list_t* l, token_t* token);
 
+/*
+ *
+ * @param  l  pointer to a list.
+ * @return 
+ * */
 int token_list_next(token_list_t* l);
 
+/* Frees all dynamic memory used by a token list.
+ * @param  l  pointer to a token list.
+ * */
 void token_list_dispose(token_list_t* l);
 
+/*
+ * The main function of scanner, scans tokens.
+ * Fuction is based on the graf in the documentation.
+ * @param  token  pointer to a token.
+ * @return SUCESS if everything runs without problems,
+ * otherwise return ERROR_LEX.
+ * */
 int getToken(token_t* token);
 
 int scanner_fill_token_list(token_list_t* l);
 
+/*
+ * Auxiliari debugging function that prints the tokens.
+ * @param  token  pointer to a token.
+ * */
 void print_token(token_t* token);
 
+/*
+ * Function prints the type of the tokens.
+ * @param pointer to a type of the token.
+ * @return string with type of the token.
+ * */
 char* token_enum_to_str(token_type type);
 
+/*
+ * Check if the token type ID is the Keyword. If it is the Keyword
+ * change the type.
+ * @param type  pointer to a type of the token.
+ * @param tmp   pointer to a temporary variable that is about to be checked.
+ * */
 void isKeyword(int *type, char *tmp);
 
 #endif //IFJ_SCANNER_H
