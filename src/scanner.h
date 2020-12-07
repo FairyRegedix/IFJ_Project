@@ -23,7 +23,7 @@
 
 #define EOL '\n'
 
-//types of token
+//types of tokens
 typedef enum{
     TOKEN_ERROR = -1,
     //Keywords
@@ -101,15 +101,34 @@ typedef struct token_list{
 
 
 int copy_token(token_t *t1, token_t *t2);
+
+/*
+ * Initializes a token.
+ * @param  token  : pointer to a token to be initialized.
+ * */
 int token_init(token_t *token);
+
+/*
+ * Initializes a token list.
+ * @param  l  : pointer to a list to be initialized.
+ * */
 void token_list_init(token_list_t* l);
+
+
 int token_list_insert(token_list_t* l, token_t* token);
+
 int token_list_next(token_list_t* l);
+
 void token_list_dispose(token_list_t* l);
+
 int getToken(token_t* token);
+
 int scanner_fill_token_list(token_list_t* l);
+
 void print_token(token_t* token);
+
 char* token_enum_to_str(token_type type);
+
 void isKeyword(int *type, char *tmp);
 
 #endif //IFJ_SCANNER_H
