@@ -15,6 +15,8 @@
 
 #include "error.h"
 #include "scanner.h"
+#include "str.c"
+#include "str.h"
 
 
 #define MATCH_BASE(expr) do{                                                \
