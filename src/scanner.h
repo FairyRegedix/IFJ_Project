@@ -127,7 +127,7 @@ int token_list_insert(token_list_t* l, token_t* token);
 /*
  *
  * @param  l  pointer to a list.
- * @return 
+ * @return
  * */
 int token_list_next(token_list_t* l);
 
@@ -139,8 +139,8 @@ void token_list_dispose(token_list_t* l);
 /*
  * The main function of scanner, scans tokens.
  * Fuction is based on the graf in the documentation.
- * @param  token  pointer to a token.
- * @return SUCESS if everything runs without problems,
+ * @param   token  pointer to a token.
+ * @return  SUCESS if everything runs without problems,
  * otherwise return ERROR_LEX.
  * */
 int getToken(token_t* token);
@@ -155,16 +155,16 @@ void print_token(token_t* token);
 
 /*
  * Function prints the type of the tokens.
- * @param pointer to a type of the token.
- * @return string with type of the token.
+ * @param   pointer  to a type of the token.
+ * @return  string  with type of the token.
  * */
 char* token_enum_to_str(token_type type);
 
 /*
  * Check if the token type ID is the Keyword. If it is the Keyword
  * change the type.
- * @param type  pointer to a type of the token.
- * @param tmp   pointer to a temporary variable that is about to be checked.
+ * @param  type  pointer to a type of the token.
+ * @param  tmp  pointer to a temporary variable that is about to be checked.
  * */
 void isKeyword(int *type, char *tmp);
 
