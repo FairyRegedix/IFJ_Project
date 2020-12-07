@@ -333,6 +333,7 @@ void gen_func_inputs(){
     printf("JUMPIFNEQ $ERROR$INPUTS string@string LF@errorCheck\n");
     printf("DEFVAR LF@strlen\n");
     printf("STRLEN LF@strlen LF@param1\n");
+    printf("JUMPIFEQ $ENDOFINPUTS LF@strlen int@0\n");
     printf("SUB LF@strlen LF@strlen int@1\n");
     printf("DEFVAR LF@getchar\n");
     printf("GETCHAR LF@getchar LF@param1 LF@strlen\n");

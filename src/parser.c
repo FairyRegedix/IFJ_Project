@@ -33,47 +33,6 @@ int get_next_token(parser_info *p) {
     return SUCCESS;
 }
 
-
-int prolog(parser_info *p);
-
-int prog(parser_info *p);
-
-int func(parser_info *p);
-
-int EOL_opt(parser_info *p);
-
-int params(parser_info *p);
-
-int params_n(parser_info *p);
-
-int ret_type(parser_info *p);
-
-int ret_type_n(parser_info *p);
-
-int statement_list(parser_info *p);
-
-int statement(parser_info *p);
-
-int var(parser_info *p);
-
-int assign(parser_info *p);
-
-int end_assign(parser_info *p);
-
-int exp_n(parser_info *p);
-
-int for_def(parser_info *p);
-
-int for_assign(parser_info *p);
-
-int func_call(parser_info *p);
-
-int call_params(parser_info *p);
-
-int term_n(parser_info *p);
-
-int return_exp(parser_info *p);
-
 int for_assign(parser_info *p) {
     int error_code;
     st_item *item;
@@ -94,6 +53,7 @@ int for_assign(parser_info *p) {
         get_next_token(p);
         CHECK(assign(p), SUCCESS);
         MATCH(TOKEN_ASSIGN, consume_token);
+        CHECK(EOL_opt(p), SUCCESS);
         CHECK(end_assign(p), SUCCESS);
     }
 
@@ -411,9 +371,8 @@ int statement(parser_info *p) {
         str_reinit(&p->right_side_exp_types);
         CHECK(expression(p), SUCCESS);
 
-        string for_expression;
-        str_init(&for_expression);
-        str_copy(&for_expression,&p->exp_instruction);
+        str_reinit(&p->for_exp);
+        str_copy(&p->for_exp,&p->exp_instruction);
 
         if(p->right_side_exp_types.str[0] != TOKEN_BOOLEAN)
             return ERROR_SEM_COMP;
@@ -422,40 +381,40 @@ int statement(parser_info *p) {
         //CHECK(EOL_opt(p), SUCCESS);
 
         CHECK(for_assign(p), SUCCESS);
-        int varno = p->left_side_vars_types.len;
+        int varno = p->left_side_vars_types.len; //number of variables in for assignment
         //next token set
         helper_token = p->token->next;
         helper_scope = p->scope;
-        if(!p->in_for) {
-            int stack[1000];
+        if(!p->in_for) { //entering the first for loop, create all definitions of variables before for
+            int stack[1000];//stack of scopes
             int top = 0;
-            int l = p->scope;
-            stack[0] = p->scope;
+            int l = p->scope; //l = left curly bracket
+            stack[0] = p->scope; // sets default scope for for loop body
             do {
                 if (helper_token->type == TOKEN_LCURLY) {
-                    stack[++top] = ++l;
-                    helper_scope = stack[top];
+                    stack[++top] = ++l; //new scope
+                    helper_scope = stack[top]; //update helper_scope
                 }else if(helper_token->type == TOKEN_FOR) {
-                    helper_scope = ++l;
+                    helper_scope = ++l; //no need to save scope of for header -> just update the helper_scope
                 }
                 else if (helper_token->type == TOKEN_RCURLY){
-                    helper_scope = stack[--top];
-                }else if(helper_token->type == TOKEN_DEFINITION){
+                    helper_scope = stack[--top]; // leaving the current scope
+                }else if(helper_token->type == TOKEN_DEFINITION){//found definition
                     if(helper_token->prev->type == TOKEN_ID)
-                        gen_defvar(helper_token->prev->actual_value.str,helper_scope,p->in_for);
+                        gen_defvar(helper_token->prev->actual_value.str,helper_scope,p->in_for);//forward definition
                     else
                         break;
                 }else if(helper_token->type == TOKEN_EOF)
                     break;
                 else {}
                 helper_token = helper_token->next;
-            } while (top>-1);
+            } while (top>-1);//while stack is not empty
             p->in_for = true;
         }
         else
-            nested_for = true;
+            nested_for = true; //we were in for loop
 
-        gen_for_start(for_expression.str);
+        gen_for_start(p->for_exp.str);
 
         MATCH(TOKEN_LCURLY, consume_token);
         CHECK(enter_scope(&p->local_st, &p->scope), SUCCESS);
@@ -471,17 +430,16 @@ int statement(parser_info *p) {
 
         gen_for_assign(varno);
         gen_for_end();
-        str_free(&for_expression);
+
         if(!nested_for)
             p->in_for = false;
 
     } else if (p->token->type == TOKEN_RETURN) {
-        //+semantic check return types
         str_reinit(&p->right_side_exp_types);
         get_next_token(p);
         CHECK(return_exp(p), SUCCESS);
         gen_set_retvals(p->right_side_exp_types.len, p->in_for);
-        if (str_cmp(&p->in_function->data.as.function.ret_types, &p->right_side_exp_types))
+        if (str_cmp(&p->in_function->data.as.function.ret_types, &p->right_side_exp_types)) // sem check
             return ERROR_SEM_PAR;
         gen_end_of_function();
 
@@ -704,71 +662,7 @@ int EOL_opt(parser_info *p) {
     return SUCCESS;
 }
 
-/*parser driver code
- * returns error code*/
-int parser() {
-    int error_code;
-    parser_info p;
-    p.token = NULL;
-    p.local_st = NULL;
-    p.in_function = NULL;
-    p.scope = 0;
-    p.in_for = false;
-
-    p.function_called = NULL;
-    str_init(&p.left_side_vars_types);
-    str_init(&p.right_side_exp_types);
-    str_init(&p.exp_instruction);
-
-    st_init(&p.st);
-    token_list_init(&p.token_list);
-
-    if ((error_code = scanner_fill_token_list(&p.token_list)) != SUCCESS) {
-        token_list_dispose(&p.token_list);
-        str_free(&p.right_side_exp_types);
-        str_free(&p.left_side_vars_types);
-        str_free(&p.exp_instruction);
-        return error_code;
-    } else if ((error_code = fill_st_with_builtin(&p.st)) != SUCCESS) {
-        st_dispose(&p.st);
-        str_free(&p.right_side_exp_types);
-        str_free(&p.left_side_vars_types);
-        str_free(&p.exp_instruction);
-        token_list_dispose(&p.token_list);
-        return error_code;
-    } else if ((error_code = first_pass(&p)) != SUCCESS) {
-        st_dispose(&p.st);
-        str_free(&p.right_side_exp_types);
-        str_free(&p.left_side_vars_types);
-        str_free(&p.exp_instruction);
-        token_list_dispose(&p.token_list);
-        return error_code;
-    } else if ((error_code = get_next_token(&p)) != SUCCESS) {
-        st_dispose(&p.st);
-        str_free(&p.right_side_exp_types);
-        str_free(&p.left_side_vars_types);
-        str_free(&p.exp_instruction);
-        token_list_dispose(&p.token_list);
-        return error_code;
-    } else {
-        error_code = prolog(&p);
-        if (error_code == SUCCESS)
-            error_code = check_main(&p.st);
-        close_generator();
-        str_free(&p.right_side_exp_types);
-        str_free(&p.left_side_vars_types);
-        str_free(&p.exp_instruction);
-        st_dispose(&p.st);
-        token_list_dispose(&p.token_list);
-        while (p.local_st != NULL)
-            leave_scope(&p.local_st, &p.scope);
-
-        return error_code;
-    }
-}
-
 int first_pass(parser_info *p) {
-    //int error_code;
     st_item *func;
     get_next_token(p);
     //"package main" at the start of a valid IFJ20 code file so we can safely skip 2 tokens;
@@ -792,7 +686,7 @@ int first_pass(parser_info *p) {
 
         func->data.defined = true;
 
-        while (p->token->type != TOKEN_EOL && p->token->type != TOKEN_EOF) {
+        while (p->token->type != TOKEN_LCURLY && p->token->type != TOKEN_EOF) {
             get_next_token(p);
             if (p->token->type == TOKEN_ID) {
                 str_concat(&func->data.as.function.params, p->token->actual_value.str, p->token->actual_value.len);
@@ -816,18 +710,6 @@ int first_pass(parser_info *p) {
     return SUCCESS;
 }
 
-int main() {//testing
-    //printf("Done\n");
-
-    int ret = parser();
-    if (ret)
-        return ret;
-    else
-        fprintf(stderr,"Parsing Successful!!\n");
-    return 0;
-}
-
-
 //func inputs() (string, int)
 //func inputi() (int,int)
 //func inputf() (float64,int)
@@ -839,7 +721,6 @@ int main() {//testing
 //func chr(i int) (string, int)
 //func print( ... )
 int fill_st_with_builtin(symbol_table_t *st) {
-    //int error_code;
     string name;
     //type_float= \005,  type_int = \011,  type_string = \014,
     char *func[10][4] = {{"inputs",    "",       "",             "\014\011"},
@@ -880,9 +761,9 @@ int check_main(symbol_table_t *st) {
 
     if (item == NULL)
         return ERROR_SEM_DEF;
-    if (strcmp(item->data.as.function.param_types.str, ""))
+    if (strcmp(item->data.as.function.param_types.str, "") != 0 )
         return ERROR_SEM_PAR;
-    if (strcmp(item->data.as.function.ret_types.str, ""))
+    if (strcmp(item->data.as.function.ret_types.str, "") != 0 )
         return ERROR_SEM_PAR;
 
     return SUCCESS;
@@ -930,7 +811,6 @@ int set_data_type(parser_info *p, token_t *token, data_type *type, bool throw_er
     return SUCCESS;
 }
 
-
 int check_types(string *s1, string *s2) {
     int error_code = SUCCESS;
     string tmp1, tmp2;
@@ -953,4 +833,73 @@ int check_types(string *s1, string *s2) {
     str_free(&tmp1);
     str_free(&tmp2);
     return error_code;
+}
+
+int init_parser(parser_info* p){
+    int error_code;
+    p->token = NULL;
+    p->local_st = NULL;
+    p->in_function = NULL;
+    p->scope = 0;
+    p->in_for = false;
+    p->function_called = NULL;
+
+    CHECK(str_init(&p->left_side_vars_types), SUCCESS);
+    CHECK(str_init(&p->right_side_exp_types), SUCCESS);
+    CHECK(str_init(&p->exp_instruction), SUCCESS);
+    CHECK(str_init(&p->for_exp), SUCCESS);
+
+    st_init(&p->st);
+    token_list_init(&p->token_list);
+
+    return SUCCESS;
+}
+
+void dispose_parser(parser_info* p){
+    close_generator();
+    str_free(&p->left_side_vars_types);
+    str_free(&p->right_side_exp_types);
+    str_free(&p->exp_instruction);
+    str_free(&p->for_exp);
+    st_dispose(&p->st);
+    while (p->local_st != NULL)
+        leave_scope(&p->local_st, &p->scope);
+    token_list_dispose(&p->token_list);
+}
+
+/*parser's driver code
+ * returns error code*/
+int parser() {
+    int error_code;
+    parser_info p;
+    CHECK(init_parser(&p),SUCCESS);
+
+    if ((error_code = scanner_fill_token_list(&p.token_list)) != SUCCESS) {
+        dispose_parser(&p);
+        return error_code;
+    } else if ((error_code = fill_st_with_builtin(&p.st)) != SUCCESS) {
+        dispose_parser(&p);
+        return error_code;
+    } else if ((error_code = first_pass(&p)) != SUCCESS) {
+        dispose_parser(&p);
+        return error_code;
+    } else if ((error_code = get_next_token(&p)) != SUCCESS) {
+        dispose_parser(&p);
+        return error_code;
+    } else {
+        error_code = prolog(&p);
+        if (error_code == SUCCESS)
+            error_code = check_main(&p.st);
+        dispose_parser(&p);
+        return error_code;
+    }
+}
+
+int main() {
+    int ret = parser();
+    if (ret)
+        return ret;
+    else
+        fprintf(stderr,"Parsing Successful!\n");
+    return SUCCESS;
 }

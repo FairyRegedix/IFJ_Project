@@ -11,9 +11,7 @@
 
 #include <stdbool.h>
 #include "str.h"
-#define ST_SIZE 133
-
-
+#define ST_SIZE 997 //prime number
 
 typedef enum data_type{
     type_int = 9,    // = TOKEN_INT,
@@ -136,12 +134,24 @@ st_item *st_insert(symbol_table_t *st, const string *key, item_type type);
  * */
 bool st_del_item(symbol_table_t* st, const string *key);
 
-/* Frees all dynamic memory used by a symbol table.
+/* Frees all allocated memory used by a symbol table.
  * @param   st  : pointer to a symbol table
  * */
 void st_dispose(symbol_table_t* st);
 
+/* Creates a new symbol table for a new scope and increments a scope counter.
+ * @param s : A pointer to a symbol table stack's top pointer that points to current scope's symbol table
+ * @param n : A pointer to a scope counter*/
 int enter_scope(st_stack_t** s, int *n);
+
+/* Destroys the scope's symbol table.
+ * @param s : A pointer to a symbol table stack's top pointer that points to current scope's symbol table
+ * @param n : A pointer to a scope counter*/
 int leave_scope(st_stack_t **s, int *n);
+
+/* Used to lookup a symbol in the stack of symbol tables with a name given by the parameter key.
+ * @param s : A pointer to a symbol table.
+ * @param key : A pointer to a string (symbol name)
+ * */
 st_item* stack_lookup(st_stack_t* s, const string* key);
 #endif //IFJ_SYMTAB_H
