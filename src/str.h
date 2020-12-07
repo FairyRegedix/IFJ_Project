@@ -1,7 +1,9 @@
+// This library is based by the one used in "jednoduchy_interpret"
 #ifndef IFJ_PROJECT_STR_H
 #define IFJ_PROJECT_STR_H
 
 #define BLOCK_SIZE 8
+
 
 typedef struct string{
     char* str;
