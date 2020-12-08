@@ -100,15 +100,20 @@ typedef struct token_list{
 }token_list_t;
 
 
-int copy_token(token_t *t1, token_t *t2);
 int token_init(token_t *token);
 void token_list_init(token_list_t* l);
 int token_list_insert(token_list_t* l, token_t* token);
 int token_list_next(token_list_t* l);
 void token_list_dispose(token_list_t* l);
 int getToken(token_t* token);
+
+/* Fills token list with tokens recognized by scanner.
+ * @param l : A pointer to a token list to fill with tokens*/
 int scanner_fill_token_list(token_list_t* l);
 void print_token(token_t* token);
+
+/* Converts token_type enum to string represention.
+ * @param type : A token_type to convert to a string.*/
 char* token_enum_to_str(token_type type);
 void isKeyword(int *type, char *tmp);
 
