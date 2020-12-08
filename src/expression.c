@@ -12,8 +12,7 @@
 #include <string.h>
 #include "expression.h"
 
-unsigned int StackItems = 0;
-unsigned int DisposedItems = 0;
+
 
 eTypeTerm GetTerm(token_type Ttype) {
     switch (Ttype) {
@@ -92,7 +91,7 @@ eTypeRel Relation(eTypeTerm current, eTypeTerm new) {
 
 void init_e_stack(e_stack *stack) {
 
-    //stack->p = malloc(sizeof(e_stack));
+    
     for (int i = 0; i < MAX_STACK; i++) {
         stack->p[i] = NULL;
     }
@@ -105,8 +104,6 @@ e_stack_item pop_stack(e_stack *stack) {
     ret = stack->p[stack->top];
     stack->p[stack->top] = NULL;
     stack->top--;
-    StackItems = StackItems - 1;
-
     return ret;
 }
 
@@ -117,12 +114,10 @@ void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token_) {
     } else {
         tokenPushed = malloc(sizeof(struct expr_stack));
         if (tokenPushed != NULL) {
-            //tokenPushed->next = stack->top;
             tokenPushed->token_stack = token_;
             tokenPushed->type = type_term;
             stack->p[stack->top] = tokenPushed;
             tokenPushed->dtype = token_->type;
-            StackItems = StackItems + 1;
 
         }
     }
@@ -130,7 +125,6 @@ void push_stack(e_stack *stack, e_stack_item tokenPushed, token_t *token_) {
 
 void push_nonterm(e_stack *stack, e_stack_item pushedNonterm) {
     stack->top++;
-    StackItems = StackItems + 1;
     stack->p[stack->top] = pushedNonterm;
 
 }
@@ -146,10 +140,8 @@ void push_openb(e_stack *stack, int position) {
 
     e_stack_item openb = malloc(sizeof(struct expr_stack));
     if (openb != NULL) {
-        //openb->next = stack->top;
         openb->type = type_OPEN;
         stack->p[position] = openb;
-        StackItems = StackItems + 1;
     }
 }
 
@@ -194,7 +186,6 @@ int FindFirstOpenB(e_stack *stack) {
 bool e_stack_dispose(e_stack *stack) {
    for(int i = 0; i < MAX_STACK; i++) {
         free(stack->p[i]);
-        DisposedItems = DisposedItems + 1;
     }
     return true;
 }
@@ -206,8 +197,6 @@ bool e_stack_dispose(e_stack *stack) {
 
 
 int expressionParse(e_stack *stack, parser_info *p) {
-    /*e_stack_item itemP;
-    itemP = pop_stack(stack); */
     e_stack_item itemOP;
     token_type dataType;
     int ruleSize = FindFirstOpenB(stack);
@@ -215,15 +204,13 @@ int expressionParse(e_stack *stack, parser_info *p) {
     switch (ruleSize) {
         case 1:{
             char scope[50];
-            //token_type dataType;
             itemOP = pop_stack(stack);
-            // pravidlo E -> <val>
+            // rule E -> <val>
             switch (itemOP->dtype) {
 
                 case TOKEN_INT:
                 case TOKEN_INTEGER:
                     dataType = TOKEN_INT;
-                    //sprintf("PUSHS int@%s\n", itemOP->token_stack->actual_value.str);
                     str_concat(&p->exp_instruction,"PUSHS int@",strlen("PUSHS int@"));
                     str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
                     str_add_char(&p->exp_instruction,'\n');
@@ -232,10 +219,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_FLOAT:
                 case TOKEN_FLOAT64:
                     dataType = TOKEN_FLOAT64;
-                    //printf("PUSHS float@%a\n", Str_to_Float(&itemOP->token_stack->actual_value));
-
                     sprintf(scope,"%a",Str_to_Float(&itemOP->token_stack->actual_value));
-
                     str_concat(&p->exp_instruction,"PUSHS float@",strlen("PUSHS float@"));
                     str_concat(&p->exp_instruction,scope,strlen(scope));
                     str_add_char(&p->exp_instruction,'\n');
@@ -244,7 +228,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_STR:
                 case TOKEN_STRING:
                     dataType = TOKEN_STRING;
-                    //printf("PUSHS string@%s\n", itemOP->token_stack->actual_value.str);
                     str_concat(&p->exp_instruction,"PUSHS string@",strlen("PUSHS string@"));
                     str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
                     str_add_char(&p->exp_instruction,'\n');
@@ -263,8 +246,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
                         return 3;
                     }
                     dataType = itemCheck->data.as.variable.value_type;
-
-                    //printf("PUSHS LF@%s\n", itemOP->token_stack->actual_value.str);
                     str_concat(&p->exp_instruction,"PUSHS LF@",strlen("PUSHS LF@"));
                     str_concat(&p->exp_instruction,itemOP->token_stack->actual_value.str,itemOP->token_stack->actual_value.len);
                     sprintf(scope,"$%d\n", itemCheck->data.scope);
@@ -319,10 +300,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
 
             e_stack_item itemOP3;
             itemOP3 = pop_stack(stack);
-
-
-            //int checking = str_cmp(&itemOP1->token_stack.actual_value,&itemOP3->token_stack.actual_value);
-
             if ((itemOP1->dtype != itemOP3->dtype) || itemOP1->dtype == TOKEN_BOOLEAN) {
                 //error
                 return 5;
@@ -331,12 +308,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_ADD:
                     // E -> E + E
                     if (itemOP1->dtype == TOKEN_STRING) {
-                        /*printf("DEFVAR GF@exp$string1");
-                        printf("DEFVAR GF@exp$string2");
-                        printf("POPS GF@exp$string2");
-                        printf("POPS GF@exp$string1");
-                        printf("CONCAT GF@CONCATRESULT GF@exp$string1 GF@exp$string2");
-                        printf("PUSH GF@CONCATRESULT");*/
                         str_concat(&p->exp_instruction,"POPS GF@exp$string2",strlen("POPS GF@exp$string2"));
                         str_add_char(&p->exp_instruction,'\n');
                         str_concat(&p->exp_instruction,"POPS GF@exp$string1",strlen("POPS GF@exp$string1"));
@@ -354,7 +325,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_SUB:
                     //E -> E - E
                     if (itemOP1->dtype != TOKEN_STRING) {
-                        //printf("SUBS\n");
                         str_concat(&p->exp_instruction,"SUBS",strlen("SUBS"));
                         str_add_char(&p->exp_instruction,'\n');
                         break;
@@ -363,7 +333,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
                 case TOKEN_MUL:
                     //E -> E * E
                     if (itemOP1->dtype != TOKEN_STRING) {
-                        //printf("MULS\n");
                         str_concat(&p->exp_instruction,"MULS",strlen("MULS"));
                         str_add_char(&p->exp_instruction,'\n');
                         break;
@@ -379,7 +348,6 @@ int expressionParse(e_stack *stack, parser_info *p) {
                                 str_concat(&p->exp_instruction,"IDIVS",strlen("IDIVS"));
                                 str_add_char(&p->exp_instruction,'\n');
                             }else{
-                                //printf("DIVS\n");
                                 str_concat(&p->exp_instruction,"DIVS",strlen("DIVS"));
                                 str_add_char(&p->exp_instruction,'\n');
                             }
@@ -390,21 +358,18 @@ int expressionParse(e_stack *stack, parser_info *p) {
                     return 5;
                 case TOKEN_LT:
                     //E -> E < E
-                    //printf("LTS\n");
                     str_concat(&p->exp_instruction,"LTS",strlen("LTS"));
                     str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_EQL:
                     // E -> E == E
-                    //printf("EQS\n");
                     str_concat(&p->exp_instruction,"EQS",strlen("EQS"));
                     str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_NEQ:
                     // E -> E != E
-                    //printf("EQS\nNOTS\n");
                     str_concat(&p->exp_instruction,"EQS",strlen("EQS"));
                     str_add_char(&p->exp_instruction,'\n');
                     str_concat(&p->exp_instruction,"NOTS",strlen("NOTS"));
@@ -413,13 +378,12 @@ int expressionParse(e_stack *stack, parser_info *p) {
                     break;
                 case TOKEN_GT:
                     // E -> E > E
-                    //printf("GTS\n");
                     str_concat(&p->exp_instruction,"GTS",strlen("GTS"));
                     str_add_char(&p->exp_instruction,'\n');
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_GTE:
-                    //volanie megovej funkcie
+                    // E -> E >= E
                     str_concat(&p->exp_instruction,"LTS",strlen("LTS"));
                     str_add_char(&p->exp_instruction,'\n');
                     str_concat(&p->exp_instruction,"NOTS",strlen("NOTS"));
@@ -427,7 +391,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
                     itemOP3->dtype = TOKEN_BOOLEAN;
                     break;
                 case TOKEN_LTE:
-                    //volanie megovej funkcie
+                    // E - > E <= E
                     str_concat(&p->exp_instruction,"GTS",strlen("GTS"));
                     str_add_char(&p->exp_instruction,'\n');
                     str_concat(&p->exp_instruction,"NOTS",strlen("NOTS"));
@@ -448,7 +412,7 @@ int expressionParse(e_stack *stack, parser_info *p) {
 
         }
         default:
-            //error nie je mozne uplatnit pravidlo
+            //error no rule to be used
             return 2;
             break;
 
@@ -486,40 +450,30 @@ int expression(parser_info *p) {
                 push_openb(&stack, ++check);
 
                 push_stack(&stack, item, p->token);
-
-                //volanie dalsieho tokenu , opytat sa fera ktora funkcia na to sluzi
-                //p->token = *p->token->next;
                 get_next_token(p);
                 break;
             case T_closed : {
                 int result = expressionParse(&stack, p);
                 if (result > 0) {
-                    //chyba vo vyraze
+                    //error in expression
                     loop = result;
                 }
-               // push_stack(&stack, item, p->token);
             }
                 break;
 
 
             case T_equal:
                 push_stack(&stack, item, p->token);
-                //volanie dalsieho tokenu
-                //p->token = *p->token->next;
                 get_next_token(p);
                 break;
 
             case T_nothing :
                 if (current == T_DOLLAR && new == T_DOLLAR) {
                     if (stack.top < 0) {
-                        //error vyraz nemoze byt prazdny
+                        //error , expression cannot be empty
                         loop = 2;
                     } else {
                         loop = 1;
-                        //printf("POPS GF@EXPRESULT\n");
-//                        str_concat(&p->exp_instruction,"POPS GF@EXPRESULT",strlen("POPS GF@EXPRESULT"));
-//                        str_add_char(&p->exp_instruction,'\n');
-                        //spravne ukoncenie analyzy vyrazu
                     }
 
                 } else {
@@ -541,22 +495,22 @@ int expression(parser_info *p) {
     after_add:
     e_stack_dispose(&stack);
 
-    if (loop == 1)                                //uspesne ukoncenie precedencnej analyzy vyrazu
+    if (loop == 1)                                 //successful end of precedence analysis
     {
         return SUCCESS;
-    } else if (loop == 2)                          //chyba v rámci syntaktickej analýzy
+    } else if (loop == 2)                          //syntax error
     {
         return ERROR_SYN;
-    } else if (loop == 3)                          //sémantická chyba v programe - nedefinovaná funkcia/premenná
+    } else if (loop == 3)                          //semantic error - undefined variable
     {
         return ERROR_SEM_DEF;
-    } else if (loop == 5)                          //sémantická chyba typovej kompatibility v aritmetických reťazových a relačných výrazoch
+    } else if (loop == 5)                          //semantic error of different data type in expression
     {
         return ERROR_SEM_COMP;
-    } else if (loop == 9)                          //semanticka chyba delenia nulov
+    } else if (loop == 9)                          //semantic error - division by 0 constant
     {
         return ERROR_NULL;
-    } else
+    } else                                        //intern error of compiler
         return ERROR_TRANS;
 
 }
