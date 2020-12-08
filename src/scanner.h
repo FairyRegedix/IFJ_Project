@@ -99,10 +99,6 @@ typedef struct token_list{
     token_t* first;
 }token_list_t;
 
-/*
- *
- * */
-int copy_token(token_t *t1, token_t *t2);
 
 /*
  * Initializes a token.
@@ -145,19 +141,19 @@ void token_list_dispose(token_list_t* l);
  * */
 int getToken(token_t* token);
 
+
+/* Fills token list with tokens recognized by scanner.
+ * @param l : A pointer to a token list to fill with tokens*/
 int scanner_fill_token_list(token_list_t* l);
 
 /*
- * Auxiliari debugging function that prints the tokens.
+ * Auxiliary debugging function that prints the tokens.
  * @param  token  pointer to a token.
  * */
 void print_token(token_t* token);
 
-/*
- * Function prints the type of the tokens.
- * @param   pointer  to a type of the token.
- * @return  string  with type of the token.
- * */
+/* Converts token_type enum to string represention.
+ * @param type : A token_type to convert to a string.*/
 char* token_enum_to_str(token_type type);
 
 /*

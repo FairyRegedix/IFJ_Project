@@ -12,18 +12,21 @@
 
 
 typedef enum error{
-  SUCCESS = 0,  //Success
-  ERROR_LEX = 1,  //chyba v rámci lexikálnej analýzy
-  ERROR_SYN = 2,  //chyba v rámci syntaktickej analýzy
-  ERROR_SEM_DEF = 3,  //sémantická chyba v programe - nedefinovaná funkcia/premenná, pokus o redefiniciu funkcie/premennej
-  ERROR_SEM_DAT = 4,  //sémantická chyba pri odvodzovaní dátového typu novej definovanej premennej
-  ERROR_SEM_COMP = 5,  //sémantická chyba typovej kompatibility v aritmetických reťazových a relačných výrazoch
-  ERROR_SEM_PAR = 6,  //sémantická chyba v programe - zlý počet/typ parametrov či návratových hodnôť u volania/návratu funkcie
-  ERROR_SEM_OTHER = 7,  //ostatné sémantické chyby
-  ERROR_NULL = 9,  //sémantická chyba delenia nulovou konštantou
-  ERROR_TRANS = 99,  //interná chyba prekladača (napr chyba alokácie, pamäti ...)
+  SUCCESS = 0,
+  ERROR_LEX = 1,
+  ERROR_SYN = 2,
+  ERROR_SEM_DEF = 3,
+  ERROR_SEM_DAT = 4,
+  ERROR_SEM_COMP = 5,
+  ERROR_SEM_PAR = 6,
+  ERROR_SEM_OTHER = 7,
+  ERROR_NULL = 9,
+  ERROR_TRANS = 99,
 } ERROR;
 
+/*
+ * Pretty print for errors.
+ * */
 int handle_error(ERROR error, char* format, ...);
 
 #endif //IFJ_ERROR_H
